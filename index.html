@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>POS - Moles Chabelita SV</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="POS Chabelita">
+<style>
+  * { box-sizing: border-box; font-family: 'Segoe UI', -apple-system, sans-serif; margin: 0; padding: 0; }
+  body { background: #1a1a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+  
+  .app { display: grid; grid-template-columns: 1fr 400px; gap: 12px; padding: 12px; height: 100vh; }
+  .catalogo { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+  
+  .topbar {
+    background: rgba(0,0,0,0.5);
+    padding: 10px 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .topbar img { height: 45px; }
+  .topbar h1 { font-size: 18px; color: #f4a261; flex: 1; min-width: 120px; }
+  .estado { font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
+  .estado.online { background: #2ecc71; color: #000; }
+  .estado.cache { background: #f39c12; color: #000; }
+  .estado.offline { background: #e74c3c; }
+
+  .buscador { display: flex; gap: 8px; }
+  .buscador input {
+    flex: 1; padding: 14px 18px; border: none; border-radius: 12px;
+    font-size: 16px; background: rgba(255,255,255,0.95); color: #000;
+  }
+
+  .filtros { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+  .filtros button {
+    padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;
+    background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; white-space: nowrap;
+    font-size: 13px; transition: all 0.2s;
+  }
+  .filtros button.activo { background: #f4a261; color: #000; border-color: #f4a261; font-weight: 700; }
+
+  .productos {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px; overflow-y: auto; padding-right: 4px; flex: 1;
+  }
+  .producto {
+    background: rgba(255,255,255,0.95); color: #000; border-radius: 12px;
+    padding: 10px; cursor: pointer; transition: all 0.15s; position: relative;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .producto:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(244,162,97,0.4); }
+  .producto.agotado { opacity: 0.4; cursor: not-allowed; }
+  .producto img { width: 100%; height: 90px; object-fit: cover; border-radius: 8px; background: #eee; }
+  .producto .nombre { font-size: 13px; font-weight: 700; line-height: 1.2; min-height: 32px; }
+  .producto .id { font-size: 10px; color: #888; }
+  .producto .precio { font-size: 16px; font-weight: 800; color: #2ecc71; }
+  .producto .unidad { font-size: 10px; color: #888; font-weight: 600; }
+  .producto .stock-badge {
+    position: absolute; top: 6px; right: 6px;
+    background: #2ecc71; color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .producto.agotado .stock-badge { background: #e74c3c; }
+  .producto .granel-badge {
+    position: absolute; top: 6px; left: 6px;
+    background: #f39c12; color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+  }
+
+  .ticket-panel {
+    background: rgba(0,0,0,0.5); border-radius: 12px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .ticket-header {
+    padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ticket-header h2 { font-size: 16px; color: #f4a261; }
+  .ticket-header .folio { font-size: 11px; color: #888; }
+
+  .cliente-box { padding: 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .cliente-box input {
+    width: 100%; padding: 8px 12px; border: none; border-radius: 8px;
+    font-size: 13px; background: rgba(255,255,255,0.1); color: #fff;
+  }
+  .cliente-box input::placeholder { color: #888; }
+
+  .ticket-items { flex: 1; overflow-y: auto; padding: 8px; }
+  .item {
+    background: rgba(255,255,255,0.05); border-radius: 8px; padding: 8px 10px;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-info .n { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-info .p { font-size: 11px; color: #f4a261; }
+  .item .cant { display: flex; align-items: center; gap: 6px; }
+  .item .cant button {
+    width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer;
+    font-weight: 700; font-size: 14px;
+  }
+  .item .cant button.mas { background: #2ecc71; color: #fff; }
+  .item .cant button.menos { background: #e74c3c; color: #fff; }
+  .item .cant span { min-width: 22px; text-align: center; font-weight: 700; font-size: 14px; }
+  .item .cant input {
+    width: 58px; padding: 5px 4px; text-align: center; font-weight: 700; font-size: 14px;
+    border: 2px solid #f4a261; border-radius: 6px; background: rgba(255,255,255,0.95); color: #000;
+  }
+  .item .cant input:focus { outline: none; border-color: #2ecc71; }
+  .item .subtotal { font-size: 13px; font-weight: 700; min-width: 60px; text-align: right; }
+  /* Importe editable en productos a granel: escribes $ y se calcula la cantidad */
+  .item .importe { display: flex; align-items: center; gap: 2px; font-weight: 700; font-size: 13px; }
+  .item .importe input {
+    width: 72px; padding: 5px 4px; text-align: right; font-weight: 800; font-size: 14px;
+    border: 2px solid #2ecc71; border-radius: 6px; background: rgba(255,255,255,0.95); color: #000;
+  }
+  .item .importe input:focus { outline: none; border-color: #f4a261; }
+  .item.fijo .importe input { background: #d5f5e3; }
+  .item input[type=number]::-webkit-inner-spin-button,
+  .item input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .item input[type=number] { -moz-appearance: textfield; }
+
+  .ticket-vacio { text-align: center; color: #666; padding: 40px 20px; font-size: 14px; }
+
+  .ticket-footer { border-top: 1px solid rgba(255,255,255,0.1); padding: 12px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .total-row .monto { color: #2ecc71; }
+  .botones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-cobrar {
+    grid-column: 1/-1;
+    padding: 16px; border: none; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff;
+    font-size: 18px; font-weight: 800;
+  }
+  .btn-cobrar:disabled { background: #555; cursor: not-allowed; }
+  .btn-sec {
+    padding: 10px; border: none; border-radius: 10px; cursor: pointer;
+    background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; font-size: 13px;
+  }
+  .btn-sec:hover { background: rgba(255,255,255,0.2); }
+
+  .modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 1000; justify-content: center; align-items: center; padding: 15px;
+  }
+  .modal.activo { display: flex; }
+  .modal-box {
+    background: #16213e; border-radius: 16px; max-width: 500px; width: 100%;
+    max-height: 90vh; overflow-y: auto; padding: 20px; color: #fff;
+  }
+  .modal-box h2 { color: #f4a261; margin-bottom: 15px; font-size: 20px; }
+  
+  .metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+  .metodos button {
+    padding: 14px; border: 2px solid rgba(255,255,255,0.15); border-radius: 10px;
+    background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-size: 14px; font-weight: 600;
+    transition: all 0.2s;
+  }
+  .metodos button.activo { background: #f4a261; color: #000; border-color: #f4a261; }
+  
+  .campo { margin-bottom: 12px; }
+  .campo label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
+  .campo input, .campo select {
+    width: 100%; padding: 12px; border: none; border-radius: 8px;
+    font-size: 16px; background: rgba(255,255,255,0.95); color: #000;
+  }
+  .cambio-box {
+    background: #2ecc71; color: #000; padding: 14px; border-radius: 10px;
+    text-align: center; margin: 10px 0;
+  }
+  .cambio-box .lbl { font-size: 12px; font-weight: 600; }
+  .cambio-box .val { font-size: 28px; font-weight: 800; }
+
+  .btn-confirmar {
+    width: 100%; padding: 16px; border: none; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff;
+    font-size: 17px; font-weight: 800; margin-top: 10px;
+  }
+  .btn-cerrar {
+    padding: 12px; border: none; border-radius: 10px; cursor: pointer;
+    background: rgba(255,255,255,0.1); color: #fff; font-weight: 600; width: 100%;
+    margin-top: 8px;
+  }
+
+  #canvasTicket { display: none; }
+  .ticket-preview {
+    max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    margin: 10px 0;
+  }
+
+  .hist-item {
+    background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px;
+    margin-bottom: 10px; border-left: 3px solid #f4a261;
+  }
+  .hist-dia { margin-bottom: 20px; }
+  .hist-dia h3 { color: #f4a261; font-size: 16px; margin-bottom: 10px; }
+  .hist-resumen {
+    background: rgba(244,162,97,0.1); border-radius: 10px; padding: 12px;
+  }
+  .hist-resumen .titulo { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+  .hist-resumen .fila {
+    display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0;
+  }
+  .hist-resumen .fila .cant { color: #f4a261; font-weight: 700; }
+  .hist-resumen .total-dia {
+    display: flex; justify-content: space-between; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-weight: 700;
+  }
+  .hist-resumen .total-dia .monto { color: #2ecc71; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; height: auto; }
+    .ticket-panel { position: fixed; inset: 0; z-index: 500; border-radius: 0; display: none; background: #16213e; }
+    .ticket-panel.abierto { display: flex; }
+    .productos { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+    .btn-flotante {
+      position: fixed; bottom: 20px; right: 20px; z-index: 400;
+      background: #f4a261; color: #000; border: none; border-radius: 50%;
+      width: 65px; height: 65px; font-size: 26px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 6px 25px rgba(244,162,97,0.6);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cerrar-ticket { display: block !important; }
+  }
+  @media (min-width: 901px) {
+    .btn-flotante { display: none; }
+    .cerrar-ticket { display: none !important; }
+  }
+
+  .btn-imprimir {
+    width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
+    background: #f4a261; color: #000; font-size: 16px; font-weight: 800; margin-top: 8px;
+  }
+  .config-fila { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: #aaa; justify-content: center; }
+  .config-fila select { padding: 4px 8px; border-radius: 6px; border: none; }
+
+  /* ---------- Login ---------- */
+  .login {
+    position: fixed; inset: 0; z-index: 2000; background: #1a1a2e;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .login.activo { display: flex; }
+  .login-box {
+    background: #16213e; border-radius: 18px; padding: 26px 22px; width: 100%; max-width: 380px;
+    display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  .login-box img { height: 70px; object-fit: contain; align-self: center; }
+  .login-box h2 { text-align: center; color: #f4a261; font-size: 20px; }
+  .login-box input[type=text], .login-box input[type=password] {
+    width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px;
+    background: rgba(255,255,255,0.95); color: #000;
+  }
+  .pass-wrap { position: relative; }
+  .pass-wrap button {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; font-size: 20px; cursor: pointer; padding: 6px;
+  }
+  .login-box label.chk { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #ccc; }
+  .login-box label.chk input { width: 20px; height: 20px; }
+  .login-error { color: #ff7b6b; font-size: 14px; text-align: center; min-height: 18px; }
+  .recordados { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .recordados button {
+    padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(244,162,97,0.6);
+    background: rgba(244,162,97,0.12); color: #fff; cursor: pointer; font-size: 14px;
+  }
+  .recordados button.sel { background: #f4a261; color: #000; font-weight: 700; }
+
+  /* ---------- Barra superior: usuario y sincronización ---------- */
+  .usuario-btn { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sync { font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; cursor: pointer;
+          white-space: nowrap; border: none; }
+  .sync.ok { background: rgba(46,204,113,0.2); color: #2ecc71; }
+  .sync.pend { background: #f39c12; color: #000; }
+  .sync.err { background: #e74c3c; color: #fff; }
+  .ajuste-fila { display: flex; justify-content: space-between; align-items: center; gap: 10px;
+                 padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 14px; }
+  .ajuste-fila input { width: 90px; padding: 8px; border-radius: 8px; border: none; font-size: 16px;
+                       text-transform: uppercase; text-align: center; font-weight: 700; }
+  .hist-vendedor { font-size: 12px; color: #ccc; margin-top: 8px; }
+
+  /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
+  #zonaImpresion { display: none; }
+  @media print {
+    @page { margin: 0; }
+    body { background: #fff !important; }
+    body > *:not(#zonaImpresion) { display: none !important; }
+    #zonaImpresion { display: block !important; }
+    #zonaImpresion img { width: 100%; display: block; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="catalogo">
+    <div class="topbar">
+      <img src="https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png" alt="Logo">
+      <h1>Punto de Venta</h1>
+      <span class="estado cache" id="estado">🟡 Cargando...</span>
+      <button class="sync ok" id="syncEstado" onclick="enviarPendientes(true)" title="Ventas por subir a Google Sheets">☁️ Al día</button>
+      <button class="btn-sec" onclick="abrirHistorial()">📊 Historial</button>
+      <button class="btn-sec usuario-btn" id="btnUsuario" onclick="abrirAjustes()">👤 ---</button>
+    </div>
+    
+    <div class="buscador">
+      <input type="text" id="buscador" placeholder="🔍 Buscar por ID o nombre..." autocomplete="off">
+    </div>
+    
+    <div class="filtros" id="filtros"></div>
+    
+    <div class="productos" id="productos">
+      <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Cargando productos...</div>
+    </div>
+  </div>
+  
+  <div class="ticket-panel" id="ticketPanel">
+    <div class="ticket-header">
+      <div>
+        <h2>🧾 Ticket</h2>
+        <span class="folio" id="folioActual">---</span>
+      </div>
+      <button class="btn-sec cerrar-ticket" onclick="cerrarTicket()" style="display:none;">✕</button>
+    </div>
+    
+    <div class="cliente-box">
+      <input type="text" id="clienteInput" placeholder="👤 Cliente (opcional)" maxlength="40">
+    </div>
+    
+    <div class="ticket-items" id="ticketItems">
+      <div class="ticket-vacio">Agrega productos<br>tocando las tarjetas</div>
+    </div>
+    
+    <div class="ticket-footer">
+      <div class="total-row">
+        <span>TOTAL</span>
+        <span class="monto" id="totalTicket">$0.00</span>
+      </div>
+      <div class="botones">
+        <button class="btn-cobrar" id="btnCobrar" onclick="abrirCobro()" disabled>💵 COBRAR</button>
+        <button class="btn-sec" onclick="cancelarTicket()">🗑️ Cancelar</button>
+        <button class="btn-sec" onclick="limpiarTicket()">🧹 Vaciar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="btn-flotante" onclick="abrirTicketMovil()">🛒</button>
+
+<div class="modal" id="modalCobro">
+  <div class="modal-box">
+    <h2>💵 Cobrar</h2>
+    
+    <div class="metodos">
+      <button data-metodo="efectivo" onclick="selMetodo('efectivo')">💵 Efectivo</button>
+      <button data-metodo="transferencia" onclick="selMetodo('transferencia')">📱 Transferencia</button>
+      <button data-metodo="tarjeta" onclick="selMetodo('tarjeta')">💳 Tarjeta</button>
+      <button data-metodo="mixto" onclick="selMetodo('mixto')">🔀 Mixto</button>
+    </div>
+    
+    <div class="campo">
+      <label>Total a cobrar</label>
+      <input type="text" id="totalCobrar" readonly style="background:#0f3460; color:#2ecc71; font-weight:800; font-size:20px;">
+    </div>
+    
+    <div id="camposEfectivo">
+      <div class="campo">
+        <label>¿Con cuánto paga?</label>
+        <input type="number" id="pagoCon" placeholder="0.00" step="0.01" oninput="calcularCambio()">
+      </div>
+      <div class="cambio-box" id="cambioBox" style="display:none;">
+        <div class="lbl">CAMBIO</div>
+        <div class="val" id="cambioVal">$0.00</div>
+      </div>
+    </div>
+    
+    <div id="camposTransferencia" style="display:none;">
+      <div class="campo">
+        <label>Referencia (opcional)</label>
+        <input type="text" id="refTransfer" placeholder="Últimos 4 dígitos, folio...">
+      </div>
+    </div>
+    
+    <div id="camposTarjeta" style="display:none;">
+      <div class="campo">
+        <label>Últimos 4 dígitos (opcional)</label>
+        <input type="text" id="refTarjeta" maxlength="4" placeholder="1234">
+      </div>
+    </div>
+    
+    <div id="camposMixto" style="display:none;">
+      <div class="campo">
+        <label>Monto en efectivo</label>
+        <input type="number" id="mixtoEfectivo" step="0.01" placeholder="0.00" oninput="calcularCambio()">
+      </div>
+      <div class="campo">
+        <label>Monto en otro método</label>
+        <input type="number" id="mixtoOtro" step="0.01" placeholder="0.00">
+      </div>
+      <div class="campo">
+        <label>Método del "otro"</label>
+        <select id="mixtoOtroTipo">
+          <option value="transferencia">Transferencia</option>
+          <option value="tarjeta">Tarjeta</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>¿Con cuánto paga en efectivo?</label>
+        <input type="number" id="mixtoPagaCon" step="0.01" placeholder="0.00" oninput="calcularCambio()">
+      </div>
+      <div class="cambio-box" id="cambioBoxMixto" style="display:none;">
+        <div class="lbl">CAMBIO</div>
+        <div class="val" id="cambioValMixto">$0.00</div>
+      </div>
+    </div>
+    
+    <button class="btn-confirmar" onclick="confirmarCobro()">✅ CONFIRMAR COBRO</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCobro')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalTicketGen">
+  <div class="modal-box" style="text-align:center;">
+    <h2>✅ Venta Registrada</h2>
+    <img id="ticketImg" class="ticket-preview" alt="Ticket">
+    <button class="btn-imprimir" onclick="imprimirTicket()">🖨️ Imprimir ticket</button>
+    <div class="config-fila">
+      Papel:
+      <select id="anchoPapel" onchange="guardarAnchoPapel(this.value)">
+        <option value="58">58 mm</option>
+        <option value="80">80 mm</option>
+      </select>
+    </div>
+    <button class="btn-confirmar" onclick="compartirTicket()">📱 Compartir por WhatsApp</button>
+    <button class="btn-sec" onclick="descargarTicket()" style="margin-top:8px; width:100%;">💾 Descargar imagen</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalTicketGen');nuevaVenta();">🆕 Nueva Venta</button>
+  </div>
+</div>
+
+<div class="modal" id="modalHistorial">
+  <div class="modal-box">
+    <h2>📊 Historial de Ventas</h2>
+    <div id="historialContenido"></div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalHistorial')">Cerrar</button>
+  </div>
+</div>
+
+<!-- ============ LOGIN ============ -->
+<div class="login" id="pantallaLogin">
+  <form class="login-box" id="formLogin" autocomplete="on">
+    <img src="https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png" alt="" onerror="this.style.display='none'">
+    <h2>Iniciar sesión</h2>
+    <div class="recordados" id="usuariosRecordados"></div>
+    <input type="text" id="loginUsuario" name="username" autocomplete="username"
+           placeholder="👤 Usuario o correo" autocapitalize="none" spellcheck="false" required>
+    <div class="pass-wrap">
+      <input type="password" id="loginPassword" name="password" autocomplete="current-password"
+             placeholder="🔒 Contraseña" required>
+      <button type="button" onclick="verPassword()" aria-label="Mostrar contraseña">👁️</button>
+    </div>
+    <label class="chk"><input type="checkbox" id="loginRecordar" checked> Recordarme en este dispositivo</label>
+    <button type="submit" class="btn-confirmar" id="btnEntrar" style="margin-top:0;">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+  </form>
+</div>
+
+<!-- ============ AJUSTES / USUARIO ============ -->
+<div class="modal" id="modalAjustes">
+  <div class="modal-box">
+    <h2>⚙️ Ajustes</h2>
+    <div class="ajuste-fila"><span>Usuario</span><b id="ajUsuario">---</b></div>
+    <div class="ajuste-fila">
+      <span>Código de este dispositivo<br><small style="color:#888;">Va en el folio para que no se repitan entre teléfonos</small></span>
+      <input type="text" id="ajDispositivo" maxlength="4" onchange="guardarDispositivo(this.value)">
+    </div>
+    <div class="ajuste-fila"><span>Ventas por subir</span><b id="ajPendientes">0</b></div>
+    <div class="ajuste-fila" id="filaAnteriores" style="display:none;">
+      <span>Ventas guardadas antes de esta versión<br><small style="color:#888;">Aún no están en Google Sheets</small></span>
+      <button class="btn-sec" onclick="subirAnteriores()">⬆️ Subir <span id="ajAnteriores">0</span></button>
+    </div>
+    <button class="btn-sec" style="width:100%; margin-top:14px;" onclick="enviarPendientes(true)">☁️ Subir ahora</button>
+    <button class="btn-imprimir" style="background:#e74c3c; color:#fff;" onclick="cerrarSesion()">🚪 Cambiar usuario / Cerrar sesión</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalAjustes')">Cerrar</button>
+  </div>
+</div>
+
+<canvas id="canvasTicket"></canvas>
+<div id="zonaImpresion"><img id="imgImpresion" alt=""></div>
+
+<script>
+// ================== CONFIG ==================
+const API_URL = 'https://script.google.com/macros/s/AKfycbwse_u-LUzUTu7Grc6jgKyu4xu8Cs4-DBoxeTFYKxW9-Cogy_wYyoTAinS2gHk-yvTeEA/exec';
+const CACHE_KEY = 'pos_productos_cache';
+const VENTAS_KEY = 'pos_ventas_historial';
+const FOLIO_KEY = 'pos_folio_actual';
+const PAPEL_KEY = 'pos_ancho_papel';
+const SESION_KEY = 'pos_sesion';
+const USUARIOS_LOCAL_KEY = 'pos_usuarios_recordados';
+const DISP_KEY = 'pos_dispositivo';
+
+// ================== ESTADO ==================
+let productos = [];
+let carrito = [];
+let filtroActual = '';
+let metodoPago = null;
+let ventaActual = null;
+let ticketBlob = null;
+
+// ================== HELPERS ==================
+// Fecha LOCAL (hora de México) en formato AAAA-MM-DD.
+// Antes se usaba toISOString(), que es hora UTC: después de las 6 pm
+// las ventas quedaban registradas con la fecha del día siguiente.
+function horaLocal(fecha) {
+  const d = fecha ? new Date(fecha) : new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+function diaLocal(fecha) {
+  const d = fecha ? new Date(fecha) : new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function esGranel(p) {
+  const g = String(p['GRANEL (S/N)'] || p.GRANEL || '').trim().toUpperCase();
+  return g === 'S' || g === 'SI' || g === 'SÍ';
+}
+
+function fmtCantidad(cant, granel) {
+  if (granel) {
+    // Mostrar kg con hasta 3 decimales, sin ceros innecesarios
+    const n = parseFloat(cant);
+    return (Math.round(n*1000)/1000) + ' kg';
+  }
+  return 'x' + cant;
+}
+
+// ================== CARGA DE PRODUCTOS ==================
+async function cargarProductos() {
+  const estado = document.getElementById('estado');
+  try {
+    const r = await fetch(API_URL);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    let data = await r.json();
+    // El script puede responder una lista, o un objeto {success, productos:[...]}
+    if (!Array.isArray(data)) {
+      if (data && data.success === false) throw new Error(data.error || 'Error del servidor');
+      data = (data && data.productos) || [];
+    }
+    data = data.filter(p => {
+      const p1 = parseFloat(p.PRECIO_1)||0, p2 = parseFloat(p.PRECIO_2)||0;
+      const p3 = parseFloat(p.PRECIO_3)||0, p4 = parseFloat(p.PRECIO_4)||0;
+      return p1>0 || p2>0 || p3>0 || p4>0;
+    });
+    productos = data;
+    localStorage.setItem(CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
+    estado.textContent = '🟢 En línea';
+    estado.className = 'estado online';
+  } catch (e) {
+    const cache = localStorage.getItem(CACHE_KEY);
+    if (cache) {
+      const obj = JSON.parse(cache);
+      productos = obj.data;
+      const h = Math.round((Date.now()-obj.ts)/3600000);
+      estado.textContent = `🟡 Caché (${h}h)`;
+      estado.className = 'estado cache';
+    } else {
+      estado.textContent = '🔴 Sin conexión';
+      estado.className = 'estado offline';
+      document.getElementById('productos').innerHTML = 
+        '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#e74c3c;">❌ No hay conexión ni caché disponible</div>';
+      return;
+    }
+  }
+  renderFiltros();
+  renderProductos();
+  generarFolio();
+}
+
+function renderFiltros() {
+  const deptos = [...new Set(productos.map(p => p.DEPARTAMENTO).filter(d => d && d.trim()))];
+  const cont = document.getElementById('filtros');
+  cont.innerHTML = `<button class="activo" onclick="setFiltro('', this)">Todos</button>` +
+    deptos.sort().map(d => `<button onclick="setFiltro('${d}', this)">${d}</button>`).join('');
+}
+
+function setFiltro(d, btn) {
+  filtroActual = d;
+  document.querySelectorAll('.filtros button').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  renderProductos();
+}
+
+function renderProductos() {
+  const q = document.getElementById('buscador').value.trim().toLowerCase();
+  let lista = productos.filter(p => {
+    if (filtroActual && p.DEPARTAMENTO !== filtroActual) return false;
+    if (q) {
+      const idM = p.ID && String(p.ID).toLowerCase().includes(q);
+      const nomM = p.NOMBRE && p.NOMBRE.toLowerCase().includes(q);
+      if (!idM && !nomM) return false;
+    }
+    return true;
+  });
+  
+  const cont = document.getElementById('productos');
+  if (lista.length === 0) {
+    cont.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#888;">Sin resultados</div>';
+    return;
+  }
+  cont.innerHTML = lista.map(p => {
+    const stock = parseFloat(p.STOCK)||0;
+    const agotado = stock <= 0;
+    const p1 = parseFloat(p.PRECIO_1)||0;
+    const granel = esGranel(p);
+    return `
+      <div class="producto ${agotado?'agotado':''}" onclick="${agotado?'':`agregar('${p.ID}')`}">
+        ${granel ? '<span class="granel-badge">⚖️ Granel</span>' : ''}
+        <span class="stock-badge">${agotado?'Agotado':stock}</span>
+        ${p.IMAGEN_URL ? `<img src="${p.IMAGEN_URL}" alt="" loading="lazy">` : '<div style="height:90px;background:#eee;border-radius:8px;"></div>'}
+        <div class="id">#${p.ID}</div>
+        <div class="nombre">${p.NOMBRE||''}</div>
+        <div class="precio">$${p1.toFixed(2)}<span class="unidad">${granel?'/kg':''}</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('buscador').addEventListener('input', renderProductos);
+
+// ================== CARRITO ==================
+function calcularPrecio(item) {
+  const c = item.cantidad;
+  if (item.M4 > 0 && c >= item.M4 && item.P4 > 0) return item.P4;
+  if (item.M3 > 0 && c >= item.M3 && item.P3 > 0) return item.P3;
+  if (item.M2 > 0 && c >= item.M2 && item.P2 > 0) return item.P2;
+  return item.P1;
+}
+
+function agregar(id) {
+  const p = productos.find(x => String(x.ID) === String(id));
+  if (!p) return;
+  const granel = esGranel(p);
+  const ex = carrito.find(x => String(x.ID) === String(id));
+  if (ex) {
+    ex.importeFijo = null;
+    if (granel) {
+      ex.cantidad = Math.round((ex.cantidad + 1)*1000)/1000;
+    } else {
+      ex.cantidad++;
+    }
+  } else {
+    carrito.push({
+      ID: p.ID, NOMBRE: p.NOMBRE,
+      P1: parseFloat(p.PRECIO_1)||0,
+      P2: parseFloat(p.PRECIO_2)||0,
+      P3: parseFloat(p.PRECIO_3)||0,
+      P4: parseFloat(p.PRECIO_4)||0,
+      M2: parseInt(p.MAYOREO_2)||0,
+      M3: parseInt(p.MAYOREO_3)||0,
+      M4: parseInt(p.MAYOREO_4)||0,
+      granel: granel,
+      cantidad: 1  // ✅ 1 kg inicial para granel
+    });
+  }
+  renderTicket();
+  if (window.innerWidth <= 900) {
+    document.getElementById('ticketPanel').classList.add('abierto');
+  }
+}
+
+// Subtotal de un renglón. Si el cliente pidió "X pesos" de un producto a granel,
+// se cobra exactamente ese importe (la cantidad en kg es la que se calculó).
+function subtotalItem(it) {
+  if (it.granel && it.importeFijo > 0) return it.importeFijo;
+  return calcularPrecio(it) * it.cantidad;
+}
+
+// Calcula los kg que corresponden a un importe, respetando precios de mayoreo:
+// prueba del precio más bajo al más alto y usa el primero cuya cantidad
+// resultante sí alcanza el mayoreo correspondiente.
+function cantidadPorImporte(it, importe) {
+  const opciones = [it.P4, it.P3, it.P2, it.P1].filter(p => p > 0);
+  for (const precio of opciones) {
+    const kg = Math.round(importe / precio * 1000) / 1000;
+    if (calcularPrecio({ ...it, cantidad: kg }) === precio) return kg;
+  }
+  return Math.round(importe / (it.P1 || 1) * 1000) / 1000;
+}
+
+function aplicarImporte(idx, val, final) {
+  const it = carrito[idx];
+  if (!it) return;
+  const imp = Math.round((parseFloat(val) || 0) * 100) / 100;
+  if (imp <= 0) {
+    if (final) { it.importeFijo = null; renderTicket(); }
+    return;
+  }
+  it.cantidad = Math.max(0.001, cantidadPorImporte(it, imp));
+  it.importeFijo = imp;
+  if (final) { renderTicket(); return; }
+  // Mientras escribe: actualizar kg y total sin redibujar (para no perder el foco)
+  const fila = document.querySelectorAll('#ticketItems .item')[idx];
+  if (fila) {
+    const q = fila.querySelector('.cant input'); if (q) q.value = it.cantidad;
+    const p = fila.querySelector('.p'); if (p) p.textContent = `$${calcularPrecio(it).toFixed(2)}/kg`;
+    fila.classList.add('fijo');
+  }
+  document.getElementById('totalTicket').textContent = `$${getTotal().toFixed(2)}`;
+}
+
+function cambiarCantidad(idx, delta) {
+  const it = carrito[idx];
+  if (!it) return;
+  it.importeFijo = null;
+  if (it.granel) {
+    it.cantidad = Math.round((it.cantidad + delta)*1000)/1000;
+    if (it.cantidad < 0.001) it.cantidad = 0.25;
+  } else {
+    it.cantidad += delta;
+    if (it.cantidad <= 0) carrito.splice(idx,1);
+  }
+  renderTicket();
+}
+
+function setCantidadManual(idx, val) {
+  const it = carrito[idx];
+  if (!it) return;
+  it.importeFijo = null;
+  let n = parseFloat(val);
+  if (isNaN(n) || n <= 0) {
+    n = it.granel ? 0.25 : 1;
+  }
+  if (it.granel) {
+    n = Math.round(n*1000)/1000;
+  } else {
+    n = Math.max(1, Math.floor(n));
+  }
+  it.cantidad = n;
+  renderTicket();
+}
+
+function renderTicket() {
+  const cont = document.getElementById('ticketItems');
+  if (carrito.length === 0) {
+    cont.innerHTML = '<div class="ticket-vacio">Agrega productos<br>tocando las tarjetas</div>';
+    document.getElementById('totalTicket').textContent = '$0.00';
+    document.getElementById('btnCobrar').disabled = true;
+    return;
+  }
+  let total = 0;
+  cont.innerHTML = carrito.map((it,i) => {
+    const pu = calcularPrecio(it);
+    const sub = subtotalItem(it);
+    total += sub;
+    const cantMostrar = it.granel 
+      ? `<input type="number" step="0.001" inputmode="decimal" value="${it.cantidad}" title="Kilos" 
+           onchange="setCantidadManual(${i}, this.value)" 
+           onclick="event.stopPropagation()" />`
+      : `<span>${it.cantidad}</span>`;
+    return `
+      <div class="item ${it.granel && it.importeFijo ? 'fijo' : ''}">
+        <div class="item-info">
+          <div class="n">${it.granel?'⚖️ ':''}${it.NOMBRE}</div>
+          <div class="p">$${pu.toFixed(2)}${it.granel?'/kg':' c/u'}</div>
+        </div>
+        <div class="cant">
+          <button class="menos" onclick="cambiarCantidad(${i},-1)">−</button>
+          ${cantMostrar}
+          <button class="mas" onclick="cambiarCantidad(${i},1)">+</button>
+        </div>
+        ${it.granel
+          ? `<div class="importe">$<input type="number" step="0.5" inputmode="decimal" value="${sub.toFixed(2)}"
+               title="Importe: escribe cuánto dinero quiere el cliente"
+               onfocus="this.select()"
+               oninput="aplicarImporte(${i}, this.value, false)"
+               onchange="aplicarImporte(${i}, this.value, true)"
+               onkeydown="if(event.key==='Enter') this.blur()" /></div>`
+          : `<div class="subtotal">$${sub.toFixed(2)}</div>`}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('totalTicket').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('btnCobrar').disabled = false;
+}
+
+function cancelarTicket() {
+  if (carrito.length && !confirm('¿Cancelar el ticket actual?')) return;
+  limpiarTicket();
+}
+function limpiarTicket() {
+  carrito = [];
+  document.getElementById('clienteInput').value = '';
+  renderTicket();
+}
+
+// ================== FOLIO ==================
+// El folio solo se "gasta" cuando se confirma una venta.
+// Abrir o recargar la app ya no se brinca números.
+function siguienteFolio() {
+  const hoy = diaLocal().replace(/-/g,'');
+  const guardado = JSON.parse(localStorage.getItem(FOLIO_KEY) || '{}');
+  const n = (guardado.fecha === hoy ? (guardado.n || 0) : 0) + 1;
+  return { hoy, n, folio: `V-${obtenerDispositivo()}-${hoy}-${String(n).padStart(3,'0')}` };
+}
+function generarFolio() {
+  const { folio } = siguienteFolio();
+  document.getElementById('folioActual').textContent = folio;
+  return folio;
+}
+function consumirFolio() {
+  const { hoy, n, folio } = siguienteFolio();
+  localStorage.setItem(FOLIO_KEY, JSON.stringify({fecha: hoy, n}));
+  return folio;
+}
+
+// ================== COBRO ==================
+function abrirCobro() {
+  if (!carrito.length) return;
+  const total = getTotal();
+  document.getElementById('totalCobrar').value = '$' + total.toFixed(2);
+  document.getElementById('pagoCon').value = '';
+  document.getElementById('cambioBox').style.display = 'none';
+  document.getElementById('refTransfer').value = '';
+  document.getElementById('refTarjeta').value = '';
+  document.getElementById('mixtoEfectivo').value = '';
+  document.getElementById('mixtoOtro').value = '';
+  document.getElementById('mixtoPagaCon').value = '';
+  document.getElementById('cambioBoxMixto').style.display = 'none';
+  selMetodo('efectivo');
+  document.getElementById('modalCobro').classList.add('activo');
+}
+
+function selMetodo(m) {
+  metodoPago = m;
+  document.querySelectorAll('.metodos button').forEach(b => 
+    b.classList.toggle('activo', b.dataset.metodo === m));
+  document.getElementById('camposEfectivo').style.display = (m==='efectivo')?'block':'none';
+  document.getElementById('camposTransferencia').style.display = (m==='transferencia')?'block':'none';
+  document.getElementById('camposTarjeta').style.display = (m==='tarjeta')?'block':'none';
+  document.getElementById('camposMixto').style.display = (m==='mixto')?'block':'none';
+  calcularCambio();
+}
+
+function getTotal() {
+  return carrito.reduce((s,it) => s + subtotalItem(it), 0);
+}
+
+function calcularCambio() {
+  const total = getTotal();
+  if (metodoPago === 'efectivo') {
+    const pago = parseFloat(document.getElementById('pagoCon').value) || 0;
+    const cambio = pago - total;
+    const box = document.getElementById('cambioBox');
+    if (pago > 0) {
+      box.style.display = 'block';
+      document.getElementById('cambioVal').textContent = '$' + (cambio>=0?cambio:0).toFixed(2);
+      box.style.background = cambio >= 0 ? '#2ecc71' : '#e74c3c';
+    } else {
+      box.style.display = 'none';
+    }
+  } else if (metodoPago === 'mixto') {
+    const ef = parseFloat(document.getElementById('mixtoEfectivo').value) || 0;
+    const pagoCon = parseFloat(document.getElementById('mixtoPagaCon').value) || 0;
+    const cambio = pagoCon - ef;
+    const box = document.getElementById('cambioBoxMixto');
+    if (pagoCon > 0 && ef > 0) {
+      box.style.display = 'block';
+      document.getElementById('cambioValMixto').textContent = '$' + (cambio>=0?cambio:0).toFixed(2);
+      box.style.background = cambio >= 0 ? '#2ecc71' : '#e74c3c';
+    } else {
+      box.style.display = 'none';
+    }
+  }
+}
+
+function confirmarCobro() {
+  if (!sesion) { mostrarLogin('Inicia sesión para registrar la venta'); return; }
+  const total = getTotal();
+  let pagoCon = 0, cambio = 0, referencia = '', detalleMixto = null;
+  
+  if (metodoPago === 'efectivo') {
+    pagoCon = parseFloat(document.getElementById('pagoCon').value) || 0;
+    if (pagoCon < total) { alert('⚠️ El efectivo no alcanza el total'); return; }
+    cambio = pagoCon - total;
+  } else if (metodoPago === 'transferencia') {
+    referencia = document.getElementById('refTransfer').value.trim();
+  } else if (metodoPago === 'tarjeta') {
+    referencia = document.getElementById('refTarjeta').value.trim();
+  } else if (metodoPago === 'mixto') {
+    const ef = parseFloat(document.getElementById('mixtoEfectivo').value) || 0;
+    const otro = parseFloat(document.getElementById('mixtoOtro').value) || 0;
+    pagoCon = parseFloat(document.getElementById('mixtoPagaCon').value) || 0;
+    const tipoOtro = document.getElementById('mixtoOtroTipo').value;
+    if (Math.abs((ef + otro) - total) > 0.01) {
+      alert('⚠️ La suma de montos (' + (ef+otro).toFixed(2) + ') no coincide con el total (' + total.toFixed(2) + ')');
+      return;
+    }
+    cambio = Math.max(0, pagoCon - ef);
+    detalleMixto = { efectivo: ef, otro, tipoOtro };
+  }
+  
+  const venta = {
+    folio: consumirFolio(),
+    fecha: new Date().toISOString(),
+    dia: diaLocal(),
+    hora: horaLocal(),
+    dispositivo: obtenerDispositivo(),
+    usuario: sesion ? { email: sesion.usuario.email, nombre: sesion.usuario.nombre } : null,
+    pendiente: true,        // falta subirla a Google Sheets
+    cliente: document.getElementById('clienteInput').value.trim() || 'Público general',
+    items: carrito.map(it => ({
+      ID: it.ID, NOMBRE: it.NOMBRE,
+      cantidad: it.cantidad,
+      granel: it.granel || false,
+      precio: calcularPrecio(it),
+      subtotal: subtotalItem(it)
+    })),
+    total,
+    metodoPago,
+    pagoCon,
+    cambio,
+    referencia,
+    detalleMixto
+  };
+  
+  const hist = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
+  hist.push(venta);
+  localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
+  
+  ventaActual = venta;
+  cerrarModal('modalCobro');
+  generarTicketImagen(venta);
+  enviarPendientes();
+}
+
+// ================== TICKET IMAGEN ==================
+// Dibuja el ticket en un canvas.
+//  opciones.W   -> ancho en pixeles (500 pantalla; 384 = papel 58mm; 576 = papel 80mm)
+//  opciones.bn  -> true = blanco y negro puro (para impresora térmica)
+function dibujarTicket(venta, opciones) {
+  const { W = 500, bn = false } = opciones || {};
+  const f = W / 500 * (bn ? 1.25 : 1);     // escala de letra (más grande al imprimir)
+  const M = Math.round(W * 0.05);          // margen lateral
+  const px = n => Math.round(n * f) + 'px';
+  const C = bn
+    ? { titulo:'#000', sub:'#000', texto:'#000', linea:'#000', verde:'#000', gris:'#000', barra:null }
+    : { titulo:'#1a1a2e', sub:'#666', texto:'#333', linea:'#ddd', verde:'#2ecc71', gris:'#999', barra:true };
+
+  // Canvas temporal alto; al final se recorta a la altura real usada
+  const tmp = document.createElement('canvas');
+  tmp.width = W;
+  tmp.height = Math.round((600 + venta.items.length * 60) * Math.max(f, 1));
+  const ctx = tmp.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, tmp.width, tmp.height);
+
+  const raya = (y, punteada, color) => {
+    ctx.strokeStyle = color || C.linea;
+    ctx.lineWidth = bn ? 2 : 1;
+    ctx.setLineDash(punteada ? [4,4] : []);
+    ctx.beginPath(); ctx.moveTo(M*0.7, y); ctx.lineTo(W - M*0.7, y); ctx.stroke();
+    ctx.setLineDash([]);
+  };
+  const fila = (izq, der, y, font, colorDer) => {
+    ctx.font = font;
+    ctx.textAlign = 'left';  ctx.fillStyle = C.texto; ctx.fillText(izq, M, y);
+    ctx.textAlign = 'right'; ctx.fillStyle = colorDer || C.texto; ctx.fillText(der, W - M, y);
+  };
+
+  if (C.barra) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 8); }
+
+  let y = Math.round(40 * f);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.titulo;
+  ctx.font = 'bold ' + px(26 * (bn ? 0.9 : 1)) + ' Arial';
+  ctx.fillText('MOLES CHABELITA SV', W/2, y);
+  y += Math.round(24 * f);
+  ctx.font = px(13) + ' Arial';
+  ctx.fillStyle = C.sub;
+  ctx.fillText('Ticket de venta', W/2, y);
+  y += Math.round(24 * f);
+  raya(y, true);
+  y += Math.round(22 * f);
+
+  const fecha = new Date(venta.fecha);
+  const fechaStr = fecha.toLocaleDateString('es-MX') + ' ' +
+    fecha.toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
+  const metodos = {efectivo:'Efectivo', transferencia:'Transferencia', tarjeta:'Tarjeta', mixto:'Mixto'};
+  const colVal = M + Math.round(70 * f);
+  ctx.font = px(13) + ' Arial';
+  ctx.fillStyle = C.texto;
+  ctx.textAlign = 'left';
+  [['Folio:', venta.folio], ['Fecha:', fechaStr], ['Cliente:', venta.cliente.substring(0,28)],
+   ['Pago:', metodos[venta.metodoPago]],
+   ...(venta.usuario ? [['Atendió:', String(venta.usuario.nombre || '').substring(0,28)]] : [])].forEach(([k, v]) => {
+    ctx.fillText(k, M, y); ctx.fillText(v, colVal, y);
+    y += Math.round(18 * f);
+  });
+  y += Math.round(6 * f);
+  raya(y, true);
+  y += Math.round(22 * f);
+
+  // Encabezado de productos
+  const colCant = Math.round(W * 0.66);
+  ctx.font = 'bold ' + px(13) + ' Arial';
+  ctx.fillStyle = C.titulo;
+  ctx.textAlign = 'left';   ctx.fillText('Producto', M, y);
+  ctx.textAlign = 'center'; ctx.fillText('Cant', colCant, y);
+  ctx.textAlign = 'right';  ctx.fillText('Importe', W - M, y);
+  y += Math.round(6 * f);
+  raya(y, false, C.titulo);
+  y += Math.round(20 * f);
+
+  // Productos (el nombre se recorta para que no choque con la columna Cant)
+  const anchoNombre = colCant - M - Math.round(30 * f);
+  venta.items.forEach(it => {
+    ctx.font = px(13) + ' Arial';
+    ctx.fillStyle = C.texto;
+    let nom = it.NOMBRE;
+    if (ctx.measureText(nom).width > anchoNombre) {
+      while (nom.length > 1 && ctx.measureText(nom + '..').width > anchoNombre) nom = nom.slice(0, -1);
+      nom += '..';
+    }
+    ctx.textAlign = 'left';   ctx.fillText(nom, M, y);
+    ctx.textAlign = 'center'; ctx.fillText(it.granel ? (it.cantidad + 'kg') : ('x' + it.cantidad), colCant, y);
+    ctx.textAlign = 'right';  ctx.font = 'bold ' + px(13) + ' Arial';
+    ctx.fillText('$' + it.subtotal.toFixed(2), W - M, y);
+    y += Math.round(24 * f);
+  });
+
+  y += Math.round(6 * f);
+  raya(y, false, C.titulo);
+  y += Math.round(28 * f);
+
+  ctx.font = 'bold ' + px(22) + ' Arial';
+  ctx.textAlign = 'left';  ctx.fillStyle = C.titulo; ctx.fillText('TOTAL', M, y);
+  ctx.textAlign = 'right'; ctx.fillStyle = C.verde;  ctx.fillText('$' + venta.total.toFixed(2), W - M, y);
+  y += Math.round(32 * f);
+
+  if (venta.metodoPago === 'efectivo' || venta.metodoPago === 'mixto') {
+    if (venta.detalleMixto) {
+      fila('Efectivo:', '$' + venta.detalleMixto.efectivo.toFixed(2), y, px(14) + ' Arial');
+      y += Math.round(22 * f);
+      fila(metodos[venta.detalleMixto.tipoOtro] + ':', '$' + venta.detalleMixto.otro.toFixed(2), y, px(14) + ' Arial');
+      y += Math.round(22 * f);
+    }
+    fila('Pago con:', '$' + venta.pagoCon.toFixed(2), y, px(14) + ' Arial');
+    y += Math.round(22 * f);
+    if (venta.cambio > 0) {
+      ctx.font = 'bold ' + px(16) + ' Arial';
+      ctx.fillStyle = C.verde;
+      ctx.textAlign = 'left';  ctx.fillText('CAMBIO:', M, y);
+      ctx.textAlign = 'right'; ctx.fillText('$' + venta.cambio.toFixed(2), W - M, y);
+      y += Math.round(26 * f);
+    }
+  }
+
+  if (venta.referencia) {
+    ctx.font = px(12) + ' Arial';
+    ctx.fillStyle = C.sub;
+    ctx.textAlign = 'left';
+    ctx.fillText('Ref: ' + venta.referencia, M, y);
+    y += Math.round(20 * f);
+  }
+
+  y += Math.round(10 * f);
+  ctx.textAlign = 'center';
+  ctx.font = 'italic ' + px(14) + ' Arial';
+  ctx.fillStyle = C.sub;
+  ctx.fillText('¡Gracias por su compra!', W/2, y);
+  y += Math.round(20 * f);
+  ctx.font = px(11) + ' Arial';
+  ctx.fillStyle = C.gris;
+  ctx.fillText('Moles Chabelita SV', W/2, y);
+  y += Math.round(bn ? 40 : 22) ;  // al imprimir deja espacio para cortar el papel
+
+  // Recortar a la altura usada
+  const H = y + (C.barra ? 8 : 0);
+  const out = document.getElementById('canvasTicket');
+  out.width = W; out.height = H;
+  const octx = out.getContext('2d');
+  octx.drawImage(tmp, 0, 0);
+  if (C.barra) { octx.fillStyle = '#f4a261'; octx.fillRect(0, H - 8, W, 8); }
+  return new Promise(res => out.toBlob(res, 'image/png'));
+}
+
+async function generarTicketImagen(venta) {
+  ticketBlob = await dibujarTicket(venta, { W: 500, bn: false });
+  document.getElementById('ticketImg').src = URL.createObjectURL(ticketBlob);
+  document.getElementById('anchoPapel').value = localStorage.getItem(PAPEL_KEY) || '58';
+  document.getElementById('modalTicketGen').classList.add('activo');
+}
+
+// ================== IMPRESIÓN TÉRMICA ==================
+// Ancho de impresión de las térmicas comunes a 203 dpi:
+//   58 mm -> 384 puntos   |   80 mm -> 576 puntos
+const PUNTOS_PAPEL = { '58': 384, '80': 576 };
+
+function guardarAnchoPapel(v) { localStorage.setItem(PAPEL_KEY, v); }
+
+function esCelular() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+async function imprimirTicket() {
+  if (!ventaActual) return;
+  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const blob = await dibujarTicket(ventaActual, { W: PUNTOS_PAPEL[papel], bn: true });
+  const file = new File([blob], `ticket-${ventaActual.folio}.png`, { type: 'image/png' });
+
+  // CELULAR: se abre el menú "Compartir" del teléfono -> elegir la app de impresión
+  // (por ejemplo RawBT en Android), que manda la imagen a la impresora Bluetooth/USB.
+  if (esCelular() && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });   // solo la imagen, sin texto
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+
+  // PC: diálogo de impresión normal; se elige la impresora térmica instalada en Windows.
+  const img = document.getElementById('imgImpresion');
+  const url = URL.createObjectURL(blob);
+  img.onload = () => {
+    setTimeout(() => { window.print(); URL.revokeObjectURL(url); }, 100);
+  };
+  img.src = url;
+}
+
+// ================== COMPARTIR / DESCARGAR ==================
+async function compartirTicket() {
+  if (!ticketBlob) return;
+  const file = new File([ticketBlob], `ticket-${ventaActual.folio}.png`, {type:'image/png'});
+  
+  const texto = `🧾 *Ticket ${ventaActual.folio}*\n` +
+    `Cliente: ${ventaActual.cliente}\n` +
+    `Total: $${ventaActual.total.toFixed(2)}\n` +
+    (ventaActual.cambio > 0 ? `Cambio: $${ventaActual.cambio.toFixed(2)}\n` : '') +
+    `\n¡Gracias por su compra!`;
+  
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'Ticket ' + ventaActual.folio,
+        text: texto
+      });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  
+  descargarTicket();
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  setTimeout(() => window.open(url, '_blank'), 500);
+}
+
+function descargarTicket() {
+  if (!ticketBlob) return;
+  const url = URL.createObjectURL(ticketBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ticket-${ventaActual.folio}.png`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function nuevaVenta() {
+  carrito = [];
+  ventaActual = null;
+  ticketBlob = null;
+  document.getElementById('clienteInput').value = '';
+  renderTicket();
+  generarFolio();
+}
+
+// ================== HISTORIAL ==================
+function abrirHistorial() {
+  const hist = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
+  const cont = document.getElementById('historialContenido');
+  
+  if (hist.length === 0) {
+    cont.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">No hay ventas registradas</p>';
+    document.getElementById('modalHistorial').classList.add('activo');
+    return;
+  }
+  
+  const porDia = {};
+  hist.forEach(v => {
+    const dia = v.dia || diaLocal(v.fecha);  // ventas viejas: se recalcula en hora local
+    if (!porDia[dia]) porDia[dia] = [];
+    porDia[dia].push(v);
+  });
+  
+  let html = '';
+  Object.keys(porDia).sort().reverse().forEach(dia => {
+    const ventas = porDia[dia];
+    const totalDia = ventas.reduce((s,v) => s+v.total, 0);
+    const fecha = new Date(dia + 'T12:00:00');
+    
+    html += `<div class="hist-dia">
+      <h3>📅 ${fecha.toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'})}</h3>`;
+    
+    // Resumen: nombre + cantidad (kg para granel, uds para normal)
+    const resumen = {};
+    ventas.forEach(v => v.items.forEach(it => {
+      if (!resumen[it.NOMBRE]) resumen[it.NOMBRE] = {uds: 0, kg: 0};
+      if (it.granel) {
+        resumen[it.NOMBRE].kg += it.cantidad;
+      } else {
+        resumen[it.NOMBRE].uds += it.cantidad;
+      }
+    }));
+    
+    html += `<div class="hist-resumen">
+      <div class="titulo">📦 RESUMEN DEL DÍA</div>`;
+    Object.entries(resumen).sort((a,b) => {
+      const ta = a[1].uds + a[1].kg;
+      const tb = b[1].uds + b[1].kg;
+      return tb - ta;
+    }).forEach(([n, c]) => {
+      let cantTxt = '';
+      if (c.kg > 0 && c.uds > 0) cantTxt = `${c.uds} uds + ${Math.round(c.kg*1000)/1000} kg`;
+      else if (c.kg > 0) cantTxt = `${Math.round(c.kg*1000)/1000} kg`;
+      else cantTxt = `${c.uds} uds`;
+      html += `<div class="fila">
+        <span>${n}</span><span class="cant">${cantTxt}</span>
+      </div>`;
+    });
+    html += `<div class="total-dia">
+      <span>${ventas.length} ventas</span><span class="monto">$${totalDia.toFixed(2)}</span>
+    </div>`;
+    // Por vendedor
+    const porVend = {};
+    ventas.forEach(v => {
+      const n = (v.usuario && v.usuario.nombre) || 'Sin registro';
+      if (!porVend[n]) porVend[n] = {c:0, t:0};
+      porVend[n].c++; porVend[n].t += v.total;
+    });
+    html += `<div class="hist-vendedor">👤 ` + Object.entries(porVend)
+      .map(([n, x]) => `${n}: ${x.c} venta${x.c>1?'s':''} · $${x.t.toFixed(2)}`).join(' &nbsp;|&nbsp; ') + `</div>`;
+    const subidas = ventas.filter(v => v.sincronizada).length;
+    html += `<div class="hist-vendedor">☁️ En Google Sheets: ${subidas} de ${ventas.length}</div>`;
+    html += `</div>`;
+    
+    html += `</div>`;
+  });
+  
+  cont.innerHTML = html;
+  document.getElementById('modalHistorial').classList.add('activo');
+}
+
+// ================== DISPOSITIVO ==================
+// Cada teléfono/PC tiene un código corto que va en el folio (V-A7-20261027-001),
+// así dos dispositivos nunca generan el mismo folio.
+function obtenerDispositivo() {
+  let d = localStorage.getItem(DISP_KEY);
+  if (!d) {
+    const L = 'ABCDEFGHJKMNPQRSTUVWXYZ', N = '23456789';
+    d = L[Math.floor(Math.random()*L.length)] + N[Math.floor(Math.random()*N.length)];
+    localStorage.setItem(DISP_KEY, d);
+  }
+  return d;
+}
+function guardarDispositivo(v) {
+  const limpio = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  if (!limpio) { document.getElementById('ajDispositivo').value = obtenerDispositivo(); return; }
+  localStorage.setItem(DISP_KEY, limpio);
+  document.getElementById('ajDispositivo').value = limpio;
+  if (!ventaActual) generarFolio();
+}
+
+// ================== SESIÓN / USUARIOS ==================
+// - La contraseña se valida contra la hoja USUARIOS (vía Apps Script).
+// - "Recordarme" mantiene la sesión abierta en este dispositivo y le ofrece
+//   al navegador guardar la contraseña (Chrome/Google la rellena sola después).
+// - Para poder entrar SIN internet, se guarda una huella (hash SHA-256) de la
+//   contraseña, nunca la contraseña en texto.
+let sesion = null;
+
+function leerJSON(store, key, def) {
+  try { return JSON.parse(store.getItem(key)) ?? def; } catch { return def; }
+}
+function cargarSesion() {
+  return leerJSON(localStorage, SESION_KEY, null) || leerJSON(sessionStorage, SESION_KEY, null);
+}
+function guardarSesion(s, recordar) {
+  localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+  (recordar ? localStorage : sessionStorage).setItem(SESION_KEY, JSON.stringify(s));
+}
+
+async function sha256(texto) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function apiPost(body) {
+  // Se manda como texto simple: Apps Script lo acepta sin bloqueos de CORS.
+  const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function mostrarLogin(mensaje) {
+  document.getElementById('loginError').textContent = mensaje || '';
+  renderRecordados();
+  document.getElementById('pantallaLogin').classList.add('activo');
+  const u = document.getElementById('loginUsuario');
+  setTimeout(() => (u.value ? document.getElementById('loginPassword') : u).focus(), 50);
+}
+
+function renderRecordados() {
+  const locales = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {});
+  const cont = document.getElementById('usuariosRecordados');
+  const lista = Object.values(locales);
+  cont.innerHTML = lista.map(u =>
+    `<button type="button" data-u="${encodeURIComponent(u.email)}">${u.nombre || u.email}</button>`).join('');
+  cont.querySelectorAll('button').forEach(b => b.onclick = () => {
+    cont.querySelectorAll('button').forEach(x => x.classList.remove('sel'));
+    b.classList.add('sel');
+    document.getElementById('loginUsuario').value = decodeURIComponent(b.dataset.u);
+    const pw = document.getElementById('loginPassword');
+    pw.value = '';
+    pw.focus();
+  });
+}
+
+function verPassword() {
+  const pw = document.getElementById('loginPassword');
+  pw.type = pw.type === 'password' ? 'text' : 'password';
+}
+
+async function intentarLogin(usuario, password, recordar) {
+  const clave = usuario.trim().toLowerCase();
+  const locales = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {});
+  let resp;
+  try {
+    resp = await apiPost({ accion: 'login_pos', usuario: clave, password });
+  } catch (e) {
+    // Sin internet: se valida contra la huella guardada de un login anterior
+    const l = locales[clave];
+    if (l && l.hash === await sha256(l.sal + password)) {
+      return { ok: true, sesion: { usuario: l.usuario, token: l.token, offline: true } };
+    }
+    return { ok: false, error: '📵 Sin conexión. Solo pueden entrar sin internet los usuarios que ya iniciaron sesión antes en este dispositivo con "Recordarme".' };
+  }
+  if (!resp.success) return { ok: false, error: resp.error || 'No se pudo iniciar sesión' };
+
+  if (recordar) {
+    const sal = crypto.getRandomValues(new Uint32Array(4)).join('-');
+    locales[clave] = { email: resp.usuario.email, nombre: resp.usuario.nombre, usuario: resp.usuario,
+                       token: resp.token, sal, hash: await sha256(sal + password) };
+    localStorage.setItem(USUARIOS_LOCAL_KEY, JSON.stringify(locales));
+  }
+  return { ok: true, sesion: { usuario: resp.usuario, token: resp.token } };
+}
+
+document.getElementById('formLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  const usuario = document.getElementById('loginUsuario').value;
+  const password = document.getElementById('loginPassword').value;
+  const recordar = document.getElementById('loginRecordar').checked;
+  const btn = document.getElementById('btnEntrar');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  document.getElementById('loginError').textContent = '';
+  try {
+    const r = await intentarLogin(usuario, password, recordar);
+    if (!r.ok) { document.getElementById('loginError').textContent = r.error; return; }
+    iniciarSesion(r.sesion, recordar);
+    // Ofrecer al navegador guardar la contraseña (Chrome en Android/PC)
+    if (recordar && window.PasswordCredential && navigator.credentials) {
+      try {
+        await navigator.credentials.store(new PasswordCredential({
+          id: usuario.trim(), password, name: r.sesion.usuario.nombre || usuario }));
+      } catch (_) {}
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = 'Entrar';
+  }
+});
+
+function iniciarSesion(s, recordar) {
+  sesion = s;
+  guardarSesion(s, recordar);
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('pantallaLogin').classList.remove('activo');
+  document.getElementById('btnUsuario').textContent = '👤 ' + (s.usuario.nombre || s.usuario.email);
+  enviarPendientes();
+}
+
+function cerrarSesion() {
+  if (carrito.length && !confirm('Hay productos en el ticket. ¿Cerrar sesión de todos modos?')) return;
+  sesion = null;
+  localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+  if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+    navigator.credentials.preventSilentAccess().catch(() => {});
+  }
+  cerrarModal('modalAjustes');
+  document.getElementById('btnUsuario').textContent = '👤 ---';
+  document.getElementById('loginUsuario').value = '';
+  mostrarLogin();
+}
+
+// Al abrir la app: si hay sesión recordada entra directo; si no, intenta
+// usar la contraseña que el navegador tenga guardada.
+async function arrancarSesion() {
+  const s = cargarSesion();
+  if (s && s.usuario) { iniciarSesion(s, !!localStorage.getItem(SESION_KEY)); return; }
+  mostrarLogin();
+  if (window.PasswordCredential && navigator.credentials) {
+    try {
+      const c = await navigator.credentials.get({ password: true, mediation: 'optional' });
+      if (c && c.password) {
+        document.getElementById('loginUsuario').value = c.id;
+        document.getElementById('loginPassword').value = c.password;
+        document.getElementById('formLogin').requestSubmit();
+      }
+    } catch (_) {}
+  }
+}
+
+// ================== SINCRONIZACIÓN CON GOOGLE SHEETS ==================
+// Cada venta se guarda primero en el dispositivo y queda "pendiente".
+// Se sube sola al confirmar el cobro, al regresar el internet y cada minuto.
+let subiendo = false;
+
+function leerHistorial() { return leerJSON(localStorage, VENTAS_KEY, []); }
+
+function actualizarBadgeSync(estado) {
+  const pend = leerHistorial().filter(v => v.pendiente && !v.sincronizada).length;
+  const b = document.getElementById('syncEstado');
+  if (estado === 'subiendo') { b.textContent = '⏳ Subiendo...'; b.className = 'sync pend'; }
+  else if (estado === 'error') { b.textContent = `⚠️ ${pend} sin subir`; b.className = 'sync err'; }
+  else if (pend > 0) { b.textContent = `☁️ ${pend} pendiente${pend>1?'s':''}`; b.className = 'sync pend'; }
+  else { b.textContent = '☁️ Al día'; b.className = 'sync ok'; }
+  return pend;
+}
+
+async function enviarPendientes(manual) {
+  if (subiendo) return;
+  const pendientes = leerHistorial().filter(v => v.pendiente && !v.sincronizada);
+  if (!pendientes.length) { actualizarBadgeSync(); if (manual === true) alert('✅ Todas las ventas ya están en Google Sheets'); return; }
+  if (!sesion || !sesion.token) { actualizarBadgeSync(); return; }
+  if (!navigator.onLine) { actualizarBadgeSync(); if (manual === true) alert('📵 Sin internet. Se subirán solas cuando regrese la señal.'); return; }
+
+  subiendo = true;
+  actualizarBadgeSync('subiendo');
+  let huboError = false;
+  try {
+    for (let i = 0; i < pendientes.length; i += 25) {
+      const lote = pendientes.slice(i, i + 25).map(v => {
+        const { pendiente, sincronizada, ...datos } = v;
+        return datos;
+      });
+      const r = await apiPost({ accion: 'ventas', token: sesion.token, dispositivo: obtenerDispositivo(), ventas: lote });
+      if (!r.success) {
+        huboError = true;
+        if (r.sesionInvalida) {
+          sesion = null;
+          localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+          mostrarLogin('Tu sesión venció o tu usuario ya no tiene acceso. Vuelve a entrar.');
+        } else if (manual === true) {
+          alert('⚠️ No se pudieron subir las ventas: ' + (r.error || ''));
+        }
+        break;
+      }
+      // Marcar como subidas (se relee el historial por si hubo una venta nueva mientras tanto)
+      if (sesion.offline) { delete sesion.offline; guardarSesion(sesion, !!localStorage.getItem(SESION_KEY)); }
+      const okFolios = new Set(r.resultados.filter(x => x.ok).map(x => x.folio));
+      const hist = leerHistorial();
+      hist.forEach(v => { if (okFolios.has(v.folio)) { v.sincronizada = true; v.pendiente = false; } });
+      localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
+    }
+  } catch (e) {
+    huboError = true;
+    console.warn('No se pudo sincronizar:', e);
+  } finally {
+    subiendo = false;
+    actualizarBadgeSync(huboError ? 'error' : undefined);
+    if (document.getElementById('modalAjustes').classList.contains('activo')) abrirAjustes();
+  }
+}
+
+window.addEventListener('online', () => enviarPendientes());
+setInterval(() => enviarPendientes(), 60000);
+
+// ================== AJUSTES ==================
+function abrirAjustes() {
+  const hist = leerHistorial();
+  document.getElementById('ajUsuario').textContent = sesion
+    ? `${sesion.usuario.nombre || sesion.usuario.email}${sesion.offline ? ' (sin conexión)' : ''}` : '---';
+  document.getElementById('ajDispositivo').value = obtenerDispositivo();
+  document.getElementById('ajPendientes').textContent = hist.filter(v => v.pendiente && !v.sincronizada).length;
+  const anteriores = hist.filter(v => !v.pendiente && !v.sincronizada).length;
+  document.getElementById('ajAnteriores').textContent = anteriores;
+  document.getElementById('filaAnteriores').style.display = anteriores ? 'flex' : 'none';
+  document.getElementById('modalAjustes').classList.add('activo');
+}
+
+// Ventas registradas con la versión anterior (antes de que existiera la subida)
+function subirAnteriores() {
+  const hist = leerHistorial();
+  const disp = obtenerDispositivo();
+  let n = 0;
+  hist.forEach(v => {
+    if (!v.pendiente && !v.sincronizada) {
+      v.pendiente = true;
+      v.dia = v.dia || diaLocal(v.fecha);
+      v.hora = v.hora || horaLocal(v.fecha);
+      v.dispositivo = v.dispositivo || disp;
+      v.usuario = v.usuario || { nombre: 'Sin registro', email: '' };
+      n++;
+    }
+  });
+  localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
+  if (n) enviarPendientes(true);
+  abrirAjustes();
+}
+
+// ================== UTILIDADES ==================
+function cerrarModal(id) {
+  document.getElementById(id).classList.remove('activo');
+}
+function abrirTicketMovil() {
+  document.getElementById('ticketPanel').classList.add('abierto');
+}
+function cerrarTicket() {
+  document.getElementById('ticketPanel').classList.remove('abierto');
+}
+
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('activo'); });
+});
+
+// ================== INIT ==================
+cargarProductos();
+renderTicket();
+arrancarSesion();
+actualizarBadgeSync();
+
+// ================== PWA ==================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW no registrado:', err));
+  });
+}
+</script>
+</body>
+</html>
