@@ -288,6 +288,42 @@
                        text-transform: uppercase; text-align: center; font-weight: 700; }
   .hist-vendedor { font-size: 12px; color: #ccc; margin-top: 8px; }
 
+  /* ---------- Modo VALES ---------- */
+  .oculto { display: none !important; }
+  body.modo-vales .topbar { background: rgba(108,52,131,0.55); }
+  body.modo-vales .topbar h1 { color: #d7bde2; }
+  .vale-panel .ticket-header h2 { color: #d7bde2; }
+  .btn-vales { background: #8e44ad !important; color: #fff !important; }
+  body.modo-vales .btn-flotante { background: #a569bd; box-shadow: 0 6px 25px rgba(165,105,189,0.6); }
+  .vale-form { padding: 10px 15px; display: flex; flex-direction: column; gap: 8px;
+               border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .vale-form select, .vale-form input, .vale-obs {
+    width: 100%; padding: 9px 12px; border: none; border-radius: 8px; font-size: 14px;
+    background: rgba(255,255,255,0.1); color: #fff;
+  }
+  .vale-form select option { color: #000; }
+  .vale-form input::placeholder, .vale-obs::placeholder { color: #999; }
+  .tipo-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .tipo-toggle button {
+    padding: 9px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05); color: #fff; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  .tipo-toggle button.activo { background: #8e44ad; border-color: #8e44ad; }
+  .item .quitar { background: none; border: none; color: #e74c3c; font-size: 16px; cursor: pointer; padding: 2px 4px; }
+  .vale-resumen { font-size: 12px; color: #bbb; margin-bottom: 8px; text-align: center; }
+  .btn-vale {
+    grid-column: 1/-1; padding: 16px; border: none; border-radius: 10px; cursor: pointer;
+    background: linear-gradient(135deg, #8e44ad, #6c3483); color: #fff; font-size: 17px; font-weight: 800;
+  }
+  .btn-vale:disabled { background: #555; cursor: not-allowed; }
+  .vale-obs { resize: vertical; min-height: 38px; margin-bottom: 8px; font-family: inherit; }
+  .hist-vale { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 10px 12px;
+               margin-bottom: 8px; border-left: 3px solid #8e44ad; display: flex; gap: 10px; align-items: center; }
+  .hist-vale.entrada { border-left-color: #2ecc71; }
+  .hist-vale .info { flex: 1; min-width: 0; font-size: 13px; }
+  .hist-vale .info b { color: #d7bde2; }
+  .hist-vale .info small { color: #aaa; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
   #zonaImpresion { display: none; }
   @media print {
@@ -309,6 +345,7 @@
       <span class="estado cache" id="estado">🟡 Cargando...</span>
       <button class="sync ok" id="syncEstado" onclick="enviarPendientes(true)" title="Ventas por subir a Google Sheets">☁️ Al día</button>
       <button class="btn-sec" onclick="abrirHistorial()">📊 Historial</button>
+      <button class="btn-sec btn-vales oculto" id="btnVales" onclick="cambiarModo(modo === 'vale' ? 'venta' : 'vale')">📦 Vales</button>
       <button class="btn-sec usuario-btn" id="btnUsuario" onclick="abrirAjustes()">👤 ---</button>
     </div>
     
@@ -354,7 +391,40 @@
   </div>
 </div>
 
-<button class="btn-flotante" onclick="abrirTicketMovil()">🛒</button>
+<!-- ============ PANEL DE VALE (salida / entrada de mercancía) ============ -->
+<div class="ticket-panel vale-panel oculto" id="valePanel">
+  <div class="ticket-header">
+    <div>
+      <h2>📦 Vale de mercancía</h2>
+      <span class="folio" id="folioVale">---</span>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="btn-sec" onclick="abrirHistVales()" title="Vales anteriores">📋</button>
+      <button class="btn-sec cerrar-ticket" onclick="cerrarTicket()" style="display:none;">✕</button>
+    </div>
+  </div>
+  <div class="vale-form">
+    <div class="tipo-toggle">
+      <button type="button" data-tipo="salida" class="activo" onclick="setTipoVale('salida')">⬆️ Salida</button>
+      <button type="button" data-tipo="entrada" onclick="setTipoVale('entrada')">⬇️ Entrada</button>
+    </div>
+    <select id="valeDestino" onchange="actualizarCamposVale()"></select>
+    <input type="text" id="valeRef" maxlength="80">
+    <input type="text" id="valePersona" maxlength="40">
+  </div>
+  <div class="ticket-items" id="valeItems"></div>
+  <div class="ticket-footer">
+    <textarea class="vale-obs" id="valeObs" maxlength="200" rows="1" placeholder="📝 Observaciones (opcional)"></textarea>
+    <div class="vale-resumen" id="valeResumen"></div>
+    <div class="botones">
+      <button class="btn-vale" id="btnGenerarVale" onclick="generarVale()" disabled>📄 GENERAR VALE</button>
+      <button class="btn-sec" onclick="limpiarVale(true)">🗑️ Cancelar</button>
+      <button class="btn-sec" onclick="cambiarModo('venta')">🛒 Ir a ventas</button>
+    </div>
+  </div>
+</div>
+
+<button class="btn-flotante" id="btnFlotante" onclick="abrirTicketMovil()">🛒</button>
 
 <div class="modal" id="modalCobro">
   <div class="modal-box">
@@ -454,6 +524,32 @@
   </div>
 </div>
 
+<div class="modal" id="modalValeGen">
+  <div class="modal-box" style="text-align:center;">
+    <h2 id="valeGenTitulo">✅ Vale generado</h2>
+    <img id="valeImg" class="ticket-preview" alt="Vale">
+    <button class="btn-imprimir" onclick="imprimirVale()">🖨️ Imprimir vale</button>
+    <div class="config-fila">
+      Papel:
+      <select id="anchoPapelVale" onchange="guardarAnchoPapel(this.value)">
+        <option value="58">58 mm</option>
+        <option value="80">80 mm</option>
+      </select>
+    </div>
+    <button class="btn-confirmar" onclick="compartirVale()">📱 Compartir por WhatsApp</button>
+    <button class="btn-sec" onclick="descargarBlob(valeBlob, 'vale-' + valeActual.folio + '.png')" style="margin-top:8px; width:100%;">💾 Descargar imagen</button>
+    <button class="btn-cerrar" onclick="cerrarValeGen()" id="btnCerrarValeGen">🆕 Nuevo vale</button>
+  </div>
+</div>
+
+<div class="modal" id="modalHistVales">
+  <div class="modal-box">
+    <h2>📋 Vales de mercancía</h2>
+    <div id="histValesContenido"></div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalHistVales')">Cerrar</button>
+  </div>
+</div>
+
 <!-- ============ LOGIN ============ -->
 <div class="login" id="pantallaLogin">
   <form class="login-box" id="formLogin" autocomplete="on">
@@ -483,6 +579,7 @@
       <input type="text" id="ajDispositivo" maxlength="4" onchange="guardarDispositivo(this.value)">
     </div>
     <div class="ajuste-fila"><span>Ventas por subir</span><b id="ajPendientes">0</b></div>
+    <div class="ajuste-fila"><span>Vales por subir</span><b id="ajValesPend">0</b></div>
     <div class="ajuste-fila" id="filaAnteriores" style="display:none;">
       <span>Ventas guardadas antes de esta versión<br><small style="color:#888;">Aún no están en Google Sheets</small></span>
       <button class="btn-sec" onclick="subirAnteriores()">⬆️ Subir <span id="ajAnteriores">0</span></button>
@@ -506,6 +603,14 @@ const PAPEL_KEY = 'pos_ancho_papel';
 const SESION_KEY = 'pos_sesion';
 const USUARIOS_LOCAL_KEY = 'pos_usuarios_recordados';
 const DISP_KEY = 'pos_dispositivo';
+const VALES_KEY = 'pos_vales_historial';
+
+// ===== Vales de mercancía: destinos y orígenes (puedes editar estas listas) =====
+const DESTINOS_SALIDA = ['Tienda San Vicente (SV)', 'Tienda San Pedro', 'Tianguis', 'Cliente (recoge en bodega)', 'Otro'];
+const ORIGENES_ENTRADA = ['Producción / elaboración', 'Proveedor', 'Devolución de Tienda San Vicente (SV)',
+  'Devolución de Tienda San Pedro', 'Devolución de Tianguis', 'Devolución de cliente', 'Otro'];
+// Tipos de usuario que pueden hacer vales (igual que TIPOS_VALES en el Apps Script)
+const TIPOS_VALES = ['admin', 'almacen'];
 
 // ================== ESTADO ==================
 let productos = [];
@@ -623,7 +728,7 @@ function renderProductos() {
     const p1 = parseFloat(p.PRECIO_1)||0;
     const granel = esGranel(p);
     return `
-      <div class="producto ${agotado?'agotado':''}" onclick="${agotado?'':`agregar('${p.ID}')`}">
+      <div class="producto ${agotado && modo!=='vale'?'agotado':''}" onclick="${agotado && modo!=='vale'?'':`agregar('${p.ID}')`}">
         ${granel ? '<span class="granel-badge">⚖️ Granel</span>' : ''}
         <span class="stock-badge">${agotado?'Agotado':stock}</span>
         ${p.IMAGEN_URL ? `<img src="${p.IMAGEN_URL}" alt="" loading="lazy">` : '<div style="height:90px;background:#eee;border-radius:8px;"></div>'}
@@ -647,6 +752,7 @@ function calcularPrecio(item) {
 }
 
 function agregar(id) {
+  if (modo === 'vale') return agregarVale(id);
   const p = productos.find(x => String(x.ID) === String(id));
   if (!p) return;
   const granel = esGranel(p);
@@ -806,20 +912,20 @@ function limpiarTicket() {
 // ================== FOLIO ==================
 // El folio solo se "gasta" cuando se confirma una venta.
 // Abrir o recargar la app ya no se brinca números.
-function siguienteFolio() {
+function siguienteFolio(prefijo = 'V', clave = FOLIO_KEY) {
   const hoy = diaLocal().replace(/-/g,'');
-  const guardado = JSON.parse(localStorage.getItem(FOLIO_KEY) || '{}');
+  const guardado = JSON.parse(localStorage.getItem(clave) || '{}');
   const n = (guardado.fecha === hoy ? (guardado.n || 0) : 0) + 1;
-  return { hoy, n, folio: `V-${obtenerDispositivo()}-${hoy}-${String(n).padStart(3,'0')}` };
+  return { hoy, n, folio: `${prefijo}-${obtenerDispositivo()}-${hoy}-${String(n).padStart(3,'0')}` };
 }
 function generarFolio() {
   const { folio } = siguienteFolio();
   document.getElementById('folioActual').textContent = folio;
   return folio;
 }
-function consumirFolio() {
-  const { hoy, n, folio } = siguienteFolio();
-  localStorage.setItem(FOLIO_KEY, JSON.stringify({fecha: hoy, n}));
+function consumirFolio(prefijo = 'V', clave = FOLIO_KEY) {
+  const { hoy, n, folio } = siguienteFolio(prefijo, clave);
+  localStorage.setItem(clave, JSON.stringify({fecha: hoy, n}));
   return folio;
 }
 
@@ -1116,7 +1222,11 @@ async function imprimirTicket() {
   if (!ventaActual) return;
   const papel = localStorage.getItem(PAPEL_KEY) || '58';
   const blob = await dibujarTicket(ventaActual, { W: PUNTOS_PAPEL[papel], bn: true });
-  const file = new File([blob], `ticket-${ventaActual.folio}.png`, { type: 'image/png' });
+  return imprimirImagen(blob, `ticket-${ventaActual.folio}.png`);
+}
+
+async function imprimirImagen(blob, nombre) {
+  const file = new File([blob], nombre, { type: 'image/png' });
 
   // CELULAR: se abre el menú "Compartir" del teléfono -> elegir la app de impresión
   // (por ejemplo RawBT en Android), que manda la imagen a la impresora Bluetooth/USB.
@@ -1169,10 +1279,14 @@ async function compartirTicket() {
 
 function descargarTicket() {
   if (!ticketBlob) return;
-  const url = URL.createObjectURL(ticketBlob);
+  descargarBlob(ticketBlob, `ticket-${ventaActual.folio}.png`);
+}
+function descargarBlob(blob, nombre) {
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `ticket-${ventaActual.folio}.png`;
+  a.download = nombre;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
@@ -1397,6 +1511,8 @@ function iniciarSesion(s, recordar) {
   document.getElementById('loginPassword').value = '';
   document.getElementById('pantallaLogin').classList.remove('activo');
   document.getElementById('btnUsuario').textContent = '👤 ' + (s.usuario.nombre || s.usuario.email);
+  document.getElementById('btnVales').classList.toggle('oculto', !puedeHacerVales());
+  if (modo === 'vale' && !puedeHacerVales()) cambiarModo('venta');
   enviarPendientes();
 }
 
@@ -1408,6 +1524,9 @@ function cerrarSesion() {
     navigator.credentials.preventSilentAccess().catch(() => {});
   }
   cerrarModal('modalAjustes');
+  cambiarModo('venta');
+  limpiarVale(false);
+  document.getElementById('btnVales').classList.add('oculto');
   document.getElementById('btnUsuario').textContent = '👤 ---';
   document.getElementById('loginUsuario').value = '';
   mostrarLogin();
@@ -1438,8 +1557,17 @@ let subiendo = false;
 
 function leerHistorial() { return leerJSON(localStorage, VENTAS_KEY, []); }
 
+// Colas que se suben a Google Sheets: ventas y vales
+const COLAS = [
+  { clave: VENTAS_KEY, accion: 'ventas', campo: 'ventas', nombre: 'ventas' },
+  { clave: VALES_KEY,  accion: 'vales',  campo: 'vales',  nombre: 'vales' }
+];
+function pendientesDe(clave) {
+  return leerJSON(localStorage, clave, []).filter(v => v.pendiente && !v.sincronizada);
+}
+
 function actualizarBadgeSync(estado) {
-  const pend = leerHistorial().filter(v => v.pendiente && !v.sincronizada).length;
+  const pend = COLAS.reduce((n, c) => n + pendientesDe(c.clave).length, 0);
   const b = document.getElementById('syncEstado');
   if (estado === 'subiendo') { b.textContent = '⏳ Subiendo...'; b.className = 'sync pend'; }
   else if (estado === 'error') { b.textContent = `⚠️ ${pend} sin subir`; b.className = 'sync err'; }
@@ -1450,38 +1578,43 @@ function actualizarBadgeSync(estado) {
 
 async function enviarPendientes(manual) {
   if (subiendo) return;
-  const pendientes = leerHistorial().filter(v => v.pendiente && !v.sincronizada);
-  if (!pendientes.length) { actualizarBadgeSync(); if (manual === true) alert('✅ Todas las ventas ya están en Google Sheets'); return; }
+  const total = COLAS.reduce((n, c) => n + pendientesDe(c.clave).length, 0);
+  if (!total) { actualizarBadgeSync(); if (manual === true) alert('✅ Todo está en Google Sheets'); return; }
   if (!sesion || !sesion.token) { actualizarBadgeSync(); return; }
-  if (!navigator.onLine) { actualizarBadgeSync(); if (manual === true) alert('📵 Sin internet. Se subirán solas cuando regrese la señal.'); return; }
+  if (!navigator.onLine) { actualizarBadgeSync(); if (manual === true) alert('📵 Sin internet. Se subirá solo cuando regrese la señal.'); return; }
 
   subiendo = true;
   actualizarBadgeSync('subiendo');
   let huboError = false;
   try {
-    for (let i = 0; i < pendientes.length; i += 25) {
-      const lote = pendientes.slice(i, i + 25).map(v => {
-        const { pendiente, sincronizada, ...datos } = v;
-        return datos;
-      });
-      const r = await apiPost({ accion: 'ventas', token: sesion.token, dispositivo: obtenerDispositivo(), ventas: lote });
-      if (!r.success) {
-        huboError = true;
-        if (r.sesionInvalida) {
-          sesion = null;
-          localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
-          mostrarLogin('Tu sesión venció o tu usuario ya no tiene acceso. Vuelve a entrar.');
-        } else if (manual === true) {
-          alert('⚠️ No se pudieron subir las ventas: ' + (r.error || ''));
+    for (const cola of COLAS) {
+      const pendientes = pendientesDe(cola.clave);
+      // Los vales solo los puede subir un usuario con permiso de vales
+      if (cola.accion === 'vales' && !puedeHacerVales()) { if (pendientes.length) huboError = true; continue; }
+      for (let i = 0; i < pendientes.length; i += 25) {
+        const lote = pendientes.slice(i, i + 25).map(v => {
+          const { pendiente, sincronizada, ...datos } = v;
+          return datos;
+        });
+        const r = await apiPost({ accion: cola.accion, token: sesion.token, dispositivo: obtenerDispositivo(), [cola.campo]: lote });
+        if (!r.success) {
+          huboError = true;
+          if (r.sesionInvalida) {
+            sesion = null;
+            localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+            mostrarLogin('Tu sesión venció o tu usuario ya no tiene acceso. Vuelve a entrar.');
+            return;
+          }
+          if (manual === true) alert(`⚠️ No se pudieron subir los ${cola.nombre}: ` + (r.error || ''));
+          break;
         }
-        break;
+        // Marcar como subidos (se relee por si se registró algo nuevo mientras tanto)
+        if (sesion.offline) { delete sesion.offline; guardarSesion(sesion, !!localStorage.getItem(SESION_KEY)); }
+        const okFolios = new Set(r.resultados.filter(x => x.ok).map(x => x.folio));
+        const lista = leerJSON(localStorage, cola.clave, []);
+        lista.forEach(v => { if (okFolios.has(v.folio)) { v.sincronizada = true; v.pendiente = false; } });
+        localStorage.setItem(cola.clave, JSON.stringify(lista));
       }
-      // Marcar como subidas (se relee el historial por si hubo una venta nueva mientras tanto)
-      if (sesion.offline) { delete sesion.offline; guardarSesion(sesion, !!localStorage.getItem(SESION_KEY)); }
-      const okFolios = new Set(r.resultados.filter(x => x.ok).map(x => x.folio));
-      const hist = leerHistorial();
-      hist.forEach(v => { if (okFolios.has(v.folio)) { v.sincronizada = true; v.pendiente = false; } });
-      localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
     }
   } catch (e) {
     huboError = true;
@@ -1503,6 +1636,7 @@ function abrirAjustes() {
     ? `${sesion.usuario.nombre || sesion.usuario.email}${sesion.offline ? ' (sin conexión)' : ''}` : '---';
   document.getElementById('ajDispositivo').value = obtenerDispositivo();
   document.getElementById('ajPendientes').textContent = hist.filter(v => v.pendiente && !v.sincronizada).length;
+  document.getElementById('ajValesPend').textContent = pendientesDe(VALES_KEY).length;
   const anteriores = hist.filter(v => !v.pendiente && !v.sincronizada).length;
   document.getElementById('ajAnteriores').textContent = anteriores;
   document.getElementById('filaAnteriores').style.display = anteriores ? 'flex' : 'none';
@@ -1529,15 +1663,392 @@ function subirAnteriores() {
   abrirAjustes();
 }
 
+// ================== VALES DE MERCANCÍA ==================
+// Registro de lo que sale de (o entra a) la bodega. No modifica el stock.
+let modo = 'venta';          // 'venta' | 'vale'
+let valeCarrito = [];
+let valeTipo = 'salida';     // 'salida' | 'entrada'
+let valeActual = null;
+let valeBlob = null;
+let valeRecienCreado = false;
+
+function puedeHacerVales() {
+  return !!(sesion && sesion.usuario && TIPOS_VALES.includes(String(sesion.usuario.tipo || '').toLowerCase()));
+}
+
+function cambiarModo(m) {
+  if (m === 'vale' && !puedeHacerVales()) return;
+  modo = m;
+  const vale = m === 'vale';
+  document.body.classList.toggle('modo-vales', vale);
+  document.getElementById('ticketPanel').classList.toggle('oculto', vale);
+  document.getElementById('valePanel').classList.toggle('oculto', !vale);
+  document.getElementById('btnVales').textContent = vale ? '🛒 Ventas' : '📦 Vales';
+  document.getElementById('btnFlotante').textContent = vale ? '📦' : '🛒';
+  document.querySelector('.topbar h1').textContent = vale ? 'Vales de mercancía' : 'Punto de Venta';
+  cerrarTicket();
+  if (vale) { llenarDestinos(); renderVale(); }
+  renderProductos();
+}
+
+function setTipoVale(t) {
+  valeTipo = t;
+  document.querySelectorAll('.tipo-toggle button').forEach(b => b.classList.toggle('activo', b.dataset.tipo === t));
+  llenarDestinos();
+  renderVale();
+}
+
+function llenarDestinos() {
+  const sel = document.getElementById('valeDestino');
+  const lista = valeTipo === 'salida' ? DESTINOS_SALIDA : ORIGENES_ENTRADA;
+  const previo = sel.value;
+  sel.innerHTML = `<option value="">${valeTipo === 'salida' ? '📍 ¿A dónde va?' : '📍 ¿De dónde viene?'}</option>` +
+    lista.map(d => `<option>${d}</option>`).join('');
+  if (lista.includes(previo)) sel.value = previo;
+  actualizarCamposVale();
+}
+
+function refObligatoria() {
+  const d = document.getElementById('valeDestino').value;
+  return /cliente|otro|proveedor/i.test(d);
+}
+
+function actualizarCamposVale() {
+  const d = document.getElementById('valeDestino').value;
+  const ref = document.getElementById('valeRef');
+  if (/cliente/i.test(d)) ref.placeholder = '👤 Nombre del cliente y no. de pedido / folio de venta';
+  else if (/proveedor/i.test(d)) ref.placeholder = '🏭 Proveedor y no. de factura / remisión';
+  else if (/otro/i.test(d)) ref.placeholder = '✏️ Especifica a dónde / de dónde';
+  else ref.placeholder = '🔖 Referencia (opcional)';
+  document.getElementById('valePersona').placeholder = valeTipo === 'salida'
+    ? '✍️ Nombre de quien recibe' : '✍️ Nombre de quien entrega';
+  validarVale();
+}
+
+function agregarVale(id) {
+  const p = productos.find(x => String(x.ID) === String(id));
+  if (!p) return;
+  const ex = valeCarrito.find(x => String(x.ID) === String(id));
+  if (ex) ex.cantidad = Math.round((ex.cantidad + 1) * 1000) / 1000;
+  else valeCarrito.push({ ID: p.ID, NOMBRE: p.NOMBRE, granel: esGranel(p), cantidad: 1 });
+  renderVale();
+  if (window.innerWidth <= 900) document.getElementById('valePanel').classList.add('abierto');
+}
+
+function cambiarCantVale(i, delta) {
+  const it = valeCarrito[i];
+  if (!it) return;
+  it.cantidad = Math.round((it.cantidad + delta) * 1000) / 1000;
+  if (it.cantidad <= 0) valeCarrito.splice(i, 1);
+  renderVale();
+}
+function setCantVale(i, val) {
+  const it = valeCarrito[i];
+  if (!it) return;
+  let n = parseFloat(val);
+  if (isNaN(n) || n <= 0) n = it.granel ? 0.5 : 1;
+  it.cantidad = it.granel ? Math.round(n * 1000) / 1000 : Math.max(1, Math.round(n));
+  renderVale();
+}
+function quitarVale(i) { valeCarrito.splice(i, 1); renderVale(); }
+
+function fmtCant(c, granel) {
+  return granel ? `${Math.round(c * 1000) / 1000} kg` : `${c} pza${c === 1 ? '' : 's'}`;
+}
+function resumenCantidades(items) {
+  const pzas = items.filter(i => !i.granel).reduce((s, i) => s + i.cantidad, 0);
+  const kg = Math.round(items.filter(i => i.granel).reduce((s, i) => s + i.cantidad, 0) * 1000) / 1000;
+  const partes = [`${items.length} producto${items.length === 1 ? '' : 's'}`];
+  if (pzas) partes.push(`${pzas} pza${pzas === 1 ? '' : 's'}`);
+  if (kg) partes.push(`${kg} kg`);
+  return partes.join(' · ');
+}
+
+function renderVale() {
+  document.getElementById('folioVale').textContent =
+    siguienteFolio(valeTipo === 'salida' ? 'VS' : 'VE', 'pos_folio_' + valeTipo).folio;
+  const cont = document.getElementById('valeItems');
+  if (!valeCarrito.length) {
+    cont.innerHTML = '<div class="ticket-vacio">Toca los productos que<br>' +
+      (valeTipo === 'salida' ? 'salen de la bodega' : 'entran a la bodega') + '</div>';
+  } else {
+    cont.innerHTML = valeCarrito.map((it, i) => `
+      <div class="item">
+        <div class="item-info">
+          <div class="n">${it.granel ? '⚖️ ' : ''}${it.NOMBRE}</div>
+          <div class="p">${it.granel ? 'kg' : 'piezas'}</div>
+        </div>
+        <div class="cant">
+          <button class="menos" onclick="cambiarCantVale(${i},-1)">−</button>
+          <input type="number" inputmode="decimal" step="${it.granel ? '0.001' : '1'}" value="${it.cantidad}"
+                 onfocus="this.select()" onchange="setCantVale(${i}, this.value)"
+                 onkeydown="if(event.key==='Enter') this.blur()">
+          <button class="mas" onclick="cambiarCantVale(${i},1)">+</button>
+        </div>
+        <button class="quitar" onclick="quitarVale(${i})" title="Quitar">✕</button>
+      </div>`).join('');
+  }
+  document.getElementById('valeResumen').textContent = valeCarrito.length ? resumenCantidades(valeCarrito) : '';
+  validarVale();
+}
+
+function validarVale() {
+  const ok = valeCarrito.length > 0 && document.getElementById('valeDestino').value &&
+    (!refObligatoria() || document.getElementById('valeRef').value.trim());
+  document.getElementById('btnGenerarVale').disabled = !ok;
+  return ok;
+}
+document.getElementById('valeRef').addEventListener('input', validarVale);
+
+function limpiarVale(preguntar) {
+  if (preguntar && valeCarrito.length && !confirm('¿Cancelar el vale actual?')) return;
+  valeCarrito = [];
+  ['valeRef', 'valePersona', 'valeObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('valeDestino').value = '';
+  renderVale();
+  actualizarCamposVale();
+}
+
+async function generarVale() {
+  if (!puedeHacerVales()) { alert('Tu usuario no tiene permiso para hacer vales'); return; }
+  if (!validarVale()) {
+    alert(refObligatoria() && !document.getElementById('valeRef').value.trim()
+      ? '⚠️ Escribe el nombre del cliente / proveedor o la referencia' : '⚠️ Falta elegir destino y productos');
+    return;
+  }
+  const prefijo = valeTipo === 'salida' ? 'VS' : 'VE';
+  const vale = {
+    folio: consumirFolio(prefijo, 'pos_folio_' + valeTipo),
+    tipo: valeTipo,
+    fecha: new Date().toISOString(),
+    dia: diaLocal(),
+    hora: horaLocal(),
+    dispositivo: obtenerDispositivo(),
+    usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre },
+    destino: document.getElementById('valeDestino').value,
+    referencia: document.getElementById('valeRef').value.trim(),
+    persona: document.getElementById('valePersona').value.trim(),
+    observaciones: document.getElementById('valeObs').value.trim(),
+    items: valeCarrito.map(it => ({ ID: it.ID, NOMBRE: it.NOMBRE, cantidad: it.cantidad, granel: it.granel })),
+    pendiente: true
+  };
+  const lista = leerJSON(localStorage, VALES_KEY, []);
+  lista.push(vale);
+  localStorage.setItem(VALES_KEY, JSON.stringify(lista));
+  valeRecienCreado = true;
+  await mostrarVale(vale, '✅ Vale generado');
+  enviarPendientes();
+}
+
+async function mostrarVale(vale, titulo) {
+  valeActual = vale;
+  valeBlob = await dibujarVale(vale, { W: 500, bn: false });
+  document.getElementById('valeImg').src = URL.createObjectURL(valeBlob);
+  document.getElementById('valeGenTitulo').textContent = titulo;
+  document.getElementById('btnCerrarValeGen').textContent = valeRecienCreado ? '🆕 Nuevo vale' : 'Cerrar';
+  document.getElementById('anchoPapelVale').value = localStorage.getItem(PAPEL_KEY) || '58';
+  document.getElementById('modalValeGen').classList.add('activo');
+}
+
+function cerrarValeGen() {
+  cerrarModal('modalValeGen');
+  if (valeRecienCreado) { valeRecienCreado = false; limpiarVale(false); cerrarTicket(); }
+}
+
+async function imprimirVale() {
+  if (!valeActual) return;
+  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const blob = await dibujarVale(valeActual, { W: PUNTOS_PAPEL[papel], bn: true });
+  return imprimirImagen(blob, `vale-${valeActual.folio}.png`);
+}
+
+async function compartirVale() {
+  if (!valeBlob) return;
+  const v = valeActual;
+  const file = new File([valeBlob], `vale-${v.folio}.png`, { type: 'image/png' });
+  const texto = `📦 *Vale de ${v.tipo === 'salida' ? 'salida' : 'entrada'} ${v.folio}*\n` +
+    `${v.tipo === 'salida' ? 'Destino' : 'Origen'}: ${v.destino}${v.referencia ? ' — ' + v.referencia : ''}\n` +
+    v.items.map(i => `• ${i.NOMBRE}: ${fmtCant(i.cantidad, i.granel)}`).join('\n') +
+    `\n\nElaboró: ${v.usuario.nombre}`;
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Vale ' + v.folio, text: texto }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  descargarBlob(valeBlob, `vale-${v.folio}.png`);
+  setTimeout(() => window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank'), 500);
+}
+
+// ----- Comprobante (imagen). bn=true -> blanco y negro para impresora térmica -----
+function partirTexto(ctx, texto, ancho) {
+  const palabras = String(texto).split(/\s+/);
+  const lineas = [];
+  let linea = '';
+  palabras.forEach(p => {
+    const prueba = linea ? linea + ' ' + p : p;
+    if (ctx.measureText(prueba).width > ancho && linea) { lineas.push(linea); linea = p; }
+    else linea = prueba;
+  });
+  if (linea) lineas.push(linea);
+  return lineas;
+}
+
+function dibujarVale(vale, opciones) {
+  const { W = 500, bn = false } = opciones || {};
+  const f = W / 500 * (bn ? 1.25 : 1);
+  const M = Math.round(W * 0.05);
+  const px = n => Math.round(n * f) + 'px';
+  const sp = n => Math.round(n * f);
+  const C = bn ? { tit: '#000', sub: '#000', txt: '#000', lin: '#000', acento: '#000' }
+               : { tit: '#1a1a2e', sub: '#666', txt: '#333', lin: '#ccc', acento: '#6c3483' };
+  const salida = vale.tipo === 'salida';
+
+  const tmp = document.createElement('canvas');
+  tmp.width = W;
+  tmp.height = Math.round((900 + vale.items.length * 70) * Math.max(f, 1));
+  const ctx = tmp.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
+  const raya = (y, punteada, color, grosor) => {
+    ctx.strokeStyle = color || C.lin; ctx.lineWidth = grosor || (bn ? 2 : 1);
+    ctx.setLineDash(punteada ? [4, 4] : []);
+    ctx.beginPath(); ctx.moveTo(M * 0.7, y); ctx.lineTo(W - M * 0.7, y); ctx.stroke();
+    ctx.setLineDash([]);
+  };
+
+  if (!bn) { ctx.fillStyle = C.acento; ctx.fillRect(0, 0, W, 8); }
+  let y = sp(38);
+  ctx.textAlign = 'center'; ctx.fillStyle = C.tit;
+  ctx.font = 'bold ' + px(24 * (bn ? 0.9 : 1)) + ' Arial';
+  ctx.fillText('MOLES CHABELITA SV', W / 2, y);
+  y += sp(28);
+  // Banda con el tipo de vale
+  const banda = salida ? 'VALE DE SALIDA' : 'VALE DE ENTRADA';
+  ctx.fillStyle = bn ? '#000' : C.acento;
+  ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial';
+  ctx.fillText(banda + ' DE MERCANCÍA', W / 2, y);
+  y += sp(30);
+
+  const fecha = new Date(vale.fecha);
+  const fechaStr = fecha.toLocaleDateString('es-MX') + ' ' +
+    fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  const colVal = M + sp(82);
+  const anchoVal = W - M - colVal;
+  ctx.textAlign = 'left';
+  const datos = [['Folio:', vale.folio], ['Fecha:', fechaStr],
+    [salida ? 'Destino:' : 'Origen:', vale.destino]];
+  if (vale.referencia) datos.push([/cliente/i.test(vale.destino) ? 'Cliente:' : 'Ref.:', vale.referencia]);
+  datos.push(['Elaboró:', vale.usuario ? vale.usuario.nombre : '']);
+  datos.forEach(([k, v]) => {
+    ctx.font = 'bold ' + px(13) + ' Arial'; ctx.fillStyle = C.txt; ctx.fillText(k, M, y);
+    ctx.font = px(13) + ' Arial';
+    partirTexto(ctx, v, anchoVal).forEach((l, i) => { ctx.fillText(l, colVal, y); y += sp(18); });
+  });
+  y += sp(4);
+  raya(y, true);
+  y += sp(22);
+
+  ctx.font = 'bold ' + px(13) + ' Arial'; ctx.fillStyle = C.tit;
+  ctx.textAlign = 'left'; ctx.fillText('Producto', M, y);
+  ctx.textAlign = 'right'; ctx.fillText('Cantidad', W - M, y);
+  y += sp(6); raya(y, false, C.tit); y += sp(22);
+
+  const anchoNombre = W - M * 2 - sp(95);
+  vale.items.forEach(it => {
+    ctx.font = px(14) + ' Arial'; ctx.fillStyle = C.txt; ctx.textAlign = 'left';
+    const lineas = partirTexto(ctx, it.NOMBRE, anchoNombre);
+    ctx.textAlign = 'right'; ctx.font = 'bold ' + px(15) + ' Arial';
+    ctx.fillText(fmtCant(it.cantidad, it.granel), W - M, y);
+    ctx.textAlign = 'left'; ctx.font = px(14) + ' Arial';
+    lineas.forEach((l, i) => { ctx.fillText(l, M, y); y += sp(19); });
+    y += sp(7);
+  });
+  raya(y - sp(8), false, C.tit);
+  y += sp(16);
+  ctx.textAlign = 'center'; ctx.font = 'bold ' + px(14) + ' Arial'; ctx.fillStyle = C.tit;
+  ctx.fillText(resumenCantidades(vale.items), W / 2, y);
+  y += sp(24);
+
+  if (vale.observaciones) {
+    ctx.textAlign = 'left'; ctx.font = 'bold ' + px(12) + ' Arial'; ctx.fillStyle = C.txt;
+    ctx.fillText('Observaciones:', M, y); y += sp(17);
+    ctx.font = px(12) + ' Arial';
+    partirTexto(ctx, vale.observaciones, W - M * 2).forEach(l => { ctx.fillText(l, M, y); y += sp(16); });
+    y += sp(8);
+  }
+
+  // Firmas
+  y += sp(46);
+  const entrega = salida ? (vale.usuario ? vale.usuario.nombre : '') : vale.persona;
+  const recibe = salida ? vale.persona : (vale.usuario ? vale.usuario.nombre : '');
+  const anchoFirma = (W - M * 3) / 2;
+  [[M, 'ENTREGÓ', entrega], [M * 2 + anchoFirma, 'RECIBIÓ', recibe]].forEach(([x, rotulo, nombre]) => {
+    ctx.strokeStyle = C.tit; ctx.lineWidth = bn ? 2 : 1;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + anchoFirma, y); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.fillStyle = C.tit; ctx.font = 'bold ' + px(12) + ' Arial';
+    ctx.fillText(rotulo, x + anchoFirma / 2, y + sp(16));
+    ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
+    const n = nombre ? partirTexto(ctx, nombre, anchoFirma)[0] : 'Nombre y firma';
+    ctx.fillText(n, x + anchoFirma / 2, y + sp(31));
+  });
+  y += sp(56);
+  ctx.textAlign = 'center'; ctx.font = px(10) + ' Arial'; ctx.fillStyle = C.sub;
+  ctx.fillText('Documento interno · no es comprobante fiscal', W / 2, y);
+  y += sp(bn ? 40 : 18);
+
+  const H = y + (bn ? 0 : 8);
+  const out = document.getElementById('canvasTicket');
+  out.width = W; out.height = H;
+  const octx = out.getContext('2d');
+  octx.drawImage(tmp, 0, 0);
+  if (!bn) { octx.fillStyle = C.acento; octx.fillRect(0, H - 8, W, 8); }
+  return new Promise(res => out.toBlob(res, 'image/png'));
+}
+
+// ----- Historial de vales (en este dispositivo) -----
+function abrirHistVales() {
+  const lista = leerJSON(localStorage, VALES_KEY, []);
+  const cont = document.getElementById('histValesContenido');
+  if (!lista.length) {
+    cont.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">No hay vales registrados en este dispositivo</p>';
+  } else {
+    const porDia = {};
+    lista.forEach(v => (porDia[v.dia] = porDia[v.dia] || []).push(v));
+    cont.innerHTML = Object.keys(porDia).sort().reverse().map(dia => {
+      const vs = porDia[dia].slice().reverse();
+      const fecha = new Date(dia + 'T12:00:00');
+      return `<div class="hist-dia"><h3>📅 ${fecha.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>` +
+        vs.map(v => `
+          <div class="hist-vale ${v.tipo}">
+            <div class="info">
+              <b>${v.tipo === 'salida' ? '⬆️ Salida' : '⬇️ Entrada'}</b> · ${v.folio} · ${v.hora}
+              <small>${v.destino}${v.referencia ? ' — ' + v.referencia : ''}</small>
+              <small>${resumenCantidades(v.items)} · ${v.usuario ? v.usuario.nombre : ''} · ${v.sincronizada ? '☁️ subido' : '⏳ por subir'}</small>
+            </div>
+            <button class="btn-sec" onclick="reabrirVale('${v.folio}')">🖨️ Ver</button>
+          </div>`).join('') + `</div>`;
+    }).join('');
+  }
+  document.getElementById('modalHistVales').classList.add('activo');
+}
+
+function reabrirVale(folio) {
+  const v = leerJSON(localStorage, VALES_KEY, []).find(x => x.folio === folio);
+  if (!v) return;
+  cerrarModal('modalHistVales');
+  valeRecienCreado = false;
+  mostrarVale(v, '📄 ' + v.folio);
+}
+
 // ================== UTILIDADES ==================
 function cerrarModal(id) {
   document.getElementById(id).classList.remove('activo');
 }
 function abrirTicketMovil() {
-  document.getElementById('ticketPanel').classList.add('abierto');
+  document.getElementById(modo === 'vale' ? 'valePanel' : 'ticketPanel').classList.add('abierto');
 }
 function cerrarTicket() {
   document.getElementById('ticketPanel').classList.remove('abierto');
+  document.getElementById('valePanel').classList.remove('abierto');
 }
 
 document.querySelectorAll('.modal').forEach(m => {

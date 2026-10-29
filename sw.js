@@ -1,7 +1,7 @@
 // Service worker del POS Moles Chabelita.
 // IMPORTANTE: cada vez que subas cambios a index.html, aumenta VERSION
 // para que los teléfonos descarguen la versión nueva.
-const VERSION = 'pos-v3';
+const VERSION = 'pos-v4';
 const APP = ['./', './index.html', './manifest.json',
              './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png'];
 
