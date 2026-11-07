@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>POS - Moles Chabelita SV</title>
+<title>POS - Moles Chabelita</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1a2e">
@@ -411,6 +411,18 @@
   .edo-fila button { padding: 6px 10px; font-size: 12px; }
   .aviso-offline { background: rgba(243,156,18,0.15); color: #f8c471; padding: 8px 10px; border-radius: 8px; font-size: 12px; margin-bottom: 8px; }
 
+  /* ---------- Presentaciones (caja, bulto, bote) ---------- */
+  .pres-badge { font-size: 10px; color: #8e44ad; font-weight: 700; }
+  .pres-opciones { display: grid; gap: 10px; margin: 6px 0 4px; }
+  .pres-opciones button {
+    padding: 16px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06);
+    color: #fff; cursor: pointer; text-align: left; font-size: 16px; font-weight: 700;
+  }
+  .pres-opciones button small { display: block; font-weight: 400; color: #bbb; font-size: 13px; margin-top: 3px; }
+  .pres-opciones button:hover { border-color: #f4a261; }
+  .item.pres { border-left: 3px solid #8e44ad; }
+  .item .cant .uni { font-size: 11px; color: #d7bde2; }
+
   /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
   #zonaImpresion { display: none; }
   @media print {
@@ -687,6 +699,14 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal" id="modalPresentacion">
+  <div class="modal-box">
+    <h2 id="presTitulo">¿Cómo lo agregas?</h2>
+    <div class="pres-opciones" id="presOpciones"></div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalPresentacion')">Cancelar</button>
+  </div>
+</div>
+
 <!-- ============ CLIENTES ============ -->
 <div class="modal" id="modalClientes">
   <div class="modal-box ancho">
@@ -813,10 +833,51 @@ const CLIENTES_KEY = 'pos_clientes';
 const CLIENTES_NUEVOS_KEY = 'pos_clientes_nuevos';
 const ABONOS_KEY = 'pos_abonos';
 
-// ===== Puntos de venta (deben coincidir con PUNTOS en el Apps Script) =====
-// El código se usa en las columnas de PRODUCTOS: PRECIO_1_SV, STOCK_SV, etc.
-const PUNTOS = { BODEGA: 'Bodega', SV: 'Tienda San Vicente (SV)', SP: 'Tienda San Pedro', TIANGUIS: 'Tianguis' };
+// ===== Puntos de venta =====
+// Se administran en la hoja PUNTOS de Google Sheets (código, nombre, encabezado del ticket,
+// lista de precios y activo). La app los recibe junto con los productos y los guarda.
+// Estos valores solo se usan la primera vez, antes de conectarse.
 const PUNTO_KEY = 'pos_punto';
+const PUNTOS_KEY = 'pos_puntos';
+const PUNTOS_INICIALES = [
+  { codigo: 'BODEGA',   nombre: 'Bodega',                  ticket: 'MOLES CHABELITA',    lista: 'SV', activo: true },
+  { codigo: 'SV',       nombre: 'Tienda San Vicente (SV)', ticket: 'MOLES CHABELITA SV', lista: 'SV', activo: true },
+  { codigo: 'SP',       nombre: 'Tienda San Pedro',        ticket: 'MOLES CHABELITA SP', lista: 'SP', activo: true },
+  { codigo: 'TIANGUIS', nombre: 'Tianguis',                ticket: 'MOLES CHABELITA',    lista: 'TIANGUIS', activo: true }
+];
+let PUNTOS = {};        // { CODIGO: nombre }  (todos, para mostrar historial)
+let PUNTOS_INFO = {};   // { CODIGO: {nombre, ticket, lista, activo} }
+function aplicarPuntos(lista) {
+  if (!Array.isArray(lista) || !lista.length) return;
+  PUNTOS = {}; PUNTOS_INFO = {};
+  lista.forEach(p => { PUNTOS[p.codigo] = p.nombre; PUNTOS_INFO[p.codigo] = p; });
+  try { localStorage.setItem(PUNTOS_KEY, JSON.stringify(lista)); } catch (e) {}
+}
+(function () {
+  let guardados = null;
+  try { guardados = JSON.parse(localStorage.getItem(PUNTOS_KEY)); } catch (e) {}
+  aplicarPuntos(guardados && guardados.length ? guardados : PUNTOS_INICIALES);
+})();
+// Puntos que se pueden elegir (los inactivos solo se conservan para el historial)
+function puntosActivos() { return Object.keys(PUNTOS_INFO).filter(k => PUNTOS_INFO[k].activo !== false); }
+// Dibuja el encabezado centrado; si el nombre es largo, reduce la letra para que quepa
+function encabezado(ctx, texto, W, y, tamPx) {
+  let t = tamPx;
+  ctx.font = 'bold ' + t + 'px Arial';
+  while (t > 10 && ctx.measureText(texto).width > W * 0.92) { t--; ctx.font = 'bold ' + t + 'px Arial'; }
+  ctx.textAlign = 'center';
+  ctx.fillText(texto, W / 2, y);
+}
+// Encabezado de tickets / vales / comprobantes según el punto
+function nombreTicket(codigo) {
+  const p = PUNTOS_INFO[codigo || obtenerPunto()];
+  return (p && p.ticket) || 'MOLES CHABELITA';
+}
+// Lista de precios del punto (SV, SP...). Vacía = precio general.
+function listaPrecios() {
+  const p = PUNTOS_INFO[obtenerPunto()];
+  return p ? (p.lista || '') : obtenerPunto();
+}
 
 // ===== Vales de mercancía: destinos y orígenes (puedes editar estas listas) =====
 // Los demás puntos de venta se agregan solos como destino de las salidas (traspasos).
@@ -872,6 +933,7 @@ async function cargarProductos() {
     // El script puede responder una lista, o un objeto {success, productos:[...]}
     if (!Array.isArray(data)) {
       if (data && data.success === false) throw new Error(data.error || 'Error del servidor');
+      if (data && data.puntos) { aplicarPuntos(data.puntos); pintarPunto(); }
       data = (data && data.productos) || [];
     }
     productos = data;
@@ -904,6 +966,7 @@ async function recargarProductosSilencioso() {
   try {
     const r = await fetch(API_URL);
     let data = await r.json();
+    if (data && !Array.isArray(data) && data.puntos) { aplicarPuntos(data.puntos); pintarPunto(); }
     if (!Array.isArray(data)) data = (data && data.success !== false && data.productos) || null;
     if (!data) return;
     productos = data;
@@ -915,7 +978,7 @@ async function recargarProductosSilencioso() {
 // ================== PUNTO DE VENTA DEL DISPOSITIVO ==================
 function obtenerPunto() { return localStorage.getItem(PUNTO_KEY) || ''; }
 function guardarPunto(p) {
-  if (!PUNTOS[p]) return;
+  if (!PUNTOS[p] || PUNTOS_INFO[p].activo === false) return;
   if (carrito.length && p !== obtenerPunto() && !confirm('Hay productos en el ticket con precios del punto anterior. ¿Cambiar de todos modos? Se vaciará el ticket.')) {
     document.getElementById('ajPunto').value = obtenerPunto(); return;
   }
@@ -932,17 +995,17 @@ function pintarPunto() {
   document.getElementById('chipPunto').classList.toggle('sin-punto', !p);
 }
 function pedirPunto() {
-  document.getElementById('listaPuntos').innerHTML = Object.entries(PUNTOS).map(([k, n]) =>
-    `<button class="btn-sec ${k === obtenerPunto() ? 'sel' : ''}" onclick="guardarPunto('${k}')">${n}</button>`).join('');
+  document.getElementById('listaPuntos').innerHTML = puntosActivos().map(k =>
+    `<button class="btn-sec ${k === obtenerPunto() ? 'sel' : ''}" onclick="guardarPunto('${k}')">${PUNTOS[k]}</button>`).join('');
   document.getElementById('modalPunto').classList.add('activo');
 }
 
-// Precio de un producto en el punto de este dispositivo.
-// Usa la columna PRECIO_1_SV (por ejemplo) si tiene valor; si está vacía, el precio general.
+// Precio de un producto según la lista de precios del punto (hoja PUNTOS, columna LISTA_PRECIOS).
+// Ej. lista SV -> usa PRECIO_1_SV si tiene valor; si está vacía, el precio general PRECIO_1.
 function valorPunto(p, campo) {
-  const k = campo + '_' + obtenerPunto();
-  const v = p[k];
-  if (obtenerPunto() && v !== undefined && v !== '' && v !== null && !isNaN(parseFloat(v))) return parseFloat(v);
+  const lista = listaPrecios();
+  const v = lista ? p[campo + '_' + lista] : undefined;
+  if (v !== undefined && v !== '' && v !== null && !isNaN(parseFloat(v))) return parseFloat(v);
   return parseFloat(p[campo]) || 0;
 }
 // Existencia en el punto (columna STOCK_SV, etc.). Si la hoja aún no tiene esa columna, usa STOCK.
@@ -1016,7 +1079,7 @@ function renderProductos() {
         ${granel ? '<span class="granel-badge">⚖️ Granel</span>' : ''}
         <span class="stock-badge">${stock === 0 ? 'Agotado' : stock}</span>
         ${p.IMAGEN_URL ? `<img src="${p.IMAGEN_URL}" alt="" loading="lazy">` : '<div style="height:90px;background:#eee;border-radius:8px;"></div>'}
-        <div class="id">#${p.ID}</div>
+        <div class="id">#${p.ID}${presentacionDe(p) ? ` <span class="pres-badge">· 📦 ${presentacionDe(p).nombre} ${presentacionDe(p).contenido}</span>` : ''}</div>
         <div class="nombre">${p.NOMBRE||''}</div>
         <div class="precio">$${p1.toFixed(2)}<span class="unidad">${granel?'/kg':''}</span></div>
       </div>
@@ -1035,12 +1098,61 @@ function calcularPrecio(item) {
   return item.P1;
 }
 
-function agregar(id) {
-  if (modo === 'vale') return agregarVale(id);
+// ================== PRESENTACIONES (caja, bulto, bote...) ==================
+// Columnas en PRODUCTOS: PRESENTACION (ej. "Caja"), CONTENIDO_PRESENTACION (ej. 11.34)
+// y opcional PRECIO_PRESENTACION (precio de la caja completa; también PRECIO_PRESENTACION_SV, etc.).
+// En el ticket/vale aparece "1 Caja"; al inventario y a Sheets va el contenido (11.34 kg).
+function presentacionDe(p) {
+  const nombre = String(p.PRESENTACION || '').trim();
+  const contenido = parseFloat(p.CONTENIDO_PRESENTACION) || 0;
+  if (!nombre || contenido <= 0) return null;
+  return { nombre, contenido, precio: valorPunto(p, 'PRECIO_PRESENTACION') };
+}
+function plural(n, palabra) {
+  if (n === 1) return palabra;
+  return /[aeiouáéíóú]$/i.test(palabra) ? palabra + 's' : palabra + 'es';
+}
+function textoPres(n, pres) { return `${n} ${plural(n, pres.nombre.toLowerCase())}`; }
+// Precio de una presentación: el suyo si existe; si no, contenido × precio unitario (con mayoreo)
+function precioPresentacion(p, pres) {
+  if (pres.precio > 0) return pres.precio;
+  const it = lineaBase(p, pres.contenido);
+  return Math.round(calcularPrecio(it) * pres.contenido * 100) / 100;
+}
+function lineaBase(p, cantidad) {
+  return {
+    ID: p.ID, NOMBRE: p.NOMBRE,
+    P1: valorPunto(p, 'PRECIO_1'), P2: valorPunto(p, 'PRECIO_2'), P3: valorPunto(p, 'PRECIO_3'), P4: valorPunto(p, 'PRECIO_4'),
+    M2: valorPunto(p, 'MAYOREO_2'), M3: valorPunto(p, 'MAYOREO_3'), M4: valorPunto(p, 'MAYOREO_4'),
+    granel: esGranel(p), cantidad
+  };
+}
+function preguntarPresentacion(p, alElegir, conPrecios) {
+  const pres = presentacionDe(p);
+  const granel = esGranel(p);
+  const unidad = granel ? 'kg' : 'pieza';
+  document.getElementById('presTitulo').textContent = p.NOMBRE;
+  document.getElementById('presOpciones').innerHTML = `
+    <button onclick="cerrarModal('modalPresentacion'); (${alElegir.name})('${p.ID}', 'unidad')">
+      ${granel ? '⚖️ Por kilo' : '🔹 Por pieza'}
+      <small>${conPrecios ? '$' + valorPunto(p, 'PRECIO_1').toFixed(2) + ' / ' + unidad : 'Cantidad en ' + (granel ? 'kg' : 'piezas')}</small>
+    </button>
+    <button onclick="cerrarModal('modalPresentacion'); (${alElegir.name})('${p.ID}', 'pres')">
+      📦 ${pres.nombre}
+      <small>Contiene ${pres.contenido} ${granel ? 'kg' : plural(pres.contenido, 'pieza')}${conPrecios ? ' · $' + precioPresentacion(p, pres).toFixed(2) + ' c/u' : ''}</small>
+    </button>`;
+  document.getElementById('modalPresentacion').classList.add('activo');
+}
+
+function agregar(id, como) {
+  if (modo === 'vale') return agregarVale(id, como);
   const p = productos.find(x => String(x.ID) === String(id));
   if (!p) return;
+  const pres = presentacionDe(p);
+  if (pres && !como) { preguntarPresentacion(p, agregar, true); return; }
+  if (pres && como === 'pres') { agregarPresentacion(p, pres); return; }
   const granel = esGranel(p);
-  const ex = carrito.find(x => String(x.ID) === String(id));
+  const ex = carrito.find(x => String(x.ID) === String(id) && !x.pres);
   if (ex) {
     ex.importeFijo = null;
     if (granel) {
@@ -1062,9 +1174,25 @@ function agregar(id) {
       cantidad: 1  // ✅ 1 kg inicial para granel
     });
   }
+  despuesDeAgregar(p);
+}
+
+function agregarPresentacion(p, pres) {
+  const ex = carrito.find(x => String(x.ID) === String(p.ID) && x.pres);
+  if (ex) { ex.cajas++; ex.cantidad = Math.round(ex.cajas * pres.contenido * 1000) / 1000; }
+  else {
+    const it = lineaBase(p, pres.contenido);
+    it.pres = { nombre: pres.nombre, contenido: pres.contenido, precio: pres.precio };
+    it.cajas = 1;
+    carrito.push(it);
+  }
+  despuesDeAgregar(p);
+}
+
+function despuesDeAgregar(p) {
   renderTicket();
-  // Vender con aviso si no hay existencia en este punto
-  const enTicket = (carrito.find(x => String(x.ID) === String(id)) || {}).cantidad || 0;
+  // Vender con aviso si no hay existencia en este punto (suma sueltos + cajas del mismo producto)
+  const enTicket = carrito.filter(x => String(x.ID) === String(p.ID)).reduce((s, x) => s + x.cantidad, 0);
   const disp = stockPunto(p);
   if (enTicket > disp) aviso(`⚠️ ${p.NOMBRE}: hay ${Math.round(disp*1000)/1000} en existencia${obtenerPunto() ? ' en ' + PUNTOS[obtenerPunto()] : ''}`);
   if (window.innerWidth <= 900) {
@@ -1075,6 +1203,10 @@ function agregar(id) {
 // Subtotal de un renglón. Si el cliente pidió "X pesos" de un producto a granel,
 // se cobra exactamente ese importe (la cantidad en kg es la que se calculó).
 function subtotalItem(it) {
+  if (it.pres) {
+    if (it.pres.precio > 0) return Math.round(it.cajas * it.pres.precio * 100) / 100;
+    return Math.round(calcularPrecio(it) * it.cantidad * 100) / 100;
+  }
   if (it.granel && it.importeFijo > 0) return it.importeFijo;
   return calcularPrecio(it) * it.cantidad;
 }
@@ -1115,6 +1247,13 @@ function aplicarImporte(idx, val, final) {
 function cambiarCantidad(idx, delta) {
   const it = carrito[idx];
   if (!it) return;
+  if (it.pres) {
+    it.cajas += delta;
+    if (it.cajas <= 0) carrito.splice(idx, 1);
+    else it.cantidad = Math.round(it.cajas * it.pres.contenido * 1000) / 1000;
+    renderTicket();
+    return;
+  }
   it.importeFijo = null;
   if (it.granel) {
     it.cantidad = Math.round((it.cantidad + delta)*1000)/1000;
@@ -1129,6 +1268,12 @@ function cambiarCantidad(idx, delta) {
 function setCantidadManual(idx, val) {
   const it = carrito[idx];
   if (!it) return;
+  if (it.pres) {
+    it.cajas = Math.max(1, Math.floor(parseFloat(val) || 1));
+    it.cantidad = Math.round(it.cajas * it.pres.contenido * 1000) / 1000;
+    renderTicket();
+    return;
+  }
   it.importeFijo = null;
   let n = parseFloat(val);
   if (isNaN(n) || n <= 0) {
@@ -1156,6 +1301,24 @@ function renderTicket() {
     const pu = calcularPrecio(it);
     const sub = subtotalItem(it);
     total += sub;
+    if (it.pres) {
+      const unidad = it.granel ? 'kg' : 'pzas';
+      return `
+      <div class="item pres">
+        <div class="item-info">
+          <div class="n">📦 ${it.NOMBRE}</div>
+          <div class="p">${it.pres.nombre} de ${it.pres.contenido} ${unidad} · $${(sub / it.cajas).toFixed(2)} c/u</div>
+          <div class="p" style="color:#d7bde2;">= ${Math.round(it.cantidad * 1000) / 1000} ${unidad}</div>
+        </div>
+        <div class="cant">
+          <button class="menos" onclick="cambiarCantidad(${i},-1)">−</button>
+          <input type="number" step="1" inputmode="numeric" value="${it.cajas}" title="${it.pres.nombre}s"
+                 onfocus="this.select()" onchange="setCantidadManual(${i}, this.value)" onclick="event.stopPropagation()" style="width:46px;">
+          <button class="mas" onclick="cambiarCantidad(${i},1)">+</button>
+        </div>
+        <div class="subtotal">$${sub.toFixed(2)}</div>
+      </div>`;
+    }
     const cantMostrar = it.granel 
       ? `<input type="number" step="0.001" inputmode="decimal" value="${it.cantidad}" title="Kilos" 
            onchange="setCantidadManual(${i}, this.value)" 
@@ -1341,10 +1504,11 @@ function confirmarCobro() {
                                      vence: venceCredito(clienteSel) } : {}),
     items: carrito.map(it => ({
       ID: it.ID, NOMBRE: it.NOMBRE,
-      cantidad: it.cantidad,
+      cantidad: it.cantidad,                       // siempre en kg o piezas (lo que se descuenta del inventario)
       granel: it.granel || false,
-      precio: calcularPrecio(it),
-      subtotal: subtotalItem(it)
+      precio: it.pres ? Math.round(subtotalItem(it) / it.cantidad * 100) / 100 : calcularPrecio(it),
+      subtotal: subtotalItem(it),
+      ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {})
     })),
     total,
     metodoPago,
@@ -1406,7 +1570,7 @@ function dibujarTicket(venta, opciones) {
   ctx.textAlign = 'center';
   ctx.fillStyle = C.titulo;
   ctx.font = 'bold ' + px(26 * (bn ? 0.9 : 1)) + ' Arial';
-  ctx.fillText('MOLES CHABELITA SV', W/2, y);
+  encabezado(ctx, nombreTicket(venta.punto), W, y, Math.round(26 * (bn ? 0.9 : 1) * f));
   y += Math.round(24 * f);
   ctx.font = px(13) + ' Arial';
   ctx.fillStyle = C.sub;
@@ -1456,9 +1620,16 @@ function dibujarTicket(venta, opciones) {
       nom += '..';
     }
     ctx.textAlign = 'left';   ctx.fillText(nom, M, y);
-    ctx.textAlign = 'center'; ctx.fillText(it.granel ? (it.cantidad + 'kg') : ('x' + it.cantidad), colCant, y);
+    ctx.textAlign = 'center';
+    ctx.fillText(it.presentacion ? textoPres(it.cantPresentacion, { nombre: it.presentacion })
+      : it.granel ? (it.cantidad + 'kg') : ('x' + it.cantidad), colCant, y);
     ctx.textAlign = 'right';  ctx.font = 'bold ' + px(13) + ' Arial';
     ctx.fillText('$' + it.subtotal.toFixed(2), W - M, y);
+    if (it.presentacion) {
+      y += Math.round(15 * f);
+      ctx.textAlign = 'left'; ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
+      ctx.fillText(`  (${it.presentacion} de ${it.contenido} ${it.granel ? 'kg' : 'pzas'} = ${Math.round(it.cantidad * 1000) / 1000} ${it.granel ? 'kg' : 'pzas'})`, M, y);
+    }
     y += Math.round(24 * f);
   });
 
@@ -1531,7 +1702,7 @@ function dibujarTicket(venta, opciones) {
   y += Math.round(20 * f);
   ctx.font = px(11) + ' Arial';
   ctx.fillStyle = C.gris;
-  ctx.fillText('Moles Chabelita SV', W/2, y);
+  ctx.fillText(nombreTicket(venta.punto), W/2, y);
   y += Math.round(bn ? 40 : 22) ;  // al imprimir deja espacio para cortar el papel
 
   // Recortar a la altura usada
@@ -1998,7 +2169,7 @@ function abrirAjustes() {
     ? `${sesion.usuario.nombre || sesion.usuario.email}${sesion.offline ? ' (sin conexión)' : ''}` : '---';
   document.getElementById('ajDispositivo').value = obtenerDispositivo();
   document.getElementById('ajPunto').innerHTML = (obtenerPunto() ? '' : '<option value="">— Elegir —</option>') +
-    Object.entries(PUNTOS).map(([k, n]) => `<option value="${k}" ${k === obtenerPunto() ? 'selected' : ''}>${n}</option>`).join('');
+    puntosActivos().map(k => `<option value="${k}" ${k === obtenerPunto() ? 'selected' : ''}>${PUNTOS[k]}</option>`).join('');
   document.getElementById('ajPendientes').textContent = hist.filter(v => v.pendiente && !v.sincronizada).length;
   document.getElementById('ajValesPend').textContent = pendientesDe(VALES_KEY).length;
   const anteriores = hist.filter(v => !v.pendiente && !v.sincronizada).length;
@@ -2038,7 +2209,7 @@ let valeRecienCreado = false;
 
 const PREFIJO_VALE = { salida: 'VS', entrada: 'VE', ajuste: 'VA' };
 function destinosSalida() {
-  return Object.entries(PUNTOS).filter(([k]) => k !== obtenerPunto()).map(([k, n]) => n).concat(DESTINOS_OTROS);
+  return puntosActivos().filter(k => k !== obtenerPunto()).map(k => PUNTOS[k]).concat(DESTINOS_OTROS);
 }
 function codigoPunto(nombre) {
   return Object.keys(PUNTOS).find(k => PUNTOS[k] === nombre) || '';
@@ -2107,10 +2278,23 @@ function actualizarCamposVale() {
   validarVale();
 }
 
-function agregarVale(id) {
+function agregarVale(id, como) {
   const p = productos.find(x => String(x.ID) === String(id));
   if (!p) return;
-  const ex = valeCarrito.find(x => String(x.ID) === String(id));
+  // En un ajuste se cuenta en la unidad base (kg / piezas); en salidas y entradas se puede usar la presentación
+  const pres = valeTipo === 'ajuste' ? null : presentacionDe(p);
+  if (pres && !como) { preguntarPresentacion(p, agregarVale, false); return; }
+  if (pres && como === 'pres') {
+    const exP = valeCarrito.find(x => String(x.ID) === String(id) && x.pres);
+    if (exP) { exP.cajas++; exP.cantidad = Math.round(exP.cajas * pres.contenido * 1000) / 1000; }
+    else valeCarrito.push({ ID: p.ID, NOMBRE: p.NOMBRE, granel: esGranel(p),
+      pres: { nombre: pres.nombre, contenido: pres.contenido }, cajas: 1, cantidad: pres.contenido,
+      sistema: Math.round(stockPunto(p) * 1000) / 1000 });
+    renderVale();
+    if (window.innerWidth <= 900) document.getElementById('valePanel').classList.add('abierto');
+    return;
+  }
+  const ex = valeCarrito.find(x => String(x.ID) === String(id) && !x.pres);
   if (ex) { if (valeTipo !== 'ajuste') ex.cantidad = Math.round((ex.cantidad + 1) * 1000) / 1000; }
   else valeCarrito.push({ ID: p.ID, NOMBRE: p.NOMBRE, granel: esGranel(p),
     // En un ajuste se parte de la existencia actual para solo corregir lo contado
@@ -2123,6 +2307,13 @@ function agregarVale(id) {
 function cambiarCantVale(i, delta) {
   const it = valeCarrito[i];
   if (!it) return;
+  if (it.pres) {
+    it.cajas += delta;
+    if (it.cajas <= 0) valeCarrito.splice(i, 1);
+    else it.cantidad = Math.round(it.cajas * it.pres.contenido * 1000) / 1000;
+    renderVale();
+    return;
+  }
   it.cantidad = Math.round((it.cantidad + delta) * 1000) / 1000;
   if (it.cantidad < 0 || (it.cantidad === 0 && valeTipo !== 'ajuste')) valeCarrito.splice(i, 1);
   renderVale();
@@ -2130,6 +2321,12 @@ function cambiarCantVale(i, delta) {
 function setCantVale(i, val) {
   const it = valeCarrito[i];
   if (!it) return;
+  if (it.pres) {
+    it.cajas = Math.max(1, Math.floor(parseFloat(val) || 1));
+    it.cantidad = Math.round(it.cajas * it.pres.contenido * 1000) / 1000;
+    renderVale();
+    return;
+  }
   let n = parseFloat(val);
   const minimo = valeTipo === 'ajuste' ? 0 : (it.granel ? 0.001 : 1);
   if (isNaN(n) || n < minimo) n = valeTipo === 'ajuste' ? 0 : (it.granel ? 0.5 : 1);
@@ -2140,6 +2337,11 @@ function quitarVale(i) { valeCarrito.splice(i, 1); renderVale(); }
 
 function fmtCant(c, granel) {
   return granel ? `${Math.round(c * 1000) / 1000} kg` : `${c} pza${c === 1 ? '' : 's'}`;
+}
+// "2 cajas (22.68 kg)" para presentaciones; "5 kg" / "3 pzas" para lo demás
+function fmtItem(i) {
+  return i.presentacion ? `${textoPres(i.cantPresentacion, { nombre: i.presentacion })} (${fmtCant(i.cantidad, i.granel)})`
+                        : fmtCant(i.cantidad, i.granel);
 }
 function resumenCantidades(items) {
   const pzas = items.filter(i => !i.granel).reduce((s, i) => s + i.cantidad, 0);
@@ -2161,14 +2363,16 @@ function renderVale() {
       : `Toca los productos que<br>${valeTipo === 'salida' ? 'salen de' : 'entran a'} ${aqui}`) + '</div>';
   } else {
     cont.innerHTML = valeCarrito.map((it, i) => `
-      <div class="item">
+      <div class="item ${it.pres ? 'pres' : ''}">
         <div class="item-info">
-          <div class="n">${it.granel ? '⚖️ ' : ''}${it.NOMBRE}</div>
-          <div class="p">${it.granel ? 'kg' : 'piezas'}${valeTipo === 'ajuste' ? ` · sistema: ${it.sistema}` : ''}</div>
+          <div class="n">${it.pres ? '📦 ' : it.granel ? '⚖️ ' : ''}${it.NOMBRE}</div>
+          <div class="p">${it.pres
+            ? `${plural(2, it.pres.nombre)} de ${it.pres.contenido} ${it.granel ? 'kg' : 'pzas'} · = ${Math.round(it.cantidad * 1000) / 1000} ${it.granel ? 'kg' : 'pzas'}`
+            : (it.granel ? 'kg' : 'piezas')}${valeTipo === 'ajuste' ? ` · sistema: ${it.sistema}` : ''}</div>
         </div>
         <div class="cant">
           <button class="menos" onclick="cambiarCantVale(${i},-1)">−</button>
-          <input type="number" inputmode="decimal" step="${it.granel ? '0.001' : '1'}" value="${it.cantidad}"
+          <input type="number" inputmode="decimal" step="${it.granel && !it.pres ? '0.001' : '1'}" value="${it.pres ? it.cajas : it.cantidad}"
                  onfocus="this.select()" onchange="setCantVale(${i}, this.value)"
                  onkeydown="if(event.key==='Enter') this.blur()">
           <button class="mas" onclick="cambiarCantVale(${i},1)">+</button>
@@ -2221,6 +2425,7 @@ async function generarVale() {
     persona: document.getElementById('valePersona').value.trim(),
     observaciones: document.getElementById('valeObs').value.trim(),
     items: valeCarrito.map(it => ({ ID: it.ID, NOMBRE: it.NOMBRE, cantidad: it.cantidad, granel: it.granel,
+      ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
       ...(valeTipo === 'ajuste' ? { sistema: it.sistema } : {}) })),
     pendiente: true
   };
@@ -2264,7 +2469,7 @@ async function compartirVale() {
   const texto = `📦 *${tituloVale(v)} ${v.folio}*\n` +
     (v.punto ? `${v.tipo === 'entrada' ? 'Entra a' : v.tipo === 'ajuste' ? 'En' : 'Sale de'}: ${PUNTOS[v.punto] || v.punto}\n` : '') +
     (v.tipo !== 'ajuste' ? `${v.tipo === 'salida' ? 'Destino' : 'Origen'}: ${v.destino}${v.referencia ? ' — ' + v.referencia : ''}\n` : '') +
-    v.items.map(i => `• ${i.NOMBRE}: ${fmtCant(i.cantidad, i.granel)}`).join('\n') +
+    v.items.map(i => `• ${i.NOMBRE}: ${fmtItem(i)}`).join('\n') +
     `\n\nElaboró: ${v.usuario.nombre}`;
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: 'Vale ' + v.folio, text: texto }); return; }
@@ -2320,7 +2525,7 @@ function dibujarVale(vale, opciones) {
   let y = sp(38);
   ctx.textAlign = 'center'; ctx.fillStyle = C.tit;
   ctx.font = 'bold ' + px(24 * (bn ? 0.9 : 1)) + ' Arial';
-  ctx.fillText('MOLES CHABELITA SV', W / 2, y);
+  encabezado(ctx, nombreTicket(vale.punto), W, y, Math.round(24 * (bn ? 0.9 : 1) * f));
   y += sp(28);
   // Banda con el tipo de vale
   const ajuste = vale.tipo === 'ajuste';
@@ -2364,9 +2569,15 @@ function dibujarVale(vale, opciones) {
     ctx.font = px(14) + ' Arial'; ctx.fillStyle = C.txt; ctx.textAlign = 'left';
     const lineas = partirTexto(ctx, it.NOMBRE, anchoNombre);
     ctx.textAlign = 'right'; ctx.font = 'bold ' + px(15) + ' Arial';
-    ctx.fillText(fmtCant(it.cantidad, it.granel), W - M, y);
+    ctx.fillText(it.presentacion ? textoPres(it.cantPresentacion, { nombre: it.presentacion }) : fmtCant(it.cantidad, it.granel), W - M, y);
     ctx.textAlign = 'left'; ctx.font = px(14) + ' Arial';
     lineas.forEach((l, i) => { ctx.fillText(l, M, y); y += sp(19); });
+    if (it.presentacion) {
+      ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
+      ctx.fillText(`${it.presentacion} de ${it.contenido} ${it.granel ? 'kg' : 'pzas'} = ${fmtCant(it.cantidad, it.granel)}`, M, y - sp(2));
+      ctx.fillStyle = C.txt;
+      y += sp(14);
+    }
     if (ajuste && it.sistema !== undefined) {
       const dif = Math.round((it.cantidad - it.sistema) * 1000) / 1000;
       ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
@@ -2492,7 +2703,7 @@ function pintarRecepciones() {
       ${t.items.map((it, ii) => `
         <div class="rec-item">
           <span class="n">${it.granel ? '⚖️ ' : ''}${it.NOMBRE}</span>
-          <span class="env">enviado ${fmtCant(it.cantidad, it.granel)}</span>
+          <span class="env">enviado ${fmtItem(it)}</span>
           <input type="number" inputmode="decimal" step="${it.granel ? '0.001' : '1'}" min="0" value="${it.cantidad}"
                  data-id="${it.ID}" data-env="${it.cantidad}" onfocus="this.select()"
                  oninput="this.classList.toggle('dif', Math.abs(parseFloat(this.value||0) - ${it.cantidad}) > 0.0005)">
@@ -2766,7 +2977,7 @@ function usarClienteEnVenta() {
 function compartirEstadoCuenta(saldo) {
   const d = edoActual;
   const pend = d.notas.filter(n => n.estado === 'PENDIENTE');
-  const texto = `*Moles Chabelita SV — Estado de cuenta*\n${d.cliente.nombre}\n\n` +
+  const texto = `*${nombreTicket()} — Estado de cuenta*\n${d.cliente.nombre}\n\n` +
     (pend.length ? pend.map(n => `• Nota ${n.folio} (${fechaCorta(n.fecha)}): ${pesos(n.saldo)}${n.vence ? ' — pagar antes del ' + fechaCorta(n.vence) : ''}`).join('\n') + '\n\n' : '') +
     `*Saldo pendiente: ${pesos(saldo)}*\n\n¡Gracias por su preferencia!`;
   const tel = String(d.cliente.telefono || '').replace(/\D/g, '');
@@ -2836,7 +3047,7 @@ function dibujarAbono(a, opciones) {
   if (!bn) { ctx.fillStyle = C.acento; ctx.fillRect(0, 0, W, 8); }
   let y = sp(38);
   ctx.textAlign = 'center'; ctx.fillStyle = C.tit; ctx.font = 'bold ' + px(24 * (bn ? 0.9 : 1)) + ' Arial';
-  ctx.fillText('MOLES CHABELITA SV', W / 2, y); y += sp(28);
+  encabezado(ctx, nombreTicket(a.punto), W, y, Math.round(24 * (bn ? 0.9 : 1) * f)); y += sp(28);
   ctx.fillStyle = bn ? '#000' : C.acento; ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
   ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial'; ctx.fillText('COMPROBANTE DE ABONO', W / 2, y); y += sp(32);
   const fecha = new Date(a.fecha);
