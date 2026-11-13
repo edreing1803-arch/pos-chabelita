@@ -423,6 +423,36 @@
   .item.pres { border-left: 3px solid #8e44ad; }
   .item .cant .uni { font-size: 11px; color: #d7bde2; }
 
+  /* ---------- Permisos / autorización ---------- */
+  #modalAutorizar { z-index: 1600; }   /* siempre encima de cualquier otra ventana */
+  #modalPresentacion, #modalPrecio, #modalListaCliente { z-index: 1100; }
+  #modalAutorizar .modal-box { max-width: 380px; border: 2px solid #f39c12; }
+  #modalAutorizar h2 { color: #f39c12; }
+  .aut-accion { background: rgba(243,156,18,0.12); border-radius: 8px; padding: 10px; font-size: 14px; margin-bottom: 12px; }
+  .aut-error { color: #ff7b6b; font-size: 13px; min-height: 18px; text-align: center; margin: 6px 0; }
+  .precio-edit { background: none; border: none; color: #f4a261; cursor: pointer; font-size: 12px; padding: 0 2px; }
+  .precio-manual { color: #f1c40f !important; }
+  .badge.lista { background: #8e44ad; color: #fff; }
+  .lista-opc { display: grid; gap: 8px; }
+  .lista-opc button { padding: 12px; text-align: left; }
+  .lista-opc button.sel { background: #8e44ad; color: #fff; }
+  .permisos-lista { font-size: 11px; color: #aaa; text-align: right; }
+
+  /* ---------- Producción ---------- */
+  .prod-box { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.4); border-radius: 10px;
+              padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .prod-box .titulo { font-size: 13px; font-weight: 700; color: #2ecc71; }
+  .prod-box label { font-size: 11px; color: #aaa; display: block; margin-bottom: 2px; }
+  .prod-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .prod-box input, .prod-box select { width: 100%; padding: 8px 10px; border: none; border-radius: 8px; font-size: 14px;
+              background: rgba(255,255,255,0.95); color: #000; }
+  .item.prod { border-left: 3px solid #2ecc71; }
+  .item.prod select { padding: 4px; border-radius: 6px; border: none; font-size: 12px; margin-top: 3px; }
+  .btn-etiquetas { width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
+                   background: #2ecc71; color: #000; font-size: 16px; font-weight: 800; margin-top: 8px; }
+  #etiquetaPreview { max-width: 70%; margin-top: 8px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+  .zona-etiqueta { page-break-after: always; break-after: page; }
+
   /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
   #zonaImpresion { display: none; }
   @media print {
@@ -445,8 +475,8 @@
       <button class="btn-sec btn-recibir oculto" id="btnRecibir" onclick="abrirRecepciones()">🚚 0 por recibir</button>
       <span class="estado cache" id="estado">🟡 Cargando...</span>
       <button class="sync ok" id="syncEstado" onclick="enviarPendientes(true)" title="Ventas por subir a Google Sheets">☁️ Al día</button>
-      <button class="btn-sec" onclick="abrirHistorial()">📊 Historial</button>
-      <button class="btn-sec" onclick="abrirClientes()">👥 Clientes</button>
+      <button class="btn-sec" id="btnHistorial" onclick="abrirHistorial()">📊 Historial</button>
+      <button class="btn-sec" id="btnClientes" onclick="abrirClientes()">👥 Clientes</button>
       <button class="btn-sec btn-vales oculto" id="btnVales" onclick="cambiarModo(modo === 'vale' ? 'venta' : 'vale')">📦 Vales</button>
       <button class="btn-sec usuario-btn" id="btnUsuario" onclick="abrirAjustes()">👤 ---</button>
     </div>
@@ -519,6 +549,16 @@
     <select id="valeDestino" onchange="actualizarCamposVale()"></select>
     <input type="text" id="valeRef" maxlength="80">
     <input type="text" id="valePersona" maxlength="40">
+    <div class="prod-box oculto" id="prodBox">
+      <div class="titulo">🏭 Datos de producción</div>
+      <div class="prod-fila">
+        <div><label>Fecha de elaboración</label><input type="date" id="prodFecha"></div>
+        <div><label>Empaque (kg por bulto)</label>
+          <select id="prodEmpaque" onchange="cambiarEmpaqueDefecto(this.value)"></select></div>
+      </div>
+      <div><label>¿Quién lo elaboró?</label><input type="text" id="prodElaboro" list="listaElaboradores" maxlength="50" placeholder="Nombre de quien lo elaboró" oninput="validarVale()"></div>
+      <datalist id="listaElaboradores"></datalist>
+    </div>
   </div>
   <div class="ticket-items" id="valeItems"></div>
   <div class="ticket-footer">
@@ -527,7 +567,7 @@
     <div class="botones">
       <button class="btn-vale" id="btnGenerarVale" onclick="generarVale()" disabled>📄 GENERAR VALE</button>
       <button class="btn-sec" onclick="limpiarVale(true)">🗑️ Cancelar</button>
-      <button class="btn-sec" onclick="cambiarModo('venta')">🛒 Ir a ventas</button>
+      <button class="btn-sec" id="btnIrVentas" onclick="cambiarModo('venta')">🛒 Ir a ventas</button>
     </div>
   </div>
 </div>
@@ -635,6 +675,7 @@
     <div class="config-fila">
       Papel:
       <select id="anchoPapel" onchange="guardarAnchoPapel(this.value)">
+        <option value="50">50 mm</option>
         <option value="58">58 mm</option>
         <option value="80">80 mm</option>
       </select>
@@ -658,9 +699,12 @@
     <h2 id="valeGenTitulo">✅ Vale generado</h2>
     <img id="valeImg" class="ticket-preview" alt="Vale">
     <button class="btn-imprimir" onclick="imprimirVale()">🖨️ Imprimir vale</button>
+    <button class="btn-etiquetas oculto" id="btnEtiquetas" onclick="imprimirEtiquetas()">🏷️ Imprimir etiquetas</button>
+    <img id="etiquetaPreview" class="oculto" alt="Etiqueta">
     <div class="config-fila">
       Papel:
       <select id="anchoPapelVale" onchange="guardarAnchoPapel(this.value)">
+        <option value="50">50 mm</option>
         <option value="58">58 mm</option>
         <option value="80">80 mm</option>
       </select>
@@ -699,6 +743,41 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal" id="modalAutorizar">
+  <div class="modal-box">
+    <h2>🔐 Autorización requerida</h2>
+    <div class="aut-accion" id="autAccion"></div>
+    <p style="font-size:13px; color:#aaa; margin-bottom:10px;">Una persona con permiso escribe aquí su usuario y contraseña.</p>
+    <div class="campo"><label>Usuario</label><input type="text" id="autUsuario" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+    <div class="campo"><label>Contraseña</label><input type="password" id="autPassword" autocomplete="new-password"
+         onkeydown="if(event.key==='Enter') confirmarAutorizacion()"></div>
+    <div class="aut-error" id="autError"></div>
+    <button class="btn-confirmar" id="btnAutorizar" onclick="confirmarAutorizacion()">✅ Autorizar</button>
+    <button class="btn-cerrar" onclick="cancelarAutorizacion()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalPrecio">
+  <div class="modal-box">
+    <h2>✏️ Cambiar precio</h2>
+    <div class="edo-cab"><div class="nombre" id="mpNombre" style="font-size:16px;"></div><small id="mpOriginal"></small></div>
+    <div class="campo"><label id="mpEtiqueta">Nuevo precio</label><input type="number" id="mpPrecio" step="0.01" inputmode="decimal"
+         onkeydown="if(event.key==='Enter') aplicarPrecioManual()"></div>
+    <button class="btn-confirmar" onclick="aplicarPrecioManual()">✅ Aplicar precio</button>
+    <button class="btn-sec" id="mpQuitar" style="width:100%; margin-top:8px;" onclick="quitarPrecioManual()">↩️ Regresar al precio normal</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalPrecio')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalListaCliente">
+  <div class="modal-box">
+    <h2>🏷️ Lista de precios del cliente</h2>
+    <p style="font-size:13px; color:#aaa; margin-bottom:10px;" id="mlcCliente"></p>
+    <div class="lista-opc" id="mlcOpciones"></div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalListaCliente')">Cancelar</button>
+  </div>
+</div>
+
 <div class="modal" id="modalPresentacion">
   <div class="modal-box">
     <h2 id="presTitulo">¿Cómo lo agregas?</h2>
@@ -734,11 +813,12 @@
     <div class="campo"><label>Nombre *</label><input type="text" id="ncNombre" maxlength="60" placeholder="Nombre o negocio"></div>
     <div class="campo"><label>Teléfono</label><input type="tel" id="ncTelefono" maxlength="20" placeholder="10 dígitos"></div>
     <div class="campo"><label>Notas</label><input type="text" id="ncNotas" maxlength="120" placeholder="Dirección, referencias..."></div>
+    <div class="campo"><label>Lista de precios</label><select id="ncLista"></select></div>
     <div id="ncCreditoBox">
-      <div class="campo"><label><input type="checkbox" id="ncCredito" style="width:auto; margin-right:6px;"> Autorizar crédito</label></div>
+      <div class="campo"><label><input type="checkbox" id="ncCredito" style="width:auto; margin-right:6px;"> Dar crédito</label></div>
       <div class="campo"><label>Días para pagar (0 = sin fecha)</label><input type="number" id="ncDias" min="0" value="15"></div>
     </div>
-    <p id="ncSinCredito" style="color:#aaa; font-size:12px; margin-bottom:8px;">Solo un administrador puede autorizar crédito (en la app o en la hoja CLIENTES).</p>
+    <p id="ncSinCredito" style="color:#aaa; font-size:12px; margin-bottom:8px;">🔐 Dar crédito o una lista de precios distinta pide autorización si tu usuario no tiene ese permiso.</p>
     <button class="btn-confirmar" onclick="guardarNuevoCliente()">💾 Guardar cliente</button>
     <button class="btn-cerrar" onclick="cerrarModal('modalNuevoCliente')">Cancelar</button>
   </div>
@@ -795,6 +875,7 @@
   <div class="modal-box">
     <h2>⚙️ Ajustes</h2>
     <div class="ajuste-fila"><span>Usuario</span><b id="ajUsuario">---</b></div>
+    <div class="ajuste-fila"><span>Permisos</span><span class="permisos-lista" id="ajPermisos">---</span></div>
     <div class="ajuste-fila">
       <span>Punto de venta de este dispositivo<br><small style="color:#888;">Define precios e inventario</small></span>
       <select id="ajPunto" onchange="guardarPunto(this.value)" style="padding:8px; border-radius:8px; border:none; font-size:14px;"></select>
@@ -875,16 +956,126 @@ function nombreTicket(codigo) {
 }
 // Lista de precios del punto (SV, SP...). Vacía = precio general.
 function listaPrecios() {
+  // El cliente elegido en la venta puede tener su propia lista (columna LISTA_PRECIOS de CLIENTES)
+  if (modo !== 'vale' && typeof clienteSel !== 'undefined' && clienteSel && clienteSel.lista) return clienteSel.lista;
   const p = PUNTOS_INFO[obtenerPunto()];
   return p ? (p.lista || '') : obtenerPunto();
+}
+// Listas de precios disponibles (las que usan los puntos) para asignar a clientes
+function listasDisponibles() {
+  const m = {};
+  Object.keys(PUNTOS_INFO).forEach(k => {
+    const l = PUNTOS_INFO[k].lista;
+    if (l) (m[l] = m[l] || []).push(PUNTOS_INFO[k].nombre);
+  });
+  return Object.keys(m).map(l => ({ lista: l, usadaEn: m[l] }));
+}
+function nombreLista(l) {
+  if (!l) return 'La del punto de venta';
+  const x = listasDisponibles().find(o => o.lista === l);
+  return x ? `${l} (${x.usadaEn.join(', ')})` : l;
+}
+// Vuelve a calcular los precios del ticket (al elegir o quitar cliente con lista propia)
+function repreciarCarrito() {
+  carrito.forEach(it => {
+    if (it.precioManual != null) return;
+    const p = productos.find(x => String(x.ID) === String(it.ID));
+    if (!p) return;
+    const base = lineaBase(p, it.cantidad);
+    ['P1', 'P2', 'P3', 'P4', 'M2', 'M3', 'M4'].forEach(k => { it[k] = base[k]; });
+    if (it.pres) it.pres.precio = valorPunto(p, 'PRECIO_PRESENTACION');
+  });
+  renderTicket();
+  renderProductos();
 }
 
 // ===== Vales de mercancía: destinos y orígenes (puedes editar estas listas) =====
 // Los demás puntos de venta se agregan solos como destino de las salidas (traspasos).
-const DESTINOS_OTROS = ['Cliente (recoge en bodega)', 'Merma / caducado', 'Otro'];
+const DESTINOS_OTROS = ['Cliente (recoge en bodega)', 'Producción (consumo de insumos)', 'Merma / caducado', 'Otro'];
 const ORIGENES_ENTRADA = ['Producción / elaboración', 'Proveedor', 'Devolución de cliente', 'Otro'];
-// Tipos de usuario que pueden hacer vales (igual que TIPOS_VALES en el Apps Script)
-const TIPOS_VALES = ['admin', 'almacen'];
+// ================== PERMISOS ==================
+// Se configuran en la hoja PERMISOS (por tipo de usuario) y en la columna PERMISOS de USUARIOS
+// (excepciones por persona). La app los recibe al iniciar sesión. Estos son solo los valores
+// por omisión mientras no hay conexión.
+const PERMISOS_DEFECTO = {
+  cajero:   ['VENDER', 'ABONOS'],
+  vendedor: ['VENDER'],
+  almacen:  ['VALES']
+};
+const NOMBRES_PERMISO = {
+  VENDER: 'Vender', CAMBIAR_SUCURSAL: 'Cambiar sucursal', CAMBIAR_LISTA_CLIENTE: 'Lista de precios de clientes', ABONOS: 'Abonos',
+  CAMBIAR_PRECIO: 'Cambiar precios en ticket', AUTORIZAR_CREDITO: 'Dar crédito', VALES: 'Vales'
+};
+function misPermisos() {
+  if (!sesion || !sesion.usuario) return [];
+  const tipo = String(sesion.usuario.tipo || '').toLowerCase();
+  if (tipo === 'admin') return Object.keys(NOMBRES_PERMISO);
+  return sesion.usuario.permisos || PERMISOS_DEFECTO[tipo] || [];
+}
+function tengoPermiso(cod) { return misPermisos().includes(cod); }
+
+// Pide autorización si el usuario actual no tiene el permiso.
+// Resuelve { nombre, autorizacion } (autorizacion = null si es permiso propio) o null si se cancela.
+let _autPendiente = null;
+function requerirPermiso(cod, accion) {
+  if (tengoPermiso(cod)) return Promise.resolve({ nombre: sesion.usuario.nombre, autorizacion: null, propio: true });
+  return new Promise(resolve => {
+    _autPendiente = { cod, resolve };
+    document.getElementById('autAccion').innerHTML = `<b>${accion}</b><br><small>Permiso: ${NOMBRES_PERMISO[cod] || cod}</small>`;
+    document.getElementById('autUsuario').value = '';
+    document.getElementById('autPassword').value = '';
+    document.getElementById('autError').textContent = '';
+    document.getElementById('modalAutorizar').classList.add('activo');
+    setTimeout(() => document.getElementById('autUsuario').focus(), 50);
+  });
+}
+function cancelarAutorizacion() {
+  cerrarModal('modalAutorizar');
+  if (_autPendiente) { _autPendiente.resolve(null); _autPendiente = null; }
+}
+async function confirmarAutorizacion() {
+  if (!_autPendiente) return;
+  const usuario = document.getElementById('autUsuario').value.trim().toLowerCase();
+  const password = document.getElementById('autPassword').value;
+  const err = document.getElementById('autError');
+  const btn = document.getElementById('btnAutorizar');
+  if (!usuario || !password) { err.textContent = 'Escribe usuario y contraseña'; return; }
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  let resultado = null;
+  try {
+    const r = await apiPost({ accion: 'autorizar', usuario, password, permiso: _autPendiente.cod });
+    if (!r.success) { err.textContent = r.error || 'No autorizado'; return; }
+    resultado = { nombre: r.nombre, autorizacion: r.autorizacion };
+  } catch (e) {
+    // Sin internet: solo quien ya inició sesión antes en este dispositivo con "Recordarme"
+    const l = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {})[usuario];
+    if (!l || l.hash !== await sha256(l.sal + password)) {
+      err.textContent = '📵 Sin conexión: solo puede autorizar alguien que ya haya entrado antes en este dispositivo con "Recordarme".';
+      return;
+    }
+    const permisosL = String(l.usuario.tipo).toLowerCase() === 'admin' ? Object.keys(NOMBRES_PERMISO)
+      : (l.usuario.permisos || PERMISOS_DEFECTO[String(l.usuario.tipo).toLowerCase()] || []);
+    if (!permisosL.includes(_autPendiente.cod)) { err.textContent = `⚠️ ${l.nombre} no tiene permiso para autorizar esto`; return; }
+    resultado = { nombre: l.nombre, autorizacion: l.token, offline: true };
+  } finally {
+    btn.disabled = false; btn.textContent = '✅ Autorizar';
+  }
+  cerrarModal('modalAutorizar');
+  aviso('🔐 Autorizado por ' + resultado.nombre);
+  const p = _autPendiente; _autPendiente = null;
+  p.resolve(resultado);
+}
+async function refrescarPermisos() {
+  if (!sesion || !sesion.token || !navigator.onLine) return;
+  try {
+    const r = await apiPost({ accion: 'permisos', token: sesion.token });
+    if (!r.success) return;
+    sesion.usuario.permisos = r.permisos;
+    if (r.tipo) sesion.usuario.tipo = r.tipo;
+    guardarSesion(sesion, !!localStorage.getItem(SESION_KEY));
+    aplicarPermisosUI();
+  } catch (e) {}
+}
 
 // ================== ESTADO ==================
 let productos = [];
@@ -977,11 +1168,16 @@ async function recargarProductosSilencioso() {
 
 // ================== PUNTO DE VENTA DEL DISPOSITIVO ==================
 function obtenerPunto() { return localStorage.getItem(PUNTO_KEY) || ''; }
-function guardarPunto(p) {
+async function guardarPunto(p) {
   if (!PUNTOS[p] || PUNTOS_INFO[p].activo === false) return;
-  if (carrito.length && p !== obtenerPunto() && !confirm('Hay productos en el ticket con precios del punto anterior. ¿Cambiar de todos modos? Se vaciará el ticket.')) {
-    document.getElementById('ajPunto').value = obtenerPunto(); return;
+  const regresar = () => { document.getElementById('ajPunto').value = obtenerPunto(); };
+  if (p === obtenerPunto()) { cerrarModal('modalPunto'); return; }
+  if (carrito.length && !confirm('Hay productos en el ticket con precios del punto anterior. ¿Cambiar de todos modos? Se vaciará el ticket.')) {
+    regresar(); return;
   }
+  // 🔐 Cambiar la sucursal del dispositivo requiere permiso
+  const aut = await requerirPermiso('CAMBIAR_SUCURSAL', `Cambiar este dispositivo a: ${PUNTOS[p]}`);
+  if (!aut) { regresar(); return; }
   if (p !== obtenerPunto()) { carrito = []; renderTicket(); }
   localStorage.setItem(PUNTO_KEY, p);
   pintarPunto();
@@ -1091,6 +1287,7 @@ document.getElementById('buscador').addEventListener('input', renderProductos);
 
 // ================== CARRITO ==================
 function calcularPrecio(item) {
+  if (item.precioManual != null && !item.pres) return item.precioManual;
   const c = item.cantidad;
   if (item.M4 > 0 && c >= item.M4 && item.P4 > 0) return item.P4;
   if (item.M3 > 0 && c >= item.M3 && item.P3 > 0) return item.P3;
@@ -1215,6 +1412,7 @@ function subtotalItem(it) {
 // prueba del precio más bajo al más alto y usa el primero cuya cantidad
 // resultante sí alcanza el mayoreo correspondiente.
 function cantidadPorImporte(it, importe) {
+  if (it.precioManual != null) return Math.round(importe / it.precioManual * 1000) / 1000;
   const opciones = [it.P4, it.P3, it.P2, it.P1].filter(p => p > 0);
   for (const precio of opciones) {
     const kg = Math.round(importe / precio * 1000) / 1000;
@@ -1242,6 +1440,54 @@ function aplicarImporte(idx, val, final) {
     fila.classList.add('fijo');
   }
   document.getElementById('totalTicket').textContent = `$${getTotal().toFixed(2)}`;
+}
+
+// ---------- Cambio de precio en el ticket (🔐 CAMBIAR_PRECIO) ----------
+let _precioIdx = -1;
+let autPrecioVenta = null;   // autorización usada en la venta actual
+function abrirCambioPrecio(i) {
+  const it = carrito[i];
+  if (!it) return;
+  _precioIdx = i;
+  const unidad = it.pres ? it.pres.nombre.toLowerCase() : (it.granel ? 'kg' : 'pieza');
+  const actual = it.pres ? subtotalItem(it) / it.cajas : calcularPrecio(it);
+  const original = it.precioManual != null ? it.precioOriginalUnidad : actual;
+  document.getElementById('mpNombre').textContent = it.NOMBRE;
+  document.getElementById('mpOriginal').textContent = `Precio normal: $${original.toFixed(2)} por ${unidad}`;
+  document.getElementById('mpEtiqueta').textContent = `Nuevo precio por ${unidad}`;
+  document.getElementById('mpPrecio').value = actual.toFixed(2);
+  document.getElementById('mpQuitar').classList.toggle('oculto', it.precioManual == null);
+  document.getElementById('modalPrecio').classList.add('activo');
+  setTimeout(() => { const x = document.getElementById('mpPrecio'); x.focus(); x.select(); }, 50);
+}
+async function aplicarPrecioManual() {
+  const it = carrito[_precioIdx];
+  if (!it) return;
+  const nuevo = Math.round((parseFloat(document.getElementById('mpPrecio').value) || 0) * 100) / 100;
+  if (nuevo <= 0) { alert('Escribe un precio válido'); return; }
+  cerrarModal('modalPrecio');
+  const aut = await requerirPermiso('CAMBIAR_PRECIO', `Cambiar el precio de ${it.NOMBRE} a $${nuevo.toFixed(2)}`);
+  if (!aut) return;
+  if (aut.autorizacion) autPrecioVenta = aut.autorizacion;
+  if (it.precioManual == null) {
+    // se guarda el precio normal para el registro
+    it.precioOriginalUnidad = it.pres ? subtotalItem(it) / it.cajas : calcularPrecio(it);
+    it.precioOriginal = it.pres ? it.precioOriginalUnidad / it.pres.contenido : it.precioOriginalUnidad;
+    if (it.pres) it.presPrecioOriginal = it.pres.precio;
+  }
+  it.importeFijo = null;
+  if (it.pres) { it.pres.precio = nuevo; it.precioManual = nuevo / it.pres.contenido; }
+  else it.precioManual = nuevo;
+  it.autorizoPrecio = aut.nombre;
+  renderTicket();
+}
+function quitarPrecioManual() {
+  const it = carrito[_precioIdx];
+  cerrarModal('modalPrecio');
+  if (!it) return;
+  if (it.pres) it.pres.precio = it.presPrecioOriginal || 0;
+  delete it.precioManual; delete it.precioOriginal; delete it.precioOriginalUnidad; delete it.autorizoPrecio;
+  repreciarCarrito();
 }
 
 function cambiarCantidad(idx, delta) {
@@ -1307,7 +1553,8 @@ function renderTicket() {
       <div class="item pres">
         <div class="item-info">
           <div class="n">📦 ${it.NOMBRE}</div>
-          <div class="p">${it.pres.nombre} de ${it.pres.contenido} ${unidad} · $${(sub / it.cajas).toFixed(2)} c/u</div>
+          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${it.pres.nombre} de ${it.pres.contenido} ${unidad} · $${(sub / it.cajas).toFixed(2)} c/u
+            <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Cambiar precio">✏️</button></div>
           <div class="p" style="color:#d7bde2;">= ${Math.round(it.cantidad * 1000) / 1000} ${unidad}</div>
         </div>
         <div class="cant">
@@ -1328,7 +1575,8 @@ function renderTicket() {
       <div class="item ${it.granel && it.importeFijo ? 'fijo' : ''}">
         <div class="item-info">
           <div class="n">${it.granel?'⚖️ ':''}${it.NOMBRE}</div>
-          <div class="p">$${pu.toFixed(2)}${it.granel?'/kg':' c/u'}</div>
+          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">$${pu.toFixed(2)}${it.granel?'/kg':' c/u'}${it.precioManual != null ? ` <s style="opacity:.6">$${it.precioOriginal.toFixed(2)}</s>` : ''}
+            <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Cambiar precio">✏️</button></div>
         </div>
         <div class="cant">
           <button class="menos" onclick="cambiarCantidad(${i},-1)">−</button>
@@ -1356,6 +1604,7 @@ function cancelarTicket() {
 }
 function limpiarTicket() {
   carrito = [];
+  autPrecioVenta = null;
   document.getElementById('clienteInput').value = '';
   quitarCliente();
   renderTicket();
@@ -1384,6 +1633,7 @@ function consumirFolio(prefijo = 'V', clave = FOLIO_KEY) {
 // ================== COBRO ==================
 function abrirCobro() {
   if (!carrito.length) return;
+  if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
   const total = getTotal();
   document.getElementById('totalCobrar').value = '$' + total.toFixed(2);
   document.getElementById('pagoCon').value = '';
@@ -1457,6 +1707,7 @@ function calcularCambio() {
 
 function confirmarCobro() {
   if (!sesion) { mostrarLogin('Inicia sesión para registrar la venta'); return; }
+  if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
   if (!obtenerPunto()) { cerrarModal('modalCobro'); pedirPunto(); return; }
   const total = getTotal();
   let pagoCon = 0, cambio = 0, referencia = '', detalleMixto = null;
@@ -1508,8 +1759,11 @@ function confirmarCobro() {
       granel: it.granel || false,
       precio: it.pres ? Math.round(subtotalItem(it) / it.cantidad * 100) / 100 : calcularPrecio(it),
       subtotal: subtotalItem(it),
-      ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {})
+      ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
+      ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {})
     })),
+    lista: listaPrecios(),
+    ...(autPrecioVenta && carrito.some(it => it.precioManual != null) ? { autPrecio: autPrecioVenta } : {}),
     total,
     metodoPago,
     pagoCon,
@@ -1725,7 +1979,8 @@ async function generarTicketImagen(venta) {
 // ================== IMPRESIÓN TÉRMICA ==================
 // Ancho de impresión de las térmicas comunes a 203 dpi:
 //   58 mm -> 384 puntos   |   80 mm -> 576 puntos
-const PUNTOS_PAPEL = { '58': 384, '80': 576 };
+// 50 mm -> ~45 mm imprimibles (360 puntos) para dejar margen en etiquetas/papel angosto
+const PUNTOS_PAPEL = { '50': 360, '58': 384, '80': 576 };
 
 function guardarAnchoPapel(v) { localStorage.setItem(PAPEL_KEY, v); }
 
@@ -1809,6 +2064,7 @@ function descargarBlob(blob, nombre) {
 
 function nuevaVenta() {
   carrito = [];
+  autPrecioVenta = null;
   ventaActual = null;
   ticketBlob = null;
   document.getElementById('clienteInput').value = '';
@@ -1992,10 +2248,12 @@ async function intentarLogin(usuario, password, recordar) {
 
   if (recordar) {
     const sal = crypto.getRandomValues(new Uint32Array(4)).join('-');
+    resp.usuario.permisos = resp.permisos;
     locales[clave] = { email: resp.usuario.email, nombre: resp.usuario.nombre, usuario: resp.usuario,
                        token: resp.token, sal, hash: await sha256(sal + password) };
     localStorage.setItem(USUARIOS_LOCAL_KEY, JSON.stringify(locales));
   }
+  resp.usuario.permisos = resp.permisos;
   return { ok: true, sesion: { usuario: resp.usuario, token: resp.token } };
 }
 
@@ -2029,12 +2287,12 @@ function iniciarSesion(s, recordar) {
   document.getElementById('loginPassword').value = '';
   document.getElementById('pantallaLogin').classList.remove('activo');
   document.getElementById('btnUsuario').textContent = '👤 ' + (s.usuario.nombre || s.usuario.email);
-  document.getElementById('btnVales').classList.toggle('oculto', !puedeHacerVales());
+  aplicarPermisosUI();
   pintarPunto();
   if (!obtenerPunto()) setTimeout(pedirPunto, 300);
   revisarTraspasos();
   cargarClientes();
-  if (modo === 'vale' && !puedeHacerVales()) cambiarModo('venta');
+  refrescarPermisos();
   enviarPendientes();
 }
 
@@ -2049,6 +2307,7 @@ function cerrarSesion() {
   cambiarModo('venta');
   limpiarVale(false);
   document.getElementById('btnVales').classList.add('oculto');
+  ['btnHistorial', 'btnClientes', 'btnIrVentas'].forEach(id => document.getElementById(id).classList.remove('oculto'));
   document.getElementById('btnUsuario').textContent = '👤 ---';
   document.getElementById('loginUsuario').value = '';
   mostrarLogin();
@@ -2165,6 +2424,7 @@ setInterval(() => enviarPendientes(), 60000);
 // ================== AJUSTES ==================
 function abrirAjustes() {
   const hist = leerHistorial();
+  document.getElementById('ajPermisos').textContent = sesion ? (misPermisos().map(c => NOMBRES_PERMISO[c] || c).join(' · ') || 'Solo ventas') : '---';
   document.getElementById('ajUsuario').textContent = sesion
     ? `${sesion.usuario.nombre || sesion.usuario.email}${sesion.offline ? ' (sin conexión)' : ''}` : '---';
   document.getElementById('ajDispositivo').value = obtenerDispositivo();
@@ -2215,12 +2475,23 @@ function codigoPunto(nombre) {
   return Object.keys(PUNTOS).find(k => PUNTOS[k] === nombre) || '';
 }
 
+// Muestra u oculta lo de ventas / vales según los permisos del usuario.
+// Sin permiso de VENDER (ej. almacén): la app trabaja solo en Vales.
+function aplicarPermisosUI() {
+  const vende = tengoPermiso('VENDER'), vales = puedeHacerVales();
+  document.getElementById('btnVales').classList.toggle('oculto', !(vende && vales));
+  ['btnHistorial', 'btnClientes', 'btnIrVentas'].forEach(id => document.getElementById(id).classList.toggle('oculto', !vende));
+  if (!vende && vales) cambiarModo('vale');
+  else if (modo === 'vale' && !vales) cambiarModo('venta');
+  if (!vende && !vales) aviso('⚠️ Tu usuario no tiene permisos de venta ni de vales. Pide al administrador que los asigne.');
+}
 function puedeHacerVales() {
-  return !!(sesion && sesion.usuario && TIPOS_VALES.includes(String(sesion.usuario.tipo || '').toLowerCase()));
+  return tengoPermiso('VALES');
 }
 
 function cambiarModo(m) {
   if (m === 'vale' && !puedeHacerVales()) return;
+  if (m === 'venta' && sesion && !tengoPermiso('VENDER') && puedeHacerVales()) m = 'vale';
   modo = m;
   const vale = m === 'vale';
   document.body.classList.toggle('modo-vales', vale);
@@ -2268,6 +2539,15 @@ function refObligatoria() {
 
 function actualizarCamposVale() {
   const d = document.getElementById('valeDestino').value;
+  const prod = esProduccion();
+  if (prod !== _prodAnterior && valeCarrito.length) {
+    if (confirm('Cambiar entre producción y otro tipo de vale vacía la lista de productos. ¿Continuar?')) valeCarrito = [];
+    else { document.getElementById('valeDestino').value = _prodAnterior ? 'Producción / elaboración' : ''; return actualizarCamposVale(); }
+  }
+  _prodAnterior = prod;
+  document.getElementById('prodBox').classList.toggle('oculto', !prod);
+  if (prod) prepararProdBox();
+  if (prod !== (document.getElementById('valeItems').dataset.prod === '1')) renderVale();
   const ref = document.getElementById('valeRef');
   if (/cliente/i.test(d)) ref.placeholder = '👤 Nombre del cliente y no. de pedido / folio de venta';
   else if (/proveedor/i.test(d)) ref.placeholder = '🏭 Proveedor y no. de factura / remisión';
@@ -2281,6 +2561,7 @@ function actualizarCamposVale() {
 function agregarVale(id, como) {
   const p = productos.find(x => String(x.ID) === String(id));
   if (!p) return;
+  if (esProduccion()) return agregarProduccion(p);
   // En un ajuste se cuenta en la unidad base (kg / piezas); en salidas y entradas se puede usar la presentación
   const pres = valeTipo === 'ajuste' ? null : presentacionDe(p);
   if (pres && !como) { preguntarPresentacion(p, agregarVale, false); return; }
@@ -2363,12 +2644,13 @@ function renderVale() {
       : `Toca los productos que<br>${valeTipo === 'salida' ? 'salen de' : 'entran a'} ${aqui}`) + '</div>';
   } else {
     cont.innerHTML = valeCarrito.map((it, i) => `
-      <div class="item ${it.pres ? 'pres' : ''}">
+      <div class="item ${it.prod || it.prodPiezas ? 'prod' : it.pres ? 'pres' : ''}">
         <div class="item-info">
-          <div class="n">${it.pres ? '📦 ' : it.granel ? '⚖️ ' : ''}${it.NOMBRE}</div>
+          <div class="n">${it.prod || it.prodPiezas ? '🏭 ' : it.pres ? '📦 ' : it.granel ? '⚖️ ' : ''}${it.NOMBRE}</div>
           <div class="p">${it.pres
             ? `${plural(2, it.pres.nombre)} de ${it.pres.contenido} ${it.granel ? 'kg' : 'pzas'} · = ${Math.round(it.cantidad * 1000) / 1000} ${it.granel ? 'kg' : 'pzas'}`
             : (it.granel ? 'kg' : 'piezas')}${valeTipo === 'ajuste' ? ` · sistema: ${it.sistema}` : ''}</div>
+          ${it.prod ? `<select onchange="cambiarKgLinea(${i}, this.value)">${opcionesEmpaque(it.pres.contenido)}</select>` : ''}
         </div>
         <div class="cant">
           <button class="menos" onclick="cambiarCantVale(${i},-1)">−</button>
@@ -2381,12 +2663,14 @@ function renderVale() {
       </div>`).join('');
   }
   document.getElementById('valeResumen').textContent = valeCarrito.length ? resumenCantidades(valeCarrito) : '';
+  cont.dataset.prod = esProduccion() ? '1' : '0';
   validarVale();
 }
 
 function validarVale() {
   const ok = valeCarrito.length > 0 && obtenerPunto() && document.getElementById('valeDestino').value &&
-    (!refObligatoria() || document.getElementById('valeRef').value.trim());
+    (!refObligatoria() || document.getElementById('valeRef').value.trim()) &&
+    (!esProduccion() || (document.getElementById('prodFecha').value && document.getElementById('prodElaboro').value.trim()));
   document.getElementById('btnGenerarVale').disabled = !ok;
   return ok;
 }
@@ -2424,12 +2708,19 @@ async function generarVale() {
     referencia: document.getElementById('valeRef').value.trim(),
     persona: document.getElementById('valePersona').value.trim(),
     observaciones: document.getElementById('valeObs').value.trim(),
+    ...(esProduccion() ? { produccion: { fecha: document.getElementById('prodFecha').value,
+                                         elaboro: document.getElementById('prodElaboro').value.trim() } } : {}),
     items: valeCarrito.map(it => ({ ID: it.ID, NOMBRE: it.NOMBRE, cantidad: it.cantidad, granel: it.granel,
+      ...((it.prod || it.prodPiezas) ? { lote: nuevoLote(document.getElementById('prodFecha').value) } : {}),
       ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
       ...(valeTipo === 'ajuste' ? { sistema: it.sistema } : {}) })),
     pendiente: true
   };
   if (valeTipo === 'ajuste' && !confirm(`¿Fijar la existencia en ${PUNTOS[obtenerPunto()]} de ${vale.items.length} producto(s) según tu conteo?`)) return;
+  if (vale.produccion) {   // recordar a quien elabora para sugerirlo la próxima vez
+    const nombres = leerJSON(localStorage, 'pos_elaboradores', []).filter(n => n !== vale.produccion.elaboro);
+    localStorage.setItem('pos_elaboradores', JSON.stringify([vale.produccion.elaboro].concat(nombres).slice(0, 20)));
+  }
   const lista = leerJSON(localStorage, VALES_KEY, []);
   lista.push(vale);
   localStorage.setItem(VALES_KEY, JSON.stringify(lista));
@@ -2447,6 +2738,14 @@ async function mostrarVale(vale, titulo) {
   document.getElementById('valeGenTitulo').textContent = titulo;
   document.getElementById('btnCerrarValeGen').textContent = valeRecienCreado ? '🆕 Nuevo vale' : 'Cerrar';
   document.getElementById('anchoPapelVale').value = localStorage.getItem(PAPEL_KEY) || '58';
+  const etq = etiquetasDe(vale);
+  const btnE = document.getElementById('btnEtiquetas'), prev = document.getElementById('etiquetaPreview');
+  btnE.classList.toggle('oculto', !etq.length);
+  prev.classList.toggle('oculto', !etq.length);
+  if (etq.length) {
+    btnE.textContent = `🏷️ Imprimir etiquetas (${etq.length})`;
+    prev.src = canvasEtiqueta(etq[0], 384, false).toDataURL('image/png');
+  }
   document.getElementById('modalValeGen').classList.add('activo');
 }
 
@@ -2548,6 +2847,7 @@ function dibujarVale(vale, opciones) {
   if (ajuste) datos.push(['Lugar:', nomPunto]);
   else if (salida) { if (nomPunto) datos.push(['Sale de:', nomPunto]); datos.push(['Destino:', vale.destino]); }
   else { datos.push(['Origen:', vale.destino]); if (nomPunto) datos.push(['Entra a:', nomPunto]); }
+  if (vale.produccion) { datos.push(['Elaborado:', fechaCorta(vale.produccion.fecha)]); datos.push(['Hecho por:', vale.produccion.elaboro]); }
   if (vale.referencia) datos.push([/cliente/i.test(vale.destino) ? 'Cliente:' : 'Ref.:', vale.referencia]);
   datos.push(['Elaboró:', vale.usuario ? vale.usuario.nombre : '']);
   datos.forEach(([k, v]) => {
@@ -2578,6 +2878,11 @@ function dibujarVale(vale, opciones) {
       ctx.fillStyle = C.txt;
       y += sp(14);
     }
+    if (it.lote) {
+      ctx.font = 'bold ' + px(12) + ' Arial'; ctx.fillStyle = C.txt;
+      ctx.fillText('Lote: ' + it.lote, M, y - sp(2));
+      y += sp(15);
+    }
     if (ajuste && it.sistema !== undefined) {
       const dif = Math.round((it.cantidad - it.sistema) * 1000) / 1000;
       ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
@@ -2602,7 +2907,7 @@ function dibujarVale(vale, opciones) {
 
   // Firmas
   y += sp(46);
-  const entrega = salida ? (vale.usuario ? vale.usuario.nombre : '') : vale.persona;
+  const entrega = salida ? (vale.usuario ? vale.usuario.nombre : '') : (vale.persona || (vale.produccion && vale.produccion.elaboro) || '');
   const recibe = salida ? vale.persona : (vale.usuario ? vale.usuario.nombre : '');
   const anchoFirma = (W - M * 3) / 2;
   (ajuste ? [[M, 'CONTÓ', vale.usuario ? vale.usuario.nombre : ''], [M * 2 + anchoFirma, 'REVISÓ', '']]
@@ -2757,7 +3062,7 @@ function venceCredito(c) {
   const d = new Date(); d.setDate(d.getDate() + Number(c.dias));
   return diaLocal(d);
 }
-function esAdmin() { return !!(sesion && String(sesion.usuario.tipo).toLowerCase() === 'admin'); }
+function esAdmin() { return !!(sesion && String(sesion.usuario.tipo).toLowerCase() === 'admin'); }   // (ya no se usa para permisos)
 
 // Lista = lo descargado de Sheets + los clientes dados de alta aquí que aún no se suben
 function listaClientes() {
@@ -2765,7 +3070,7 @@ function listaClientes() {
   const ids = new Set(base.map(c => c.id));
   leerJSON(localStorage, CLIENTES_NUEVOS_KEY, []).forEach(c => {
     if (!ids.has(c.id)) base.push({ id: c.id, nombre: c.nombre, telefono: c.telefono, credito: !!c.credito,
-      dias: c.dias || 0, notas: c.notas, saldo: 0, pendientes: 0, vencidas: 0, local: true });
+      dias: c.dias || 0, notas: c.notas, lista: c.lista || '', saldo: 0, pendientes: 0, vencidas: 0, local: true });
   });
   return base;
 }
@@ -2826,13 +3131,18 @@ function elegirCliente(c, silencioso) {
   document.getElementById('chipClienteTxt').innerHTML = `👤 ${c.nombre}` +
     (c.credito ? '<span class="badge cred">Crédito</span>' : '<span class="badge">Contado</span>') +
     (c.saldo > 0 ? `<span class="badge debe">Debe ${pesos(c.saldo)}</span>` : '') +
-    (c.vencidas > 0 ? `<span class="badge venc">${c.vencidas} vencida${c.vencidas > 1 ? 's' : ''}</span>` : '');
+    (c.vencidas > 0 ? `<span class="badge venc">${c.vencidas} vencida${c.vencidas > 1 ? 's' : ''}</span>` : '') +
+    (c.lista ? `<span class="badge lista">Precios ${c.lista}</span>` : '');
   document.getElementById('chipCliente').classList.remove('oculto');
+  repreciarCarrito();
+  if (c.lista && !silencioso) aviso(`🏷️ Precios de la lista ${c.lista} para ${c.nombre}`);
 }
 function quitarCliente(dejarTexto) {
+  const teniaLista = clienteSel && clienteSel.lista;
   clienteSel = null;
   if (!dejarTexto) inpCliente.value = '';
   document.getElementById('chipCliente').classList.add('oculto');
+  if (teniaLista) repreciarCarrito();
 }
 
 // ----- Alta de cliente -----
@@ -2843,21 +3153,36 @@ function abrirNuevoCliente(desdeTicket, nombre) {
   document.getElementById('ncNotas').value = '';
   document.getElementById('ncCredito').checked = false;
   document.getElementById('ncDias').value = 15;
-  document.getElementById('ncCreditoBox').classList.toggle('oculto', !esAdmin());
-  document.getElementById('ncSinCredito').classList.toggle('oculto', esAdmin());
+  document.getElementById('ncLista').innerHTML = '<option value="">La del punto de venta</option>' +
+    listasDisponibles().map(o => `<option value="${o.lista}">${nombreLista(o.lista)}</option>`).join('');
+  document.getElementById('ncSinCredito').classList.toggle('oculto', tengoPermiso('AUTORIZAR_CREDITO') && tengoPermiso('CAMBIAR_LISTA_CLIENTE'));
   document.getElementById('modalNuevoCliente').classList.add('activo');
   setTimeout(() => document.getElementById(nombre ? 'ncTelefono' : 'ncNombre').focus(), 50);
 }
-function guardarNuevoCliente() {
+async function guardarNuevoCliente() {
   const nombre = document.getElementById('ncNombre').value.trim();
   if (!nombre) { alert('Escribe el nombre del cliente'); return; }
   const tel = document.getElementById('ncTelefono').value.trim();
   const repetido = listaClientes().find(c => c.nombre.toLowerCase() === nombre.toLowerCase() || (tel && c.telefono === tel));
   if (repetido && !confirm(`Ya existe "${repetido.nombre}"${repetido.telefono ? ' (' + repetido.telefono + ')' : ''}. ¿Crear otro de todos modos?`)) return;
   const id = 'C-' + obtenerDispositivo() + '-' + Date.now().toString(36).toUpperCase();
-  const credito = esAdmin() && document.getElementById('ncCredito').checked;
+  const credito = document.getElementById('ncCredito').checked;
+  const lista = document.getElementById('ncLista').value;
+  // 🔐 Dar crédito y asignar lista de precios requieren permiso
+  let autCredito = null, autLista = null;
+  if (credito) {
+    const a = await requerirPermiso('AUTORIZAR_CREDITO', `Dar crédito a ${nombre}`);
+    if (!a) return;
+    autCredito = a.autorizacion;
+  }
+  if (lista) {
+    const a = await requerirPermiso('CAMBIAR_LISTA_CLIENTE', `Asignar la lista ${lista} a ${nombre}`);
+    if (!a) return;
+    autLista = a.autorizacion;
+  }
   const c = { folio: id, id, nombre, telefono: tel, notas: document.getElementById('ncNotas').value.trim(),
     credito, dias: credito ? (parseInt(document.getElementById('ncDias').value) || 0) : 0,
+    lista, autCredito, autLista,
     dia: diaLocal(), punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
     usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true };
   const cola = leerJSON(localStorage, CLIENTES_NUEVOS_KEY, []);
@@ -2935,6 +3260,8 @@ function pintarEstadoCuenta() {
     <div class="edo-cab">
       <div class="nombre">${c.nombre}</div>
       <small>${c.telefono || 'Sin teléfono'} · ${c.credito ? `Crédito${c.dias ? ' a ' + c.dias + ' días' : ''}` : 'Solo contado'}${c.notas ? ' · ' + c.notas : ''}</small>
+      <div style="margin-top:6px; font-size:12px;">🏷️ Precios: <b>${nombreLista(c.lista)}</b>
+        ${d.local ? '' : `<button class="precio-edit" onclick="abrirListaCliente()">✏️ cambiar</button>`}</div>
       <div style="margin-top:8px; font-size:12px; color:#aaa;">SALDO PENDIENTE</div>
       <div class="edo-saldo ${saldo > 0 ? '' : 'cero'}">${pesos(saldo)}</div>
     </div>
@@ -2966,6 +3293,31 @@ function pintarEstadoCuenta() {
   edoActual.saldoMostrado = saldo;
 }
 
+function abrirListaCliente() {
+  const c = edoActual.cliente;
+  document.getElementById('mlcCliente').textContent = c.nombre;
+  document.getElementById('mlcOpciones').innerHTML = [{ lista: '' }].concat(listasDisponibles()).map(o =>
+    `<button class="btn-sec ${(c.lista || '') === o.lista ? 'sel' : ''}" onclick="cambiarListaCliente('${o.lista}')">${nombreLista(o.lista)}</button>`).join('');
+  document.getElementById('modalListaCliente').classList.add('activo');
+}
+async function cambiarListaCliente(lista) {
+  const c = edoActual.cliente;
+  cerrarModal('modalListaCliente');
+  if ((c.lista || '') === lista) return;
+  const aut = await requerirPermiso('CAMBIAR_LISTA_CLIENTE', `Cambiar la lista de precios de ${c.nombre} a: ${nombreLista(lista)}`);
+  if (!aut) return;
+  try {
+    const r = await apiPost({ accion: 'actualizar_cliente', token: sesion.token, clienteId: c.id, lista, autorizacion: aut.autorizacion });
+    if (!r.success) { alert('⚠️ ' + (r.error || 'No se pudo cambiar')); return; }
+  } catch (e) { alert('📵 Se necesita internet para cambiar la lista de precios de un cliente.'); return; }
+  c.lista = lista;
+  const cache = leerJSON(localStorage, CLIENTES_KEY, []);
+  const x = cache.find(k => k.id === c.id); if (x) { x.lista = lista; localStorage.setItem(CLIENTES_KEY, JSON.stringify(cache)); }
+  if (clienteSel && clienteSel.id === c.id) { clienteSel.lista = lista; elegirCliente(clienteSel, true); }
+  aviso('🏷️ Lista actualizada');
+  pintarEstadoCuenta();
+}
+
 function usarClienteEnVenta() {
   const c = listaClientes().find(x => x.id === edoActual.cliente.id) || edoActual.cliente;
   if (modo === 'vale') cambiarModo('venta');
@@ -2989,8 +3341,13 @@ function selMetodoAbono(m) {
   metodoAbono = m;
   document.querySelectorAll('#abMetodos button').forEach(b => b.classList.toggle('activo', b.dataset.ab === m));
 }
-function abrirAbono(notaFolio) {
+let autAbono = null;
+async function abrirAbono(notaFolio) {
   const d = edoActual;
+  // 🔐 Registrar abonos requiere permiso
+  const aut = await requerirPermiso('ABONOS', `Registrar un abono de ${d.cliente.nombre}`);
+  if (!aut) return;
+  autAbono = aut;
   document.getElementById('abCliente').textContent = d.cliente.nombre;
   document.getElementById('abDebe').textContent = pesos(d.saldoMostrado);
   document.getElementById('abMonto').value = '';
@@ -3015,6 +3372,7 @@ async function guardarAbono() {
     clienteId: edoActual.cliente.id, cliente: edoActual.cliente.nombre, monto, metodo: metodoAbono,
     referencia: document.getElementById('abRef').value.trim(), notaFolio: document.getElementById('abNota').value,
     saldoAnterior: edoActual.saldoMostrado,
+    autorizacion: autAbono && autAbono.autorizacion, autorizo: autAbono && !autAbono.propio ? autAbono.nombre : '',
     punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
     usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true
   };
@@ -3113,6 +3471,162 @@ async function compartirAbono() {
   }
   descargarBlob(abonoBlob, `abono-${a.folio}.png`);
   setTimeout(() => window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank'), 500);
+}
+
+// ================== PRODUCCIÓN (vale de entrada "Producción / elaboración") ==================
+// Pide fecha de elaboración, quién lo elaboró y empaque (kg por bulto); genera un LOTE por
+// producto y permite imprimir una etiqueta por bulto.
+const EMPAQUES_KG = [20, 25, 40];       // empaques más comunes (se puede elegir "Otro")
+const NOMBRE_EMPAQUE = 'Bulto';         // cómo se llama cada empaque en tickets y etiquetas
+let _prodAnterior = false;
+
+function esProduccion() {
+  return valeTipo === 'entrada' && /producci/i.test(document.getElementById('valeDestino').value || '');
+}
+function empaqueDefecto() { return parseFloat(localStorage.getItem('pos_empaque_kg')) || EMPAQUES_KG[0]; }
+function opcionesEmpaque(sel) {
+  const lista = EMPAQUES_KG.slice();
+  if (sel && !lista.includes(sel)) lista.push(sel);
+  return lista.map(k => `<option value="${k}" ${k === sel ? 'selected' : ''}>${k} kg</option>`).join('') +
+    '<option value="otro">Otro...</option>';
+}
+function pedirKgOtro() {
+  const v = parseFloat(String(prompt('¿Cuántos kg trae cada bulto?') || '').replace(',', '.'));
+  return v > 0 ? Math.round(v * 1000) / 1000 : null;
+}
+function prepararProdBox() {
+  const f = document.getElementById('prodFecha');
+  if (!f.value) f.value = diaLocal();
+  document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(empaqueDefecto());
+  document.getElementById('listaElaboradores').innerHTML =
+    leerJSON(localStorage, 'pos_elaboradores', []).map(n => `<option value="${n}">`).join('');
+}
+function cambiarEmpaqueDefecto(v) {
+  let kg = v === 'otro' ? pedirKgOtro() : parseFloat(v);
+  if (!kg) { document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(empaqueDefecto()); return; }
+  localStorage.setItem('pos_empaque_kg', kg);
+  document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(kg);
+}
+function cambiarKgLinea(i, v) {
+  const it = valeCarrito[i];
+  if (!it) return;
+  const kg = v === 'otro' ? pedirKgOtro() : parseFloat(v);
+  if (kg) { it.pres.contenido = kg; it.cantidad = Math.round(it.cajas * kg * 1000) / 1000; }
+  renderVale();
+}
+function agregarProduccion(p) {
+  const granel = esGranel(p);
+  const ex = valeCarrito.find(x => String(x.ID) === String(p.ID));
+  if (ex) {
+    if (ex.prod) { ex.cajas++; ex.cantidad = Math.round(ex.cajas * ex.pres.contenido * 1000) / 1000; }
+    else ex.cantidad++;
+  } else if (granel) {
+    const kg = empaqueDefecto();
+    valeCarrito.push({ ID: p.ID, NOMBRE: p.NOMBRE, granel: true, prod: true,
+      pres: { nombre: NOMBRE_EMPAQUE, contenido: kg }, cajas: 1, cantidad: kg });
+  } else {
+    // producto por pieza: se registra con lote, sin bultos
+    valeCarrito.push({ ID: p.ID, NOMBRE: p.NOMBRE, granel: false, prodPiezas: true, cantidad: 1 });
+  }
+  renderVale();
+  if (window.innerWidth <= 900) document.getElementById('valePanel').classList.add('abierto');
+}
+// Lote: L + fecha de elaboración (AAMMDD) + dispositivo + consecutivo del día. Ej. L261113-H2-01
+function nuevoLote(fechaElab) {
+  const f = String(fechaElab || diaLocal()).replace(/-/g, '').slice(2);
+  const g = leerJSON(localStorage, 'pos_lote_seq', {});
+  const n = (g.fecha === f ? (g.n || 0) : 0) + 1;
+  localStorage.setItem('pos_lote_seq', JSON.stringify({ fecha: f, n }));
+  return `L${f}-${obtenerDispositivo()}-${String(n).padStart(2, '0')}`;
+}
+
+// ----- Etiquetas: una por bulto -----
+function etiquetasDe(vale) {
+  const lista = [];
+  if (!vale.produccion) return lista;
+  vale.items.filter(it => it.lote && it.presentacion).forEach(it => {
+    for (let b = 1; b <= it.cantPresentacion; b++) {
+      lista.push({ producto: it.NOMBRE, kg: it.contenido, lote: it.lote, n: b, total: it.cantPresentacion,
+        fecha: vale.produccion.fecha, elaboro: vale.produccion.elaboro, punto: vale.punto, empaque: it.presentacion });
+    }
+  });
+  return lista;
+}
+function canvasEtiqueta(e, W, bn) {
+  const f = W / 384, M = Math.round(W * 0.05);
+  const px = n => Math.round(n * f) + 'px', sp = n => Math.round(n * f);
+  const c = document.createElement('canvas');
+  c.width = W; c.height = sp(310);
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
+  ctx.strokeStyle = '#000'; ctx.lineWidth = sp(3);
+  ctx.strokeRect(sp(6), sp(6), W - sp(12), c.height - sp(12));
+  ctx.fillStyle = '#000';
+  let y = sp(34);
+  encabezado(ctx, nombreTicket(e.punto), W, y, sp(20));
+  y += sp(10);
+  ctx.fillRect(M, y, W - M * 2, sp(2));
+  y += sp(32);
+  // producto (hasta 2 renglones)
+  ctx.font = 'bold ' + px(24) + ' Arial';
+  const lineas = partirTexto(ctx, e.producto.toUpperCase(), W - M * 2).slice(0, 2);
+  lineas.forEach(l => { encabezado(ctx, l, W, y, sp(24)); y += sp(28); });
+  y += sp(8);
+  ctx.textAlign = 'center'; ctx.font = px(13) + ' Arial'; ctx.fillText('CONTENIDO NETO', W / 2, y);
+  y += sp(34);
+  ctx.font = 'bold ' + px(36) + ' Arial'; ctx.fillText(`${e.kg} KG`, W / 2, y);
+  y += sp(16);
+  ctx.fillRect(M, y, W - M * 2, sp(2));
+  y += sp(26);
+  const fila = (k, v) => {
+    ctx.textAlign = 'left'; ctx.font = 'bold ' + px(15) + ' Arial'; ctx.fillText(k, M + sp(4), y);
+    ctx.textAlign = 'right'; ctx.font = (k === 'LOTE:' ? 'bold ' : '') + px(15) + ' Arial'; ctx.fillText(v, W - M - sp(4), y);
+    y += sp(24);
+  };
+  fila('LOTE:', e.lote);
+  fila('ELABORADO:', fechaCorta(e.fecha));
+  fila('ELABORÓ:', String(e.elaboro || '').substring(0, 24));
+  fila(`${(e.empaque || NOMBRE_EMPAQUE).toUpperCase()}:`, `${e.n} de ${e.total}`);
+  return c;
+}
+function tiraEtiquetas(lista, W, bn) {
+  const canvases = lista.map(e => canvasEtiqueta(e, W, bn));
+  const corte = Math.round(26 * W / 384);
+  const out = document.createElement('canvas');
+  out.width = W; out.height = canvases.reduce((h, c) => h + c.height + corte, 0) + corte;
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, out.height);
+  let y = 0;
+  canvases.forEach(c => {
+    ctx.drawImage(c, 0, y); y += c.height;
+    ctx.strokeStyle = '#000'; ctx.setLineDash([6, 6]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, y + corte / 2); ctx.lineTo(W, y + corte / 2); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = Math.round(12 * W / 384) + 'px Arial'; ctx.fillStyle = '#000'; ctx.fillText('✂', 4, y + corte / 2 + 4);
+    y += corte;
+  });
+  return new Promise(res => out.toBlob(res, 'image/png'));
+}
+async function imprimirEtiquetas() {
+  if (!valeActual) return;
+  const lista = etiquetasDe(valeActual);
+  if (!lista.length) return;
+  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const W = PUNTOS_PAPEL[papel];
+  // Celular: una tira con todas las etiquetas y líneas de corte -> app de impresión (RawBT)
+  if (esCelular() && navigator.canShare) {
+    const blob = await tiraEtiquetas(lista, W, true);
+    const file = new File([blob], `etiquetas-${valeActual.folio}.png`, { type: 'image/png' });
+    if (navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+  }
+  // PC: una etiqueta por hoja/etiqueta de la impresora
+  const zona = document.getElementById('zonaImpresion');
+  zona.innerHTML = lista.map(e => `<div class="zona-etiqueta"><img src="${canvasEtiqueta(e, W, true).toDataURL('image/png')}"></div>`).join('');
+  setTimeout(() => {
+    window.print();
+    zona.innerHTML = '<img id="imgImpresion" alt="">';
+  }, 200);
 }
 
 // ================== UTILIDADES ==================
