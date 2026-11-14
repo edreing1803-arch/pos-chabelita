@@ -453,6 +453,20 @@
   #etiquetaPreview { max-width: 70%; margin-top: 8px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
   .zona-etiqueta { page-break-after: always; break-after: page; }
 
+  /* ---------- Notas desde vales ---------- */
+  .item.de-vale { border-left: 3px solid #3498db; }
+  .item .tag-vale { font-size: 10px; color: #85c1e9; }
+  .item .cant-fija { font-weight: 700; font-size: 13px; text-align: center; min-width: 70px; }
+  .vales-ticket { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .vales-ticket span { background: rgba(52,152,219,0.25); border-radius: 12px; padding: 3px 8px; font-size: 11px; }
+  .vales-ticket button { background: none; border: none; color: #fff; cursor: pointer; font-size: 12px; }
+  .vc-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 10px; margin-bottom: 6px;
+             background: rgba(255,255,255,0.05); cursor: pointer; }
+  .vc-item.sel { background: rgba(52,152,219,0.25); outline: 2px solid #3498db; }
+  .vc-item input { width: 20px; height: 20px; margin-top: 2px; }
+  .vc-item .info { flex: 1; min-width: 0; font-size: 13px; }
+  .vc-item small { display: block; color: #aaa; }
+
   /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
   #zonaImpresion { display: none; }
   @media print {
@@ -508,6 +522,7 @@
       </div>
       <div class="sugerencias oculto" id="sugClientes"></div>
       <div class="chip-cliente oculto" id="chipCliente"><b id="chipClienteTxt"></b><button onclick="quitarCliente()" title="Quitar cliente">✕</button></div>
+      <div class="vales-ticket" id="valesTicket"></div>
     </div>
     
     <div class="ticket-items" id="ticketItems">
@@ -521,6 +536,7 @@
       </div>
       <div class="botones">
         <button class="btn-cobrar" id="btnCobrar" onclick="abrirCobro()" disabled>💵 COBRAR</button>
+        <button class="btn-sec" style="grid-column:1/-1;" id="btnImportarVales" onclick="abrirImportarVales()">📥 Cobrar vales de salida</button>
         <button class="btn-sec" onclick="cancelarTicket()">🗑️ Cancelar</button>
         <button class="btn-sec" onclick="limpiarTicket()">🧹 Vaciar</button>
       </div>
@@ -742,6 +758,22 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal" id="modalImportarVales">
+  <div class="modal-box ancho">
+    <h2>📥 Vales de salida por cobrar</h2>
+    <p style="font-size:13px; color:#aaa; margin-bottom:10px;">Elige uno o varios. Sus productos pasan al ticket con la cantidad del vale (no se puede cambiar) y solo ajustas precios. Esta venta <b>no mueve el inventario</b>: ya lo movió el vale.</p>
+    <div class="cli-buscar">
+      <input type="text" id="vcBuscar" placeholder="🔍 Folio, destino, cliente o producto" oninput="pintarValesCobrar()" autocomplete="off">
+      <select id="vcDias" onchange="cargarValesCobrar()" style="padding:8px; border-radius:10px; border:none;">
+        <option value="30">30 días</option><option value="90" selected>90 días</option><option value="365">1 año</option>
+      </select>
+    </div>
+    <div id="vcLista"></div>
+    <button class="btn-confirmar" id="btnAgregarVales" onclick="agregarValesAlTicket()" disabled>Agregar al ticket</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalImportarVales')">Cancelar</button>
+  </div>
+</div>
 
 <div class="modal" id="modalAutorizar">
   <div class="modal-box">
@@ -1004,7 +1036,8 @@ const PERMISOS_DEFECTO = {
 };
 const NOMBRES_PERMISO = {
   VENDER: 'Vender', CAMBIAR_SUCURSAL: 'Cambiar sucursal', CAMBIAR_LISTA_CLIENTE: 'Lista de precios de clientes', ABONOS: 'Abonos',
-  CAMBIAR_PRECIO: 'Cambiar precios en ticket', AUTORIZAR_CREDITO: 'Dar crédito', VALES: 'Vales'
+  CAMBIAR_PRECIO: 'Cambiar precios en ticket', AUTORIZAR_CREDITO: 'Dar crédito', VALES: 'Vales',
+  COBRAR_VALES: 'Cobrar vales'
 };
 function misPermisos() {
   if (!sesion || !sesion.usuario) return [];
@@ -1349,7 +1382,7 @@ function agregar(id, como) {
   if (pres && !como) { preguntarPresentacion(p, agregar, true); return; }
   if (pres && como === 'pres') { agregarPresentacion(p, pres); return; }
   const granel = esGranel(p);
-  const ex = carrito.find(x => String(x.ID) === String(id) && !x.pres);
+  const ex = carrito.find(x => String(x.ID) === String(id) && !x.pres && !x.deVale);
   if (ex) {
     ex.importeFijo = null;
     if (granel) {
@@ -1375,7 +1408,7 @@ function agregar(id, como) {
 }
 
 function agregarPresentacion(p, pres) {
-  const ex = carrito.find(x => String(x.ID) === String(p.ID) && x.pres);
+  const ex = carrito.find(x => String(x.ID) === String(p.ID) && x.pres && !x.deVale);
   if (ex) { ex.cajas++; ex.cantidad = Math.round(ex.cajas * pres.contenido * 1000) / 1000; }
   else {
     const it = lineaBase(p, pres.contenido);
@@ -1466,7 +1499,9 @@ async function aplicarPrecioManual() {
   const nuevo = Math.round((parseFloat(document.getElementById('mpPrecio').value) || 0) * 100) / 100;
   if (nuevo <= 0) { alert('Escribe un precio válido'); return; }
   cerrarModal('modalPrecio');
-  const aut = await requerirPermiso('CAMBIAR_PRECIO', `Cambiar el precio de ${it.NOMBRE} a $${nuevo.toFixed(2)}`);
+  // En productos que vienen de un vale, poner precio es parte de la nota (ya se autorizó al importar)
+  const aut = it.deVale ? { nombre: 'Nota de vales', autorizacion: null }
+    : await requerirPermiso('CAMBIAR_PRECIO', `Cambiar el precio de ${it.NOMBRE} a $${nuevo.toFixed(2)}`);
   if (!aut) return;
   if (aut.autorizacion) autPrecioVenta = aut.autorizacion;
   if (it.precioManual == null) {
@@ -1537,6 +1572,7 @@ function setCantidadManual(idx, val) {
 function renderTicket() {
   const cont = document.getElementById('ticketItems');
   if (carrito.length === 0) {
+    pintarValesTicket();
     cont.innerHTML = '<div class="ticket-vacio">Agrega productos<br>tocando las tarjetas</div>';
     document.getElementById('totalTicket').textContent = '$0.00';
     document.getElementById('btnCobrar').disabled = true;
@@ -1547,6 +1583,7 @@ function renderTicket() {
     const pu = calcularPrecio(it);
     const sub = subtotalItem(it);
     total += sub;
+    if (it.deVale) return lineaDeVale(it, i, sub, pu);
     if (it.pres) {
       const unidad = it.granel ? 'kg' : 'pzas';
       return `
@@ -1596,6 +1633,7 @@ function renderTicket() {
   }).join('');
   document.getElementById('totalTicket').textContent = `$${total.toFixed(2)}`;
   document.getElementById('btnCobrar').disabled = false;
+  pintarValesTicket();
 }
 
 function cancelarTicket() {
@@ -1605,6 +1643,7 @@ function cancelarTicket() {
 function limpiarTicket() {
   carrito = [];
   autPrecioVenta = null;
+  autValesVenta = null;
   document.getElementById('clienteInput').value = '';
   quitarCliente();
   renderTicket();
@@ -1760,8 +1799,10 @@ function confirmarCobro() {
       precio: it.pres ? Math.round(subtotalItem(it) / it.cantidad * 100) / 100 : calcularPrecio(it),
       subtotal: subtotalItem(it),
       ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
-      ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {})
+      ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {}),
+      ...(it.deVale ? { deVale: it.deVale } : {})
     })),
+    ...(valesEnTicket().length ? { valesOrigen: valesEnTicket(), autVales: autValesVenta } : {}),
     lista: listaPrecios(),
     ...(autPrecioVenta && carrito.some(it => it.precioManual != null) ? { autPrecio: autPrecioVenta } : {}),
     total,
@@ -1777,7 +1818,7 @@ function confirmarCobro() {
   localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
   
   ventaActual = venta;
-  moverStockLocal(venta.items, -1);
+  moverStockLocal(venta.items.filter(it => !it.deVale), -1);   // lo de vales ya salió del inventario
   if (venta.metodoPago === 'credito') sumarSaldoLocal(venta.clienteId, venta.saldo);
   cerrarModal('modalCobro');
   generarTicketImagen(venta);
@@ -1843,6 +1884,7 @@ function dibujarTicket(venta, opciones) {
   ctx.textAlign = 'left';
   [['Folio:', venta.folio], ['Fecha:', fechaStr], ['Cliente:', venta.cliente.substring(0,28)],
    ...(venta.punto && PUNTOS[venta.punto] ? [['Sucursal:', PUNTOS[venta.punto]]] : []),
+   ...(venta.valesOrigen && venta.valesOrigen.length ? partirFolios(venta.valesOrigen.map(x => x.folio)) : []),
    ['Pago:', metodos[venta.metodoPago]],
    ...(venta.usuario ? [['Atendió:', String(venta.usuario.nombre || '').substring(0,28)]] : [])].forEach(([k, v]) => {
     ctx.fillText(k, M, y); ctx.fillText(v, colVal, y);
@@ -2065,6 +2107,7 @@ function descargarBlob(blob, nombre) {
 function nuevaVenta() {
   carrito = [];
   autPrecioVenta = null;
+  autValesVenta = null;
   ventaActual = null;
   ticketBlob = null;
   document.getElementById('clienteInput').value = '';
@@ -3627,6 +3670,128 @@ async function imprimirEtiquetas() {
     window.print();
     zona.innerHTML = '<img id="imgImpresion" alt="">';
   }, 200);
+}
+
+// ================== NOTA DE VENTA DESDE VALES DE SALIDA ==================
+// Se importan vales de salida ya registrados (de cualquier punto). Sus productos entran al
+// ticket con cantidad fija; solo se ajustan precios. La venta no mueve el inventario de esos
+// productos (ya lo hizo el vale) y cada vale queda marcado con el folio de la nota.
+let autValesVenta = null;
+let valesCobrar = [], valesSel = new Set();
+
+function valesEnTicket() {
+  const m = {};
+  carrito.forEach(it => { if (it.deVale) m[it.deVale] = { folio: it.deVale, dispositivo: it.valeDisp || '' }; });
+  return Object.values(m);
+}
+function partirFolios(folios) {
+  // filas "Vales:" de máximo 2 folios cada una para que quepan en el ticket
+  const filas = [];
+  for (let i = 0; i < folios.length; i += 2) filas.push([i ? '' : 'Vales:', folios.slice(i, i + 2).join(', ')]);
+  return filas;
+}
+function pintarValesTicket() {
+  const cont = document.getElementById('valesTicket');
+  if (!cont) return;
+  cont.innerHTML = valesEnTicket().map(v =>
+    `<span>📥 ${v.folio} <button onclick="quitarValeTicket('${v.folio}')" title="Quitar este vale del ticket">✕</button></span>`).join('');
+}
+function quitarValeTicket(folio) {
+  carrito = carrito.filter(it => it.deVale !== folio);
+  if (!valesEnTicket().length) autValesVenta = null;
+  renderTicket();
+}
+function lineaDeVale(it, i, sub, pu) {
+  const unidad = it.granel ? 'kg' : 'pzas';
+  const cant = it.pres ? `${textoPres(it.cajas, it.pres)}<br><small style="color:#aaa;font-weight:400;">${Math.round(it.cantidad * 1000) / 1000} ${unidad}</small>`
+                       : `${Math.round(it.cantidad * 1000) / 1000} ${unidad}`;
+  const precioTxt = it.pres ? `$${(sub / it.cajas).toFixed(2)} c/${it.pres.nombre.toLowerCase()}` : `$${pu.toFixed(2)}${it.granel ? '/kg' : ' c/u'}`;
+  return `
+    <div class="item de-vale">
+      <div class="item-info">
+        <div class="n">${it.NOMBRE}</div>
+        <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioTxt}
+          <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Poner precio">✏️</button></div>
+        <div class="tag-vale">📥 ${it.deVale}</div>
+      </div>
+      <div class="cant-fija">${cant}</div>
+      <div class="subtotal">$${sub.toFixed(2)}</div>
+    </div>`;
+}
+
+async function abrirImportarVales() {
+  if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
+  const aut = await requerirPermiso('COBRAR_VALES', 'Generar una nota de venta a partir de vales de salida');
+  if (!aut) return;
+  if (aut.autorizacion) autValesVenta = aut.autorizacion;
+  valesSel = new Set();
+  document.getElementById('vcBuscar').value = '';
+  document.getElementById('modalImportarVales').classList.add('activo');
+  await cargarValesCobrar();
+}
+async function cargarValesCobrar() {
+  const cont = document.getElementById('vcLista');
+  cont.innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Cargando vales...</p>';
+  try {
+    await enviarPendientes();   // que los vales hechos en este dispositivo ya estén en Sheets
+    const r = await apiPost({ accion: 'vales_por_cobrar', token: sesion.token, dias: document.getElementById('vcDias').value });
+    if (!r.success) throw new Error(r.error);
+    const yaEnTicket = new Set(valesEnTicket().map(v => v.folio));
+    valesCobrar = r.vales.filter(v => !yaEnTicket.has(v.folio));
+  } catch (e) {
+    cont.innerHTML = '<p style="text-align:center; color:#e74c3c; padding:20px;">📵 Se necesita internet para ver los vales por cobrar.</p>';
+    return;
+  }
+  pintarValesCobrar();
+}
+function pintarValesCobrar() {
+  const q = document.getElementById('vcBuscar').value.trim().toLowerCase();
+  const lista = valesCobrar.filter(v => !q || [v.folio, v.destino, v.referencia, v.persona, ...v.items.map(i => i.NOMBRE)]
+    .some(t => String(t || '').toLowerCase().includes(q)));
+  document.getElementById('vcLista').innerHTML = lista.length ? lista.map(v => `
+    <div class="vc-item ${valesSel.has(v.folio) ? 'sel' : ''}" onclick="alternarValeCobrar('${v.folio}')">
+      <input type="checkbox" ${valesSel.has(v.folio) ? 'checked' : ''} onclick="event.stopPropagation(); alternarValeCobrar('${v.folio}')">
+      <div class="info"><b>${v.folio}</b> · ${fechaCorta(v.fecha)} ${v.hora}
+        <small>${PUNTOS[v.punto] || v.punto || ''} → ${v.destino}${v.referencia ? ' — ' + v.referencia : ''}${v.persona ? ' · recibió ' + v.persona : ''}</small>
+        <small>${v.items.map(i => `${i.NOMBRE}: ${fmtItem(i)}`).join(' · ')}</small>
+      </div>
+    </div>`).join('') : '<p style="text-align:center; color:#888; padding:20px;">No hay vales de salida pendientes de cobro 👍</p>';
+  const b = document.getElementById('btnAgregarVales');
+  b.disabled = !valesSel.size;
+  b.textContent = valesSel.size ? `Agregar ${valesSel.size} vale${valesSel.size > 1 ? 's' : ''} al ticket` : 'Agregar al ticket';
+}
+function alternarValeCobrar(folio) {
+  valesSel.has(folio) ? valesSel.delete(folio) : valesSel.add(folio);
+  pintarValesCobrar();
+}
+function agregarValesAlTicket() {
+  const elegidos = valesCobrar.filter(v => valesSel.has(v.folio));
+  elegidos.forEach(v => v.items.forEach(i => {
+    const p = productos.find(x => String(x.ID) === String(i.ID)) ||
+      { ID: i.ID, NOMBRE: i.NOMBRE, PRECIO_1: 0, 'GRANEL (S/N)': i.granel ? 'S' : '' };
+    const linea = lineaBase(p, i.cantidad);
+    linea.NOMBRE = i.NOMBRE || p.NOMBRE;
+    linea.granel = !!i.granel;
+    linea.deVale = v.folio;
+    linea.valeDisp = v.dispositivo;
+    if (i.presentacion) {
+      const pres = presentacionDe(p);
+      const contenido = i.cantPresentacion ? Math.round(i.cantidad / i.cantPresentacion * 1000) / 1000 : i.cantidad;
+      linea.pres = { nombre: i.presentacion, contenido,
+        precio: pres && pres.nombre === i.presentacion && pres.contenido === contenido ? pres.precio : 0 };
+      linea.cajas = i.cantPresentacion || 1;
+    }
+    carrito.push(linea);
+  }));
+  // si todos los vales son para la misma persona y no hay cliente elegido, se sugiere el nombre
+  const refs = [...new Set(elegidos.map(v => v.referencia).filter(Boolean))];
+  if (refs.length === 1 && !clienteSel && !document.getElementById('clienteInput').value.trim()) {
+    document.getElementById('clienteInput').value = refs[0];
+  }
+  cerrarModal('modalImportarVales');
+  renderTicket();
+  if (window.innerWidth <= 900) document.getElementById('ticketPanel').classList.add('abierto');
+  aviso(`📥 ${elegidos.length} vale(s) agregados. Revisa los precios ✏️ y cobra.`);
 }
 
 // ================== UTILIDADES ==================
