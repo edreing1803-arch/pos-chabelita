@@ -425,7 +425,7 @@
 
   /* ---------- Permisos / autorización ---------- */
   #modalAutorizar { z-index: 1600; }   /* siempre encima de cualquier otra ventana */
-  #modalPresentacion, #modalPrecio, #modalListaCliente { z-index: 1100; }
+  #modalPresentacion, #modalPrecio, #modalListaCliente, #modalEtiquetas { z-index: 1100; }
   #modalAutorizar .modal-box { max-width: 380px; border: 2px solid #f39c12; }
   #modalAutorizar h2 { color: #f39c12; }
   .aut-accion { background: rgba(243,156,18,0.12); border-radius: 8px; padding: 10px; font-size: 14px; margin-bottom: 12px; }
@@ -466,6 +466,27 @@
   .vc-item input { width: 20px; height: 20px; margin-top: 2px; }
   .vc-item .info { flex: 1; min-width: 0; font-size: 13px; }
   .vc-item small { display: block; color: #aaa; }
+
+  /* ---------- Escalas de precio / precio directo ---------- */
+  .precio-inline input { width: 72px; padding: 3px 4px; border-radius: 6px; border: 2px solid #f4a261;
+                         background: rgba(255,255,255,0.95); color: #000; font-weight: 700; font-size: 13px; }
+  .precio-inline input:focus { outline: none; border-color: #2ecc71; }
+  select.escala { margin-top: 3px; padding: 2px 4px; border-radius: 6px; border: none; font-size: 11px;
+                  background: rgba(255,255,255,0.15); color: #fff; max-width: 150px; }
+  select.escala option { color: #000; }
+  select.escala.forzada { background: #8e44ad; }
+
+  /* ---------- Módulo de etiquetas ---------- */
+  .lote-item { padding: 10px; border-radius: 10px; margin-bottom: 6px; background: rgba(255,255,255,0.05); cursor: pointer;
+               border-left: 3px solid #2ecc71; font-size: 13px; }
+  .lote-item:hover { background: rgba(255,255,255,0.1); }
+  .lote-item small { display: block; color: #aaa; }
+  .etq-motivos { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; }
+  .etq-motivos button { padding: 10px; text-align: left; font-size: 14px; }
+  .etq-motivos button.activo { background: #2ecc71; color: #000; font-weight: 700; }
+  .etq-motivos button small { display: block; font-weight: 400; font-size: 11px; opacity: .8; }
+  .etq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .etq-calc { background: rgba(46,204,113,0.12); border-radius: 8px; padding: 8px 10px; font-size: 13px; margin: 6px 0 10px; }
 
   /* Zona que solo existe al imprimir desde PC (impresora térmica USB instalada en Windows) */
   #zonaImpresion { display: none; }
@@ -552,6 +573,7 @@
       <span class="folio" id="folioVale">---</span>
     </div>
     <div style="display:flex; gap:6px;">
+      <button class="btn-sec" onclick="abrirModuloEtiquetas()" title="Etiquetas de producción">🏷️</button>
       <button class="btn-sec" onclick="abrirHistVales()" title="Vales anteriores">📋</button>
       <button class="btn-sec cerrar-ticket" onclick="cerrarTicket()" style="display:none;">✕</button>
     </div>
@@ -759,6 +781,50 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="modal" id="modalEtiquetas">
+  <div class="modal-box ancho">
+    <h2>🏷️ Etiquetas de producción</h2>
+    <div id="etqPaso1">
+      <div class="cli-buscar">
+        <input type="text" id="etqBuscar" placeholder="🔍 Lote o producto" oninput="pintarLotes()" autocomplete="off">
+        <button class="btn-sec" onclick="etiquetaSinLote()">➕ Sin lote</button>
+      </div>
+      <div id="etqLotes"></div>
+    </div>
+    <div id="etqPaso2" class="oculto">
+      <div class="edo-cab"><div class="nombre" id="etqProducto" style="font-size:17px;"></div><small id="etqInfo"></small></div>
+      <div id="etqSinLote" class="oculto">
+        <div class="campo"><label>Producto</label><input type="text" id="etqProdNombre" list="etqListaProductos" placeholder="Busca el producto"></div>
+        <datalist id="etqListaProductos"></datalist>
+        <div class="etq-grid">
+          <div class="campo"><label>Lote</label><input type="text" id="etqLote" placeholder="Se genera si lo dejas vacío"></div>
+          <div class="campo"><label>Fecha de elaboración</label><input type="date" id="etqFecha"></div>
+        </div>
+        <div class="campo"><label>¿Quién lo elaboró?</label><input type="text" id="etqElaboro" list="listaElaboradores"></div>
+      </div>
+      <div class="etq-motivos" id="etqMotivos">
+        <button class="btn-sec" data-m="reimpresion" onclick="selMotivoEtq('reimpresion')">🔁 Reimprimir<small>Mismo empaque (etiqueta dañada o perdida)</small></button>
+        <button class="btn-sec" data-m="cambio_empaque" onclick="selMotivoEtq('cambio_empaque')">📦 Cambio de empaque<small>Empaque dañado o cambio de envase, mismo contenido</small></button>
+        <button class="btn-sec" data-m="reempaque" onclick="selMotivoEtq('reempaque')">✂️ Re-empaque<small>Pasar a otra presentación (ej. bulto de 20 kg → paquetes de 5 kg)</small></button>
+      </div>
+      <div class="etq-grid">
+        <div class="campo"><label>Nombre del empaque</label><input type="text" id="etqEmpaque" list="etqEmpaques"></div>
+        <datalist id="etqEmpaques"><option value="Bulto"><option value="Paquete"><option value="Bolsa"><option value="Cubeta"><option value="Bote"><option value="Caja"></datalist>
+        <div class="campo"><label id="etqContLbl">Contenido por empaque (kg)</label><input type="number" id="etqContenido" step="0.001" oninput="calcularEtiquetas()"></div>
+        <div class="campo"><label id="etqTotalLbl">Total a etiquetar (kg)</label><input type="number" id="etqTotalKg" step="0.001" oninput="calcularEtiquetas()"></div>
+        <div class="campo"><label>Etiquetas a imprimir</label><input type="number" id="etqCantidad" min="1" step="1" oninput="calcularEtiquetas(true)"></div>
+        <div class="campo"><label>Empezar en el número</label><input type="number" id="etqDesde" min="1" step="1" value="1" oninput="calcularEtiquetas(true)"></div>
+        <div class="campo"><label>De un total de</label><input type="number" id="etqDe" min="1" step="1" oninput="calcularEtiquetas(true)"></div>
+      </div>
+      <div class="etq-calc" id="etqCalculo"></div>
+      <div class="campo"><label>Notas (opcional)</label><input type="text" id="etqNotas" maxlength="80" placeholder="Ej. bolsa rota, cliente pidió paquetes chicos"></div>
+      <button class="btn-etiquetas" onclick="imprimirModuloEtiquetas()" id="btnImprimirEtq">🖨️ Imprimir etiquetas</button>
+      <button class="btn-sec" style="width:100%; margin-top:8px;" onclick="volverLotes()">← Elegir otro lote</button>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalEtiquetas')">Cerrar</button>
+  </div>
+</div>
+
 <div class="modal" id="modalImportarVales">
   <div class="modal-box ancho">
     <h2>📥 Vales de salida por cobrar</h2>
@@ -934,6 +1000,21 @@
 <script>
 // ================== CONFIG ==================
 const API_URL = 'https://script.google.com/macros/s/AKfycbwse_u-LUzUTu7Grc6jgKyu4xu8Cs4-DBoxeTFYKxW9-Cogy_wYyoTAinS2gHk-yvTeEA/exec';
+
+// Si en el MISMO sitio hay otra copia de la app (ej. la de otro negocio), cada copia debe tener
+// un ESPACIO_DATOS distinto para que en un mismo teléfono no se mezclen sesiones, ventas ni inventario.
+// La copia original se queda con '' (así conserva todo lo que ya tiene guardado).
+const ESPACIO_DATOS = '';
+function crearAlmacen(base) {
+  const pre = ESPACIO_DATOS ? ESPACIO_DATOS + '::' : '';
+  return {
+    getItem: k => base.getItem(pre + k),
+    setItem: (k, v) => base.setItem(pre + k, v),
+    removeItem: k => base.removeItem(pre + k)
+  };
+}
+const almacen = crearAlmacen(window['local' + 'Storage']);
+const almacenSesion = crearAlmacen(window['session' + 'Storage']);
 const CACHE_KEY = 'pos_productos_cache';
 const VENTAS_KEY = 'pos_ventas_historial';
 const FOLIO_KEY = 'pos_folio_actual';
@@ -964,11 +1045,11 @@ function aplicarPuntos(lista) {
   if (!Array.isArray(lista) || !lista.length) return;
   PUNTOS = {}; PUNTOS_INFO = {};
   lista.forEach(p => { PUNTOS[p.codigo] = p.nombre; PUNTOS_INFO[p.codigo] = p; });
-  try { localStorage.setItem(PUNTOS_KEY, JSON.stringify(lista)); } catch (e) {}
+  try { almacen.setItem(PUNTOS_KEY, JSON.stringify(lista)); } catch (e) {}
 }
 (function () {
   let guardados = null;
-  try { guardados = JSON.parse(localStorage.getItem(PUNTOS_KEY)); } catch (e) {}
+  try { guardados = JSON.parse(almacen.getItem(PUNTOS_KEY)); } catch (e) {}
   aplicarPuntos(guardados && guardados.length ? guardados : PUNTOS_INICIALES);
 })();
 // Puntos que se pueden elegir (los inactivos solo se conservan para el historial)
@@ -1037,7 +1118,7 @@ const PERMISOS_DEFECTO = {
 const NOMBRES_PERMISO = {
   VENDER: 'Vender', CAMBIAR_SUCURSAL: 'Cambiar sucursal', CAMBIAR_LISTA_CLIENTE: 'Lista de precios de clientes', ABONOS: 'Abonos',
   CAMBIAR_PRECIO: 'Cambiar precios en ticket', AUTORIZAR_CREDITO: 'Dar crédito', VALES: 'Vales',
-  COBRAR_VALES: 'Cobrar vales'
+  COBRAR_VALES: 'Cobrar vales', CAMBIAR_ESCALA: 'Elegir escala de precio'
 };
 function misPermisos() {
   if (!sesion || !sesion.usuario) return [];
@@ -1081,7 +1162,7 @@ async function confirmarAutorizacion() {
     resultado = { nombre: r.nombre, autorizacion: r.autorizacion };
   } catch (e) {
     // Sin internet: solo quien ya inició sesión antes en este dispositivo con "Recordarme"
-    const l = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {})[usuario];
+    const l = leerJSON(almacen, USUARIOS_LOCAL_KEY, {})[usuario];
     if (!l || l.hash !== await sha256(l.sal + password)) {
       err.textContent = '📵 Sin conexión: solo puede autorizar alguien que ya haya entrado antes en este dispositivo con "Recordarme".';
       return;
@@ -1105,7 +1186,7 @@ async function refrescarPermisos() {
     if (!r.success) return;
     sesion.usuario.permisos = r.permisos;
     if (r.tipo) sesion.usuario.tipo = r.tipo;
-    guardarSesion(sesion, !!localStorage.getItem(SESION_KEY));
+    guardarSesion(sesion, !!almacen.getItem(SESION_KEY));
     aplicarPermisosUI();
   } catch (e) {}
 }
@@ -1158,14 +1239,15 @@ async function cargarProductos() {
     if (!Array.isArray(data)) {
       if (data && data.success === false) throw new Error(data.error || 'Error del servidor');
       if (data && data.puntos) { aplicarPuntos(data.puntos); pintarPunto(); }
+      if (data && data.conexiones) almacen.setItem('pos_conexiones', JSON.stringify(data.conexiones));
       data = (data && data.productos) || [];
     }
     productos = data;
-    localStorage.setItem(CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
+    almacen.setItem(CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
     estado.textContent = '🟢 En línea';
     estado.className = 'estado online';
   } catch (e) {
-    const cache = localStorage.getItem(CACHE_KEY);
+    const cache = almacen.getItem(CACHE_KEY);
     if (cache) {
       const obj = JSON.parse(cache);
       productos = obj.data;
@@ -1191,16 +1273,17 @@ async function recargarProductosSilencioso() {
     const r = await fetch(API_URL);
     let data = await r.json();
     if (data && !Array.isArray(data) && data.puntos) { aplicarPuntos(data.puntos); pintarPunto(); }
+    if (data && !Array.isArray(data) && data.conexiones) almacen.setItem('pos_conexiones', JSON.stringify(data.conexiones));
     if (!Array.isArray(data)) data = (data && data.success !== false && data.productos) || null;
     if (!data) return;
     productos = data;
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
+    almacen.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }));
     renderProductos();
   } catch (e) {}
 }
 
 // ================== PUNTO DE VENTA DEL DISPOSITIVO ==================
-function obtenerPunto() { return localStorage.getItem(PUNTO_KEY) || ''; }
+function obtenerPunto() { return almacen.getItem(PUNTO_KEY) || ''; }
 async function guardarPunto(p) {
   if (!PUNTOS[p] || PUNTOS_INFO[p].activo === false) return;
   const regresar = () => { document.getElementById('ajPunto').value = obtenerPunto(); };
@@ -1212,8 +1295,9 @@ async function guardarPunto(p) {
   const aut = await requerirPermiso('CAMBIAR_SUCURSAL', `Cambiar este dispositivo a: ${PUNTOS[p]}`);
   if (!aut) { regresar(); return; }
   if (p !== obtenerPunto()) { carrito = []; renderTicket(); }
-  localStorage.setItem(PUNTO_KEY, p);
+  almacen.setItem(PUNTO_KEY, p);
   pintarPunto();
+  if (modo === 'vale') llenarDestinos();   // el punto propio no debe aparecer como destino
   renderProductos();
   cerrarModal('modalPunto');
   revisarTraspasos();
@@ -1251,8 +1335,8 @@ function moverStockLocal(items, signo, fijar) {
     const nuevo = fijar ? it.cantidad : (parseFloat(p[k]) || 0) + signo * it.cantidad;
     p[k] = Math.round(nuevo * 1000) / 1000;
   });
-  const cache = leerJSON(localStorage, CACHE_KEY, null);
-  if (cache) { cache.data = productos; localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); }
+  const cache = leerJSON(almacen, CACHE_KEY, null);
+  if (cache) { cache.data = productos; almacen.setItem(CACHE_KEY, JSON.stringify(cache)); }
   renderProductos();
 }
 
@@ -1321,6 +1405,8 @@ document.getElementById('buscador').addEventListener('input', renderProductos);
 // ================== CARRITO ==================
 function calcularPrecio(item) {
   if (item.precioManual != null && !item.pres) return item.precioManual;
+  // Escala elegida a mano (precio 2, 3 o 4) en lugar de la que toca por cantidad
+  if (item.escala && item['P' + item.escala] > 0) return item['P' + item.escala];
   const c = item.cantidad;
   if (item.M4 > 0 && c >= item.M4 && item.P4 > 0) return item.P4;
   if (item.M3 > 0 && c >= item.M3 && item.P3 > 0) return item.P3;
@@ -1446,6 +1532,7 @@ function subtotalItem(it) {
 // resultante sí alcanza el mayoreo correspondiente.
 function cantidadPorImporte(it, importe) {
   if (it.precioManual != null) return Math.round(importe / it.precioManual * 1000) / 1000;
+  if (it.escala && it['P' + it.escala] > 0) return Math.round(importe / it['P' + it.escala] * 1000) / 1000;
   const opciones = [it.P4, it.P3, it.P2, it.P1].filter(p => p > 0);
   for (const precio of opciones) {
     const kg = Math.round(importe / precio * 1000) / 1000;
@@ -1504,6 +1591,9 @@ async function aplicarPrecioManual() {
     : await requerirPermiso('CAMBIAR_PRECIO', `Cambiar el precio de ${it.NOMBRE} a $${nuevo.toFixed(2)}`);
   if (!aut) return;
   if (aut.autorizacion) autPrecioVenta = aut.autorizacion;
+  fijarPrecioLinea(it, nuevo, aut.nombre);
+}
+function fijarPrecioLinea(it, nuevo, quien) {
   if (it.precioManual == null) {
     // se guarda el precio normal para el registro
     it.precioOriginalUnidad = it.pres ? subtotalItem(it) / it.cajas : calcularPrecio(it);
@@ -1513,7 +1603,57 @@ async function aplicarPrecioManual() {
   it.importeFijo = null;
   if (it.pres) { it.pres.precio = nuevo; it.precioManual = nuevo / it.pres.contenido; }
   else it.precioManual = nuevo;
-  it.autorizoPrecio = aut.nombre;
+  it.autorizoPrecio = quien;
+  renderTicket();
+}
+
+// ---------- Precio directo en la línea (quien tiene CAMBIAR_PRECIO, o productos de vales) ----------
+function puedeEditarDirecto(it) { return !!it.deVale || tengoPermiso('CAMBIAR_PRECIO'); }
+function precioInline(i, val) {
+  const it = carrito[i];
+  if (!it) return;
+  const nuevo = Math.round((parseFloat(val) || 0) * 100) / 100;
+  if (nuevo <= 0) { renderTicket(); return; }
+  const actual = it.pres ? subtotalItem(it) / it.cajas : calcularPrecio(it);
+  if (Math.abs(nuevo - actual) < 0.005) return;
+  if (!puedeEditarDirecto(it)) { renderTicket(); return; }
+  fijarPrecioLinea(it, nuevo, it.deVale ? 'Nota de vales' : sesion.usuario.nombre);
+}
+function precioHTML(it, i, valor, sufijo) {
+  const txt = puedeEditarDirecto(it)
+    ? `<span class="precio-inline">$<input type="number" step="0.01" inputmode="decimal" value="${valor.toFixed(2)}"
+         onfocus="this.select()" onchange="precioInline(${i}, this.value)" onkeydown="if(event.key==='Enter') this.blur()"
+         onclick="event.stopPropagation()"> ${sufijo}</span>`
+    : `$${valor.toFixed(2)} ${sufijo} <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Cambiar precio">✏️</button>`;
+  return txt + selectorEscala(it, i);
+}
+
+// ---------- Escalas de precio (🔐 CAMBIAR_ESCALA) ----------
+let autEscalaVenta = null;
+function selectorEscala(it, i) {
+  if (it.precioManual != null || (it.pres && it.pres.precio > 0)) return '';
+  const escalas = [1, 2, 3, 4].filter(n => it['P' + n] > 0);
+  if (escalas.length < 2) return '';
+  const u = it.granel ? '/kg' : '';
+  const auto = it.escala ? '' : ` ($${calcularPrecio(it).toFixed(2)})`;
+  return `<br><select class="escala ${it.escala ? 'forzada' : ''}" onchange="cambiarEscala(${i}, this.value)" onclick="event.stopPropagation()">
+      <option value="" ${!it.escala ? 'selected' : ''}>Escala automática${auto}</option>
+      ${escalas.map(n => `<option value="${n}" ${it.escala === n ? 'selected' : ''}>Precio ${n}: $${it['P' + n].toFixed(2)}${u}</option>`).join('')}
+    </select>`;
+}
+async function cambiarEscala(i, v) {
+  const it = carrito[i];
+  if (!it) return;
+  if (!v) { delete it.escala; delete it.autorizoEscala; renderTicket(); return; }
+  const n = Number(v);
+  if (!it.deVale) {
+    const aut = await requerirPermiso('CAMBIAR_ESCALA', `Cobrar ${it.NOMBRE} con el precio ${n} ($${it['P' + n].toFixed(2)})`);
+    if (!aut) { renderTicket(); return; }
+    if (aut.autorizacion) autEscalaVenta = aut.autorizacion;
+    it.autorizoEscala = aut.nombre;
+  }
+  it.escala = n;
+  it.importeFijo = null;
   renderTicket();
 }
 function quitarPrecioManual() {
@@ -1590,8 +1730,8 @@ function renderTicket() {
       <div class="item pres">
         <div class="item-info">
           <div class="n">📦 ${it.NOMBRE}</div>
-          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${it.pres.nombre} de ${it.pres.contenido} ${unidad} · $${(sub / it.cajas).toFixed(2)} c/u
-            <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Cambiar precio">✏️</button></div>
+          <div class="p">${it.pres.nombre} de ${it.pres.contenido} ${unidad}</div>
+          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioHTML(it, i, sub / it.cajas, 'c/u')}</div>
           <div class="p" style="color:#d7bde2;">= ${Math.round(it.cantidad * 1000) / 1000} ${unidad}</div>
         </div>
         <div class="cant">
@@ -1612,8 +1752,7 @@ function renderTicket() {
       <div class="item ${it.granel && it.importeFijo ? 'fijo' : ''}">
         <div class="item-info">
           <div class="n">${it.granel?'⚖️ ':''}${it.NOMBRE}</div>
-          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">$${pu.toFixed(2)}${it.granel?'/kg':' c/u'}${it.precioManual != null ? ` <s style="opacity:.6">$${it.precioOriginal.toFixed(2)}</s>` : ''}
-            <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Cambiar precio">✏️</button></div>
+          <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioHTML(it, i, pu, it.granel ? '/kg' : 'c/u')}${it.precioManual != null ? ` <s style="opacity:.6">$${it.precioOriginal.toFixed(2)}</s>` : ''}</div>
         </div>
         <div class="cant">
           <button class="menos" onclick="cambiarCantidad(${i},-1)">−</button>
@@ -1643,6 +1782,7 @@ function cancelarTicket() {
 function limpiarTicket() {
   carrito = [];
   autPrecioVenta = null;
+  autEscalaVenta = null;
   autValesVenta = null;
   document.getElementById('clienteInput').value = '';
   quitarCliente();
@@ -1654,7 +1794,7 @@ function limpiarTicket() {
 // Abrir o recargar la app ya no se brinca números.
 function siguienteFolio(prefijo = 'V', clave = FOLIO_KEY) {
   const hoy = diaLocal().replace(/-/g,'');
-  const guardado = JSON.parse(localStorage.getItem(clave) || '{}');
+  const guardado = JSON.parse(almacen.getItem(clave) || '{}');
   const n = (guardado.fecha === hoy ? (guardado.n || 0) : 0) + 1;
   return { hoy, n, folio: `${prefijo}-${obtenerDispositivo()}-${hoy}-${String(n).padStart(3,'0')}` };
 }
@@ -1665,7 +1805,7 @@ function generarFolio() {
 }
 function consumirFolio(prefijo = 'V', clave = FOLIO_KEY) {
   const { hoy, n, folio } = siguienteFolio(prefijo, clave);
-  localStorage.setItem(clave, JSON.stringify({fecha: hoy, n}));
+  almacen.setItem(clave, JSON.stringify({fecha: hoy, n}));
   return folio;
 }
 
@@ -1800,8 +1940,10 @@ function confirmarCobro() {
       subtotal: subtotalItem(it),
       ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
       ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {}),
-      ...(it.deVale ? { deVale: it.deVale } : {})
+      ...(it.deVale ? { deVale: it.deVale } : {}),
+      ...(it.escala && it.precioManual == null ? { escala: it.escala } : {})
     })),
+    ...(autEscalaVenta && carrito.some(it => it.escala && !it.deVale) ? { autEscala: autEscalaVenta } : {}),
     ...(valesEnTicket().length ? { valesOrigen: valesEnTicket(), autVales: autValesVenta } : {}),
     lista: listaPrecios(),
     ...(autPrecioVenta && carrito.some(it => it.precioManual != null) ? { autPrecio: autPrecioVenta } : {}),
@@ -1813,9 +1955,9 @@ function confirmarCobro() {
     detalleMixto
   };
   
-  const hist = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
+  const hist = JSON.parse(almacen.getItem(VENTAS_KEY) || '[]');
   hist.push(venta);
-  localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
+  almacen.setItem(VENTAS_KEY, JSON.stringify(hist));
   
   ventaActual = venta;
   moverStockLocal(venta.items.filter(it => !it.deVale), -1);   // lo de vales ya salió del inventario
@@ -2014,7 +2156,7 @@ function dibujarTicket(venta, opciones) {
 async function generarTicketImagen(venta) {
   ticketBlob = await dibujarTicket(venta, { W: 500, bn: false });
   document.getElementById('ticketImg').src = URL.createObjectURL(ticketBlob);
-  document.getElementById('anchoPapel').value = localStorage.getItem(PAPEL_KEY) || '58';
+  document.getElementById('anchoPapel').value = almacen.getItem(PAPEL_KEY) || '58';
   document.getElementById('modalTicketGen').classList.add('activo');
 }
 
@@ -2024,7 +2166,7 @@ async function generarTicketImagen(venta) {
 // 50 mm -> ~45 mm imprimibles (360 puntos) para dejar margen en etiquetas/papel angosto
 const PUNTOS_PAPEL = { '50': 360, '58': 384, '80': 576 };
 
-function guardarAnchoPapel(v) { localStorage.setItem(PAPEL_KEY, v); }
+function guardarAnchoPapel(v) { almacen.setItem(PAPEL_KEY, v); }
 
 function esCelular() {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -2032,7 +2174,7 @@ function esCelular() {
 
 async function imprimirTicket() {
   if (!ventaActual) return;
-  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const papel = almacen.getItem(PAPEL_KEY) || '58';
   const blob = await dibujarTicket(ventaActual, { W: PUNTOS_PAPEL[papel], bn: true });
   return imprimirImagen(blob, `ticket-${ventaActual.folio}.png`);
 }
@@ -2107,6 +2249,7 @@ function descargarBlob(blob, nombre) {
 function nuevaVenta() {
   carrito = [];
   autPrecioVenta = null;
+  autEscalaVenta = null;
   autValesVenta = null;
   ventaActual = null;
   ticketBlob = null;
@@ -2119,7 +2262,7 @@ function nuevaVenta() {
 
 // ================== HISTORIAL ==================
 function abrirHistorial() {
-  const hist = JSON.parse(localStorage.getItem(VENTAS_KEY) || '[]');
+  const hist = JSON.parse(almacen.getItem(VENTAS_KEY) || '[]');
   const cont = document.getElementById('historialContenido');
   
   if (hist.length === 0) {
@@ -2197,18 +2340,18 @@ function abrirHistorial() {
 // Cada teléfono/PC tiene un código corto que va en el folio (V-A7-20261027-001),
 // así dos dispositivos nunca generan el mismo folio.
 function obtenerDispositivo() {
-  let d = localStorage.getItem(DISP_KEY);
+  let d = almacen.getItem(DISP_KEY);
   if (!d) {
     const L = 'ABCDEFGHJKMNPQRSTUVWXYZ', N = '23456789';
     d = L[Math.floor(Math.random()*L.length)] + N[Math.floor(Math.random()*N.length)];
-    localStorage.setItem(DISP_KEY, d);
+    almacen.setItem(DISP_KEY, d);
   }
   return d;
 }
 function guardarDispositivo(v) {
   const limpio = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
   if (!limpio) { document.getElementById('ajDispositivo').value = obtenerDispositivo(); return; }
-  localStorage.setItem(DISP_KEY, limpio);
+  almacen.setItem(DISP_KEY, limpio);
   document.getElementById('ajDispositivo').value = limpio;
   if (!ventaActual) generarFolio();
 }
@@ -2225,11 +2368,11 @@ function leerJSON(store, key, def) {
   try { return JSON.parse(store.getItem(key)) ?? def; } catch { return def; }
 }
 function cargarSesion() {
-  return leerJSON(localStorage, SESION_KEY, null) || leerJSON(sessionStorage, SESION_KEY, null);
+  return leerJSON(almacen, SESION_KEY, null) || leerJSON(almacenSesion, SESION_KEY, null);
 }
 function guardarSesion(s, recordar) {
-  localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
-  (recordar ? localStorage : sessionStorage).setItem(SESION_KEY, JSON.stringify(s));
+  almacen.removeItem(SESION_KEY); almacenSesion.removeItem(SESION_KEY);
+  (recordar ? almacen : almacenSesion).setItem(SESION_KEY, JSON.stringify(s));
 }
 
 async function sha256(texto) {
@@ -2253,7 +2396,7 @@ function mostrarLogin(mensaje) {
 }
 
 function renderRecordados() {
-  const locales = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {});
+  const locales = leerJSON(almacen, USUARIOS_LOCAL_KEY, {});
   const cont = document.getElementById('usuariosRecordados');
   const lista = Object.values(locales);
   cont.innerHTML = lista.map(u =>
@@ -2275,7 +2418,7 @@ function verPassword() {
 
 async function intentarLogin(usuario, password, recordar) {
   const clave = usuario.trim().toLowerCase();
-  const locales = leerJSON(localStorage, USUARIOS_LOCAL_KEY, {});
+  const locales = leerJSON(almacen, USUARIOS_LOCAL_KEY, {});
   let resp;
   try {
     resp = await apiPost({ accion: 'login_pos', usuario: clave, password });
@@ -2294,7 +2437,7 @@ async function intentarLogin(usuario, password, recordar) {
     resp.usuario.permisos = resp.permisos;
     locales[clave] = { email: resp.usuario.email, nombre: resp.usuario.nombre, usuario: resp.usuario,
                        token: resp.token, sal, hash: await sha256(sal + password) };
-    localStorage.setItem(USUARIOS_LOCAL_KEY, JSON.stringify(locales));
+    almacen.setItem(USUARIOS_LOCAL_KEY, JSON.stringify(locales));
   }
   resp.usuario.permisos = resp.permisos;
   return { ok: true, sesion: { usuario: resp.usuario, token: resp.token } };
@@ -2342,7 +2485,7 @@ function iniciarSesion(s, recordar) {
 function cerrarSesion() {
   if (carrito.length && !confirm('Hay productos en el ticket. ¿Cerrar sesión de todos modos?')) return;
   sesion = null;
-  localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+  almacen.removeItem(SESION_KEY); almacenSesion.removeItem(SESION_KEY);
   if (navigator.credentials && navigator.credentials.preventSilentAccess) {
     navigator.credentials.preventSilentAccess().catch(() => {});
   }
@@ -2360,7 +2503,7 @@ function cerrarSesion() {
 // usar la contraseña que el navegador tenga guardada.
 async function arrancarSesion() {
   const s = cargarSesion();
-  if (s && s.usuario) { iniciarSesion(s, !!localStorage.getItem(SESION_KEY)); return; }
+  if (s && s.usuario) { iniciarSesion(s, !!almacen.getItem(SESION_KEY)); return; }
   mostrarLogin();
   if (window.PasswordCredential && navigator.credentials) {
     try {
@@ -2379,7 +2522,7 @@ async function arrancarSesion() {
 // Se sube sola al confirmar el cobro, al regresar el internet y cada minuto.
 let subiendo = false;
 
-function leerHistorial() { return leerJSON(localStorage, VENTAS_KEY, []); }
+function leerHistorial() { return leerJSON(almacen, VENTAS_KEY, []); }
 
 // Colas que se suben a Google Sheets: ventas y vales
 // El orden importa: primero los clientes nuevos, luego ventas (crean notas) y al final abonos.
@@ -2387,10 +2530,11 @@ const COLAS = [
   { clave: CLIENTES_NUEVOS_KEY, accion: 'clientes_nuevos', campo: 'clientes', nombre: 'clientes' },
   { clave: VENTAS_KEY, accion: 'ventas', campo: 'ventas', nombre: 'ventas' },
   { clave: VALES_KEY,  accion: 'vales',  campo: 'vales',  nombre: 'vales' },
-  { clave: ABONOS_KEY, accion: 'abonos', campo: 'abonos', nombre: 'abonos' }
+  { clave: ABONOS_KEY, accion: 'abonos', campo: 'abonos', nombre: 'abonos' },
+  { clave: 'pos_etiquetas', accion: 'etiquetas', campo: 'etiquetas', nombre: 'registros de etiquetas' }
 ];
 function pendientesDe(clave) {
-  return leerJSON(localStorage, clave, []).filter(v => v.pendiente && !v.sincronizada);
+  return leerJSON(almacen, clave, []).filter(v => v.pendiente && !v.sincronizada);
 }
 
 function actualizarBadgeSync(estado) {
@@ -2428,7 +2572,7 @@ async function enviarPendientes(manual) {
           huboError = true;
           if (r.sesionInvalida) {
             sesion = null;
-            localStorage.removeItem(SESION_KEY); sessionStorage.removeItem(SESION_KEY);
+            almacen.removeItem(SESION_KEY); almacenSesion.removeItem(SESION_KEY);
             mostrarLogin('Tu sesión venció o tu usuario ya no tiene acceso. Vuelve a entrar.');
             return;
           }
@@ -2436,17 +2580,17 @@ async function enviarPendientes(manual) {
           break;
         }
         // Marcar como subidos (se relee por si se registró algo nuevo mientras tanto)
-        if (sesion.offline) { delete sesion.offline; guardarSesion(sesion, !!localStorage.getItem(SESION_KEY)); }
+        if (sesion.offline) { delete sesion.offline; guardarSesion(sesion, !!almacen.getItem(SESION_KEY)); }
         const porFolio = {};
         r.resultados.filter(x => x.ok).forEach(x => { porFolio[x.folio] = x; });
-        const lista = leerJSON(localStorage, cola.clave, []);
+        const lista = leerJSON(almacen, cola.clave, []);
         lista.forEach(v => {
           if (porFolio[v.folio]) {
             v.sincronizada = true; v.pendiente = false;
             if (!porFolio[v.folio].duplicada) v.resultado = porFolio[v.folio];   // p. ej. a qué notas se aplicó un abono
           }
         });
-        localStorage.setItem(cola.clave, JSON.stringify(lista));
+        almacen.setItem(cola.clave, JSON.stringify(lista));
       }
     }
   } catch (e) {
@@ -2496,7 +2640,7 @@ function subirAnteriores() {
       n++;
     }
   });
-  localStorage.setItem(VENTAS_KEY, JSON.stringify(hist));
+  almacen.setItem(VENTAS_KEY, JSON.stringify(hist));
   if (n) enviarPendientes(true);
   abrirAjustes();
 }
@@ -2511,8 +2655,11 @@ let valeBlob = null;
 let valeRecienCreado = false;
 
 const PREFIJO_VALE = { salida: 'VS', entrada: 'VE', ajuste: 'VA' };
+// Negocios conectados (hoja CONEXIONES): un vale de salida a ellos les llega a su sistema
+function conexionesActivas() { return leerJSON(almacen, 'pos_conexiones', []); }
 function destinosSalida() {
-  return puntosActivos().filter(k => k !== obtenerPunto()).map(k => PUNTOS[k]).concat(DESTINOS_OTROS);
+  return puntosActivos().filter(k => k !== obtenerPunto()).map(k => PUNTOS[k])
+    .concat(conexionesActivas()).concat(DESTINOS_OTROS);
 }
 function codigoPunto(nombre) {
   return Object.keys(PUNTOS).find(k => PUNTOS[k] === nombre) || '';
@@ -2741,6 +2888,7 @@ async function generarVale() {
     folio: consumirFolio(PREFIJO_VALE[valeTipo], 'pos_folio_' + valeTipo),
     punto: obtenerPunto(),
     puntoDestino: valeTipo === 'salida' ? codigoPunto(destinoTxt) : '',
+    conexion: valeTipo === 'salida' && conexionesActivas().includes(destinoTxt) ? destinoTxt : '',
     tipo: valeTipo,
     fecha: new Date().toISOString(),
     dia: diaLocal(),
@@ -2761,12 +2909,12 @@ async function generarVale() {
   };
   if (valeTipo === 'ajuste' && !confirm(`¿Fijar la existencia en ${PUNTOS[obtenerPunto()]} de ${vale.items.length} producto(s) según tu conteo?`)) return;
   if (vale.produccion) {   // recordar a quien elabora para sugerirlo la próxima vez
-    const nombres = leerJSON(localStorage, 'pos_elaboradores', []).filter(n => n !== vale.produccion.elaboro);
-    localStorage.setItem('pos_elaboradores', JSON.stringify([vale.produccion.elaboro].concat(nombres).slice(0, 20)));
+    const nombres = leerJSON(almacen, 'pos_elaboradores', []).filter(n => n !== vale.produccion.elaboro);
+    almacen.setItem('pos_elaboradores', JSON.stringify([vale.produccion.elaboro].concat(nombres).slice(0, 20)));
   }
-  const lista = leerJSON(localStorage, VALES_KEY, []);
+  const lista = leerJSON(almacen, VALES_KEY, []);
   lista.push(vale);
-  localStorage.setItem(VALES_KEY, JSON.stringify(lista));
+  almacen.setItem(VALES_KEY, JSON.stringify(lista));
   if (vale.tipo === 'ajuste') moverStockLocal(vale.items, 0, true);
   else moverStockLocal(vale.items, vale.tipo === 'entrada' ? 1 : -1);
   valeRecienCreado = true;
@@ -2780,7 +2928,7 @@ async function mostrarVale(vale, titulo) {
   document.getElementById('valeImg').src = URL.createObjectURL(valeBlob);
   document.getElementById('valeGenTitulo').textContent = titulo;
   document.getElementById('btnCerrarValeGen').textContent = valeRecienCreado ? '🆕 Nuevo vale' : 'Cerrar';
-  document.getElementById('anchoPapelVale').value = localStorage.getItem(PAPEL_KEY) || '58';
+  document.getElementById('anchoPapelVale').value = almacen.getItem(PAPEL_KEY) || '58';
   const etq = etiquetasDe(vale);
   const btnE = document.getElementById('btnEtiquetas'), prev = document.getElementById('etiquetaPreview');
   btnE.classList.toggle('oculto', !etq.length);
@@ -2799,7 +2947,7 @@ function cerrarValeGen() {
 
 async function imprimirVale() {
   if (!valeActual) return;
-  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const papel = almacen.getItem(PAPEL_KEY) || '58';
   const blob = await dibujarVale(valeActual, { W: PUNTOS_PAPEL[papel], bn: true });
   return imprimirImagen(blob, `vale-${valeActual.folio}.png`);
 }
@@ -2871,7 +3019,7 @@ function dibujarVale(vale, opciones) {
   y += sp(28);
   // Banda con el tipo de vale
   const ajuste = vale.tipo === 'ajuste';
-  const banda = ajuste ? 'AJUSTE DE INVENTARIO' : vale.puntoDestino ? 'TRASPASO DE MERCANCÍA'
+  const banda = ajuste ? 'AJUSTE DE INVENTARIO' : vale.puntoDestino ? 'TRASPASO DE MERCANCÍA' : vale.conexion ? 'ENVÍO DE MERCANCÍA'
     : (salida ? 'VALE DE SALIDA' : 'VALE DE ENTRADA') + ' DE MERCANCÍA';
   ctx.fillStyle = bn ? '#000' : C.acento;
   ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
@@ -2979,7 +3127,7 @@ function dibujarVale(vale, opciones) {
 
 // ----- Historial de vales (en este dispositivo) -----
 function abrirHistVales() {
-  const lista = leerJSON(localStorage, VALES_KEY, []);
+  const lista = leerJSON(almacen, VALES_KEY, []);
   const cont = document.getElementById('histValesContenido');
   if (!lista.length) {
     cont.innerHTML = '<p style="text-align:center; color:#888; padding:30px;">No hay vales registrados en este dispositivo</p>';
@@ -2993,7 +3141,7 @@ function abrirHistVales() {
         vs.map(v => `
           <div class="hist-vale ${v.tipo}">
             <div class="info">
-              <b>${v.tipo === 'ajuste' ? '🧮 Ajuste' : v.tipo === 'entrada' ? '⬇️ Entrada' : v.puntoDestino ? '🚚 Traspaso' : '⬆️ Salida'}</b> · ${v.folio} · ${v.hora}
+              <b>${v.tipo === 'ajuste' ? '🧮 Ajuste' : v.tipo === 'entrada' ? '⬇️ Entrada' : v.puntoDestino ? '🚚 Traspaso' : v.conexion ? '🔗 Envío' : '⬆️ Salida'}</b> · ${v.folio} · ${v.hora}
               <small>${v.destino}${v.referencia ? ' — ' + v.referencia : ''}</small>
               <small>${resumenCantidades(v.items)} · ${v.usuario ? v.usuario.nombre : ''} · ${v.sincronizada ? '☁️ subido' : '⏳ por subir'}</small>
             </div>
@@ -3005,7 +3153,7 @@ function abrirHistVales() {
 }
 
 function reabrirVale(folio) {
-  const v = leerJSON(localStorage, VALES_KEY, []).find(x => x.folio === folio);
+  const v = leerJSON(almacen, VALES_KEY, []).find(x => x.folio === folio);
   if (!v) return;
   cerrarModal('modalHistVales');
   valeRecienCreado = false;
@@ -3047,7 +3195,7 @@ function pintarRecepciones() {
   cont.innerHTML = traspasosPend.map((t, ti) => `
     <div class="traspaso" id="tr-${ti}">
       <h4>${t.folio}</h4>
-      <small>Desde ${t.desdeNombre} · ${t.fecha} ${t.hora} · envió ${t.elaboro}${t.persona ? ' · lo lleva ' + t.persona : ''}${t.observaciones ? '<br>📝 ' + t.observaciones : ''}</small>
+      <small>Desde ${t.desdeNombre} · ${t.fecha} ${t.hora} · envió ${t.elaboro}${t.persona ? ' · lo lleva ' + t.persona : ''}${t.observaciones ? '<br>📝 ' + t.observaciones : ''}${t.aviso ? '<br>⚠️ ' + t.aviso : ''}</small>
       ${t.items.map((it, ii) => `
         <div class="rec-item">
           <span class="n">${it.granel ? '⚖️ ' : ''}${it.NOMBRE}</span>
@@ -3109,9 +3257,9 @@ function esAdmin() { return !!(sesion && String(sesion.usuario.tipo).toLowerCase
 
 // Lista = lo descargado de Sheets + los clientes dados de alta aquí que aún no se suben
 function listaClientes() {
-  const base = leerJSON(localStorage, CLIENTES_KEY, []);
+  const base = leerJSON(almacen, CLIENTES_KEY, []);
   const ids = new Set(base.map(c => c.id));
-  leerJSON(localStorage, CLIENTES_NUEVOS_KEY, []).forEach(c => {
+  leerJSON(almacen, CLIENTES_NUEVOS_KEY, []).forEach(c => {
     if (!ids.has(c.id)) base.push({ id: c.id, nombre: c.nombre, telefono: c.telefono, credito: !!c.credito,
       dias: c.dias || 0, notas: c.notas, lista: c.lista || '', saldo: 0, pendientes: 0, vencidas: 0, local: true });
   });
@@ -3125,24 +3273,24 @@ async function cargarClientes() {
     // Sumar lo que este dispositivo vendió a crédito / abonó y aún no se sube
     const lista = r.clientes;
     ajustarSaldosPendientes(lista);
-    localStorage.setItem(CLIENTES_KEY, JSON.stringify(lista));
+    almacen.setItem(CLIENTES_KEY, JSON.stringify(lista));
     if (clienteSel) { const c = lista.find(x => x.id === clienteSel.id); if (c) elegirCliente(c, true); }
     if (document.getElementById('modalClientes').classList.contains('activo')) pintarClientes();
   } catch (e) {}
 }
 function ajustarSaldosPendientes(lista) {
   const mapa = {}; lista.forEach(c => mapa[c.id] = c);
-  leerJSON(localStorage, VENTAS_KEY, []).forEach(v => {
+  leerJSON(almacen, VENTAS_KEY, []).forEach(v => {
     if (v.pendiente && !v.sincronizada && v.metodoPago === 'credito' && mapa[v.clienteId]) mapa[v.clienteId].saldo += v.saldo || 0;
   });
-  leerJSON(localStorage, ABONOS_KEY, []).forEach(a => {
+  leerJSON(almacen, ABONOS_KEY, []).forEach(a => {
     if (a.pendiente && !a.sincronizada && mapa[a.clienteId]) mapa[a.clienteId].saldo = Math.max(0, mapa[a.clienteId].saldo - a.monto);
   });
 }
 function sumarSaldoLocal(id, delta) {
-  const lista = leerJSON(localStorage, CLIENTES_KEY, []);
+  const lista = leerJSON(almacen, CLIENTES_KEY, []);
   const c = lista.find(x => x.id === id);
-  if (c) { c.saldo = Math.max(0, Math.round((c.saldo + delta) * 100) / 100); localStorage.setItem(CLIENTES_KEY, JSON.stringify(lista)); }
+  if (c) { c.saldo = Math.max(0, Math.round((c.saldo + delta) * 100) / 100); almacen.setItem(CLIENTES_KEY, JSON.stringify(lista)); }
 }
 
 // ----- Selector de cliente en el ticket -----
@@ -3228,9 +3376,9 @@ async function guardarNuevoCliente() {
     lista, autCredito, autLista,
     dia: diaLocal(), punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
     usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true };
-  const cola = leerJSON(localStorage, CLIENTES_NUEVOS_KEY, []);
+  const cola = leerJSON(almacen, CLIENTES_NUEVOS_KEY, []);
   cola.push(c);
-  localStorage.setItem(CLIENTES_NUEVOS_KEY, JSON.stringify(cola));
+  almacen.setItem(CLIENTES_NUEVOS_KEY, JSON.stringify(cola));
   cerrarModal('modalNuevoCliente');
   aviso('✅ Cliente guardado' + (credito ? ' con crédito' : ''));
   if (nuevoDesdeTicket) elegirCliente(listaClientes().find(x => x.id === id));
@@ -3276,9 +3424,9 @@ async function abrirEstadoCuenta(id) {
       const r = await apiPost({ accion: 'estado_cuenta', token: sesion.token, clienteId: id });
       if (!r.success) throw new Error(r.error);
       datos = r;
-      localStorage.setItem('pos_edo_' + id, JSON.stringify(r));
+      almacen.setItem('pos_edo_' + id, JSON.stringify(r));
     } catch (e) {
-      datos = leerJSON(localStorage, 'pos_edo_' + id, null);
+      datos = leerJSON(almacen, 'pos_edo_' + id, null);
       if (datos) datos.offline = true;
       else datos = { cliente: c, saldo: c ? c.saldo : 0, notas: [], contado: [], abonos: [], offline: true };
     }
@@ -3291,8 +3439,8 @@ function pintarEstadoCuenta() {
   const d = edoActual, c = d.cliente;
   const hoy = diaLocal();
   // Movimientos de este dispositivo que aún no llegan a Sheets
-  const ventasPend = leerJSON(localStorage, VENTAS_KEY, []).filter(v => v.pendiente && !v.sincronizada && v.clienteId === c.id);
-  const abonosPend = leerJSON(localStorage, ABONOS_KEY, []).filter(a => a.pendiente && !a.sincronizada && a.clienteId === c.id);
+  const ventasPend = leerJSON(almacen, VENTAS_KEY, []).filter(v => v.pendiente && !v.sincronizada && v.clienteId === c.id);
+  const abonosPend = leerJSON(almacen, ABONOS_KEY, []).filter(a => a.pendiente && !a.sincronizada && a.clienteId === c.id);
   const saldo = Math.max(0, d.saldo + ventasPend.filter(v => v.metodoPago === 'credito').reduce((s, v) => s + v.saldo, 0)
     - abonosPend.reduce((s, a) => s + a.monto, 0));
   const pend = d.notas.filter(n => n.estado === 'PENDIENTE');
@@ -3354,8 +3502,8 @@ async function cambiarListaCliente(lista) {
     if (!r.success) { alert('⚠️ ' + (r.error || 'No se pudo cambiar')); return; }
   } catch (e) { alert('📵 Se necesita internet para cambiar la lista de precios de un cliente.'); return; }
   c.lista = lista;
-  const cache = leerJSON(localStorage, CLIENTES_KEY, []);
-  const x = cache.find(k => k.id === c.id); if (x) { x.lista = lista; localStorage.setItem(CLIENTES_KEY, JSON.stringify(cache)); }
+  const cache = leerJSON(almacen, CLIENTES_KEY, []);
+  const x = cache.find(k => k.id === c.id); if (x) { x.lista = lista; almacen.setItem(CLIENTES_KEY, JSON.stringify(cache)); }
   if (clienteSel && clienteSel.id === c.id) { clienteSel.lista = lista; elegirCliente(clienteSel, true); }
   aviso('🏷️ Lista actualizada');
   pintarEstadoCuenta();
@@ -3419,13 +3567,13 @@ async function guardarAbono() {
     punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
     usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true
   };
-  const cola = leerJSON(localStorage, ABONOS_KEY, []);
+  const cola = leerJSON(almacen, ABONOS_KEY, []);
   cola.push(a);
-  localStorage.setItem(ABONOS_KEY, JSON.stringify(cola));
+  almacen.setItem(ABONOS_KEY, JSON.stringify(cola));
   sumarSaldoLocal(a.clienteId, -monto);
   await enviarPendientes();   // si hay internet, regresa a qué notas se aplicó
   btn.disabled = false; btn.textContent = '✅ REGISTRAR ABONO';
-  abonoActual = leerJSON(localStorage, ABONOS_KEY, []).find(x => x.folio === a.folio) || a;
+  abonoActual = leerJSON(almacen, ABONOS_KEY, []).find(x => x.folio === a.folio) || a;
   cerrarModal('modalAbono');
   abonoBlob = await dibujarAbono(abonoActual, { W: 500, bn: false });
   document.getElementById('abonoImg').src = URL.createObjectURL(abonoBlob);
@@ -3500,7 +3648,7 @@ function dibujarAbono(a, opciones) {
 
 async function imprimirAbono() {
   if (!abonoActual) return;
-  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const papel = almacen.getItem(PAPEL_KEY) || '58';
   return imprimirImagen(await dibujarAbono(abonoActual, { W: PUNTOS_PAPEL[papel], bn: true }), `abono-${abonoActual.folio}.png`);
 }
 async function compartirAbono() {
@@ -3526,7 +3674,7 @@ let _prodAnterior = false;
 function esProduccion() {
   return valeTipo === 'entrada' && /producci/i.test(document.getElementById('valeDestino').value || '');
 }
-function empaqueDefecto() { return parseFloat(localStorage.getItem('pos_empaque_kg')) || EMPAQUES_KG[0]; }
+function empaqueDefecto() { return parseFloat(almacen.getItem('pos_empaque_kg')) || EMPAQUES_KG[0]; }
 function opcionesEmpaque(sel) {
   const lista = EMPAQUES_KG.slice();
   if (sel && !lista.includes(sel)) lista.push(sel);
@@ -3542,12 +3690,12 @@ function prepararProdBox() {
   if (!f.value) f.value = diaLocal();
   document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(empaqueDefecto());
   document.getElementById('listaElaboradores').innerHTML =
-    leerJSON(localStorage, 'pos_elaboradores', []).map(n => `<option value="${n}">`).join('');
+    leerJSON(almacen, 'pos_elaboradores', []).map(n => `<option value="${n}">`).join('');
 }
 function cambiarEmpaqueDefecto(v) {
   let kg = v === 'otro' ? pedirKgOtro() : parseFloat(v);
   if (!kg) { document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(empaqueDefecto()); return; }
-  localStorage.setItem('pos_empaque_kg', kg);
+  almacen.setItem('pos_empaque_kg', kg);
   document.getElementById('prodEmpaque').innerHTML = opcionesEmpaque(kg);
 }
 function cambiarKgLinea(i, v) {
@@ -3577,9 +3725,9 @@ function agregarProduccion(p) {
 // Lote: L + fecha de elaboración (AAMMDD) + dispositivo + consecutivo del día. Ej. L261113-H2-01
 function nuevoLote(fechaElab) {
   const f = String(fechaElab || diaLocal()).replace(/-/g, '').slice(2);
-  const g = leerJSON(localStorage, 'pos_lote_seq', {});
+  const g = leerJSON(almacen, 'pos_lote_seq', {});
   const n = (g.fecha === f ? (g.n || 0) : 0) + 1;
-  localStorage.setItem('pos_lote_seq', JSON.stringify({ fecha: f, n }));
+  almacen.setItem('pos_lote_seq', JSON.stringify({ fecha: f, n }));
   return `L${f}-${obtenerDispositivo()}-${String(n).padStart(2, '0')}`;
 }
 
@@ -3599,7 +3747,7 @@ function canvasEtiqueta(e, W, bn) {
   const f = W / 384, M = Math.round(W * 0.05);
   const px = n => Math.round(n * f) + 'px', sp = n => Math.round(n * f);
   const c = document.createElement('canvas');
-  c.width = W; c.height = sp(310);
+  c.width = W; c.height = sp(e.nota ? 334 : 310);
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
   ctx.strokeStyle = '#000'; ctx.lineWidth = sp(3);
@@ -3630,6 +3778,10 @@ function canvasEtiqueta(e, W, bn) {
   fila('ELABORADO:', fechaCorta(e.fecha));
   fila('ELABORÓ:', String(e.elaboro || '').substring(0, 24));
   fila(`${(e.empaque || NOMBRE_EMPAQUE).toUpperCase()}:`, `${e.n} de ${e.total}`);
+  if (e.nota) {
+    ctx.textAlign = 'center'; ctx.font = 'italic ' + px(12) + ' Arial';
+    ctx.fillText(e.nota, W / 2, y - sp(2));
+  }
   return c;
 }
 function tiraEtiquetas(lista, W, bn) {
@@ -3651,14 +3803,16 @@ function tiraEtiquetas(lista, W, bn) {
 }
 async function imprimirEtiquetas() {
   if (!valeActual) return;
-  const lista = etiquetasDe(valeActual);
+  return imprimirListaEtiquetas(etiquetasDe(valeActual), valeActual.folio);
+}
+async function imprimirListaEtiquetas(lista, nombre) {
   if (!lista.length) return;
-  const papel = localStorage.getItem(PAPEL_KEY) || '58';
+  const papel = almacen.getItem(PAPEL_KEY) || '58';
   const W = PUNTOS_PAPEL[papel];
   // Celular: una tira con todas las etiquetas y líneas de corte -> app de impresión (RawBT)
   if (esCelular() && navigator.canShare) {
     const blob = await tiraEtiquetas(lista, W, true);
-    const file = new File([blob], `etiquetas-${valeActual.folio}.png`, { type: 'image/png' });
+    const file = new File([blob], `etiquetas-${nombre}.png`, { type: 'image/png' });
     if (navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
@@ -3705,13 +3859,12 @@ function lineaDeVale(it, i, sub, pu) {
   const unidad = it.granel ? 'kg' : 'pzas';
   const cant = it.pres ? `${textoPres(it.cajas, it.pres)}<br><small style="color:#aaa;font-weight:400;">${Math.round(it.cantidad * 1000) / 1000} ${unidad}</small>`
                        : `${Math.round(it.cantidad * 1000) / 1000} ${unidad}`;
-  const precioTxt = it.pres ? `$${(sub / it.cajas).toFixed(2)} c/${it.pres.nombre.toLowerCase()}` : `$${pu.toFixed(2)}${it.granel ? '/kg' : ' c/u'}`;
   return `
     <div class="item de-vale">
       <div class="item-info">
         <div class="n">${it.NOMBRE}</div>
-        <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioTxt}
-          <button class="precio-edit" onclick="abrirCambioPrecio(${i})" title="Poner precio">✏️</button></div>
+        <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioHTML(it, i, it.pres ? sub / it.cajas : pu,
+          it.pres ? 'c/' + it.pres.nombre.toLowerCase() : (it.granel ? '/kg' : 'c/u'))}</div>
         <div class="tag-vale">📥 ${it.deVale}</div>
       </div>
       <div class="cant-fija">${cant}</div>
@@ -3792,6 +3945,158 @@ function agregarValesAlTicket() {
   renderTicket();
   if (window.innerWidth <= 900) document.getElementById('ticketPanel').classList.add('abierto');
   aviso(`📥 ${elegidos.length} vale(s) agregados. Revisa los precios ✏️ y cobra.`);
+}
+
+// ================== MÓDULO DE ETIQUETAS DE PRODUCCIÓN ==================
+// Reimprimir, cambio de empaque o re-empaque de un lote (mismo lote; no mueve inventario porque
+// los kilos son los mismos). Cada impresión queda registrada en la hoja ETIQUETAS.
+let lotesEtq = [], loteSel = null, motivoEtq = 'reimpresion';
+
+async function abrirModuloEtiquetas() {
+  volverLotes();
+  document.getElementById('etqBuscar').value = '';
+  document.getElementById('modalEtiquetas').classList.add('activo');
+  document.getElementById('etqLotes').innerHTML = '<p style="text-align:center; color:#888; padding:20px;">Cargando lotes...</p>';
+  // lotes de vales de este dispositivo (aunque no se hayan subido)
+  const locales = [];
+  leerJSON(almacen, VALES_KEY, []).filter(v => v.produccion).forEach(v => v.items.filter(i => i.lote).forEach(i => locales.push({
+    lote: i.lote, ID: i.ID, producto: i.NOMBRE, fecha: v.produccion.fecha, elaboro: v.produccion.elaboro, punto: v.punto,
+    kg: i.cantidad, granel: i.granel, empaque: i.presentacion || '', paquetes: i.cantPresentacion || 0,
+    contenido: i.presentacion ? i.contenido : i.cantidad, vale: v.folio })));
+  let servidor = [];
+  try {
+    if (navigator.onLine && sesion) {
+      const r = await apiPost({ accion: 'lotes', token: sesion.token, dias: 365 });
+      if (r.success) servidor = r.lotes;
+    }
+  } catch (e) {}
+  const vistos = new Set(servidor.map(l => l.lote + '|' + l.ID));
+  lotesEtq = servidor.concat(locales.filter(l => !vistos.has(l.lote + '|' + l.ID)))
+    .sort((a, b) => (b.fecha + b.lote).localeCompare(a.fecha + a.lote));
+  pintarLotes();
+}
+function pintarLotes() {
+  const q = document.getElementById('etqBuscar').value.trim().toLowerCase();
+  const lista = lotesEtq.filter(l => !q || (l.lote + ' ' + l.producto).toLowerCase().includes(q));
+  document.getElementById('etqLotes').innerHTML = lista.length ? lista.slice(0, 100).map((l, k) => `
+    <div class="lote-item" onclick="elegirLote(${lotesEtq.indexOf(l)})">
+      <b>${l.lote}</b> · ${l.producto}
+      <small>Elaborado ${fechaCorta(l.fecha)}${l.elaboro ? ' por ' + l.elaboro : ''} · ${l.paquetes ? `${l.paquetes} ${plural(l.paquetes, (l.empaque || 'bulto').toLowerCase())} de ${l.contenido} kg = ` : ''}${l.kg} ${l.granel ? 'kg' : 'pzas'}</small>
+    </div>`).join('') : '<p style="text-align:center; color:#888; padding:20px;">No hay lotes registrados. Usa "➕ Sin lote" para una etiqueta manual.</p>';
+}
+function volverLotes() {
+  document.getElementById('etqPaso1').classList.remove('oculto');
+  document.getElementById('etqPaso2').classList.add('oculto');
+}
+function mostrarFormEtq(l, sinLote) {
+  loteSel = l;
+  document.getElementById('etqPaso1').classList.add('oculto');
+  document.getElementById('etqPaso2').classList.remove('oculto');
+  document.getElementById('etqSinLote').classList.toggle('oculto', !sinLote);
+  document.getElementById('etqProducto').textContent = sinLote ? 'Etiqueta sin lote registrado' : `${l.producto}`;
+  document.getElementById('etqInfo').textContent = sinLote ? 'Para producción anterior al sistema'
+    : `Lote ${l.lote} · elaborado ${fechaCorta(l.fecha)}${l.elaboro ? ' por ' + l.elaboro : ''} · ${l.kg} ${l.granel ? 'kg' : 'pzas'}`;
+  document.getElementById('etqNotas').value = '';
+  selMotivoEtq('reimpresion');
+}
+function elegirLote(idx) { mostrarFormEtq(lotesEtq[idx], false); }
+function etiquetaSinLote() {
+  document.getElementById('etqListaProductos').innerHTML = productos.map(p => `<option value="${p.NOMBRE}">`).join('');
+  document.getElementById('listaElaboradores').innerHTML = leerJSON(almacen, 'pos_elaboradores', []).map(n => `<option value="${n}">`).join('');
+  ['etqProdNombre', 'etqLote', 'etqElaboro'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('etqFecha').value = diaLocal();
+  mostrarFormEtq({ lote: '', ID: '', producto: '', fecha: diaLocal(), elaboro: '', punto: obtenerPunto(), kg: empaqueDefecto(),
+    granel: true, empaque: NOMBRE_EMPAQUE, paquetes: 1, contenido: empaqueDefecto() }, true);
+}
+function selMotivoEtq(m) {
+  motivoEtq = m;
+  const l = loteSel;
+  document.querySelectorAll('#etqMotivos button').forEach(b => b.classList.toggle('activo', b.dataset.m === m));
+  const u = l.granel ? 'kg' : 'pzas';
+  document.getElementById('etqContLbl').textContent = `Contenido por empaque (${u})`;
+  document.getElementById('etqTotalLbl').textContent = `Total a etiquetar (${u})`;
+  const paq = l.paquetes || 1;
+  if (m === 'reempaque') {
+    document.getElementById('etqEmpaque').value = 'Paquete';
+    document.getElementById('etqContenido').value = '';
+    document.getElementById('etqTotalKg').value = l.contenido || l.kg;   // por omisión: un empaque original
+  } else {
+    document.getElementById('etqEmpaque').value = l.empaque || NOMBRE_EMPAQUE;
+    document.getElementById('etqContenido').value = l.contenido || l.kg;
+    document.getElementById('etqTotalKg').value = l.kg;
+  }
+  document.getElementById('etqDesde').value = 1;
+  document.getElementById('etqCantidad').value = m === 'reempaque' ? '' : paq;
+  document.getElementById('etqDe').value = m === 'reempaque' ? '' : paq;
+  calcularEtiquetas();
+}
+// Calcula cuántas etiquetas salen (total ÷ contenido). Si el usuario cambia la cantidad, se respeta.
+function calcularEtiquetas(manual) {
+  const cont = parseFloat(document.getElementById('etqContenido').value) || 0;
+  const total = parseFloat(document.getElementById('etqTotalKg').value) || 0;
+  const u = loteSel && !loteSel.granel ? 'pzas' : 'kg';
+  const elCant = document.getElementById('etqCantidad'), elDe = document.getElementById('etqDe');
+  let msg = '';
+  if (cont > 0 && total > 0) {
+    const n = Math.floor(total / cont + 1e-9);
+    const sobra = Math.round((total - n * cont) * 1000) / 1000;
+    if (!manual) { elCant.value = n; elDe.value = n; }
+    msg = `${total} ${u} ÷ ${cont} ${u} = <b>${n} ${plural(n, (document.getElementById('etqEmpaque').value || 'empaque').toLowerCase())}</b>` +
+      (sobra > 0 ? ` · sobran ${sobra} ${u}` : '');
+  }
+  const cant = parseInt(elCant.value) || 0, desde = parseInt(document.getElementById('etqDesde').value) || 1;
+  if (cant > 0) {
+    if ((parseInt(elDe.value) || 0) < desde + cant - 1) elDe.value = desde + cant - 1;
+    msg += `${msg ? '<br>' : ''}Se imprimen ${cant} etiqueta(s): de la ${desde} a la ${desde + cant - 1} de ${elDe.value}`;
+  }
+  document.getElementById('etqCalculo').innerHTML = msg || 'Escribe el contenido por empaque.';
+  document.getElementById('btnImprimirEtq').textContent = cant > 0 ? `🖨️ Imprimir ${cant} etiqueta${cant > 1 ? 's' : ''}` : '🖨️ Imprimir etiquetas';
+}
+
+async function imprimirModuloEtiquetas() {
+  const l = Object.assign({}, loteSel);
+  const sinLote = !document.getElementById('etqSinLote').classList.contains('oculto');
+  if (sinLote) {
+    const nombre = document.getElementById('etqProdNombre').value.trim();
+    if (!nombre) { alert('Escribe el producto'); return; }
+    const p = productos.find(x => x.NOMBRE.toLowerCase() === nombre.toLowerCase());
+    l.producto = p ? p.NOMBRE : nombre; l.ID = p ? p.ID : ''; l.granel = p ? esGranel(p) : true;
+    l.fecha = document.getElementById('etqFecha').value || diaLocal();
+    l.elaboro = document.getElementById('etqElaboro').value.trim();
+    l.lote = document.getElementById('etqLote').value.trim() || nuevoLote(l.fecha);
+  }
+  const empaque = document.getElementById('etqEmpaque').value.trim() || NOMBRE_EMPAQUE;
+  const cont = parseFloat(document.getElementById('etqContenido').value) || 0;
+  const cant = parseInt(document.getElementById('etqCantidad').value) || 0;
+  const desde = parseInt(document.getElementById('etqDesde').value) || 1;
+  const de = Math.max(parseInt(document.getElementById('etqDe').value) || 0, desde + cant - 1);
+  if (cont <= 0 || cant <= 0) { alert('Revisa el contenido por empaque y la cantidad de etiquetas'); return; }
+  if (cant > 200 && !confirm(`¿Imprimir ${cant} etiquetas?`)) return;
+  const hoy = fechaCorta(diaLocal());
+  const nota = motivoEtq === 'reempaque' ? `Re-empacado ${hoy}` : motivoEtq === 'cambio_empaque' ? `Cambio de empaque ${hoy}` : '';
+  const lista = [];
+  for (let n = desde; n < desde + cant; n++) {
+    lista.push({ producto: l.producto, kg: cont, lote: l.lote, n, total: de, fecha: l.fecha, elaboro: l.elaboro,
+      punto: obtenerPunto() || l.punto, empaque, nota });
+  }
+  // registro (se sube a la hoja ETIQUETAS)
+  const reg = { folio: consumirFolio('E', 'pos_folio_etiqueta'), dia: diaLocal(), hora: horaLocal(), lote: l.lote, ID: l.ID,
+    producto: l.producto, motivo: { reimpresion: 'Reimpresión', cambio_empaque: 'Cambio de empaque', reempaque: 'Re-empaque' }[motivoEtq] + (sinLote ? ' (sin lote registrado)' : ''),
+    empaqueAnterior: !sinLote && l.paquetes ? `${l.empaque || NOMBRE_EMPAQUE} ${l.contenido} ${l.granel ? 'kg' : 'pzas'}` : '',
+    empaqueNuevo: `${empaque} ${cont} ${l.granel ? 'kg' : 'pzas'}`, contenido: cont, etiquetas: cant,
+    total: Math.round(cont * cant * 1000) / 1000, unidad: l.granel ? 'kg' : 'pzas',
+    notas: document.getElementById('etqNotas').value.trim(), punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
+    usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true };
+  const cola = leerJSON(almacen, 'pos_etiquetas', []);
+  cola.push(reg);
+  almacen.setItem('pos_etiquetas', JSON.stringify(cola));
+  enviarPendientes();
+  if (sinLote && l.elaboro) {
+    const nombres = leerJSON(almacen, 'pos_elaboradores', []).filter(n => n !== l.elaboro);
+    almacen.setItem('pos_elaboradores', JSON.stringify([l.elaboro].concat(nombres).slice(0, 20)));
+  }
+  window._ultimasEtiquetas = lista;
+  await imprimirListaEtiquetas(lista, reg.folio);
 }
 
 // ================== UTILIDADES ==================
