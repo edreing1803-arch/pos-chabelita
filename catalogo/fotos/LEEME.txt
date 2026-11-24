@@ -1,0 +1,1 @@
+Pon aquí las fotos de tus productos (jpg o png, de preferencia cuadradas y de menos de 300 KB). En la hoja PRODUCTOS, columna IMAGEN_URL, escribe solo el nombre del archivo, por ejemplo: mole-rojo.jpg

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moles Chabelita · Catálogo</title>
+<meta name="description" content="Catálogo de Moles Chabelita: haz tu pedido y recógelo en tienda.">
+<meta name="theme-color" content="#4a2216">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fondo: #faf4ea; --papel: #fffdf9; --tinta: #2b1a12; --suave: #7a6558; --linea: #eadfce;
+    --mole: #4a2216; --mole2: #6b3424; --chile: #b8321f; --oro: #d99a2b; --verde: #2f7d4f;
+    --radio: 16px; --sombra: 0 6px 24px rgba(74, 34, 22, .10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Nunito Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--fondo); color: var(--tinta);
+         min-height: 100vh; padding-bottom: 96px; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  input, select, textarea { font: inherit; color: inherit; }
+  .oculto { display: none !important; }
+
+  /* ---------- Encabezado ---------- */
+  header.cab { background: var(--mole); color: #fff; padding: 14px 16px 18px; position: relative; overflow: hidden; }
+  header.cab::after { content: ''; position: absolute; inset: auto -40px -60px auto; width: 220px; height: 220px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(217,154,43,.35), transparent 70%); pointer-events: none; }
+  .cab-fila { display: flex; align-items: center; gap: 12px; max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .cab-fila img { width: 52px; height: 52px; object-fit: contain; background: #fff; border-radius: 50%; padding: 4px; }
+  .cab-titulo { flex: 1; min-width: 0; }
+  .cab-titulo h1 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; line-height: 1.1; letter-spacing: .2px; }
+  .cab-titulo p { font-size: 13px; opacity: .8; }
+  .btn-cuenta { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); padding: 8px 12px; border-radius: 999px;
+    font-size: 14px; font-weight: 700; white-space: nowrap; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; }
+
+  .recoger { max-width: 1100px; margin: 14px auto 0; position: relative; z-index: 1; }
+  .recoger label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: .75; font-weight: 700; }
+  .tiendas { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .tienda { padding: 9px 14px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+    font-weight: 700; font-size: 14px; }
+  .tienda.sel { background: var(--oro); color: var(--mole); border-color: var(--oro); }
+
+  /* ---------- Barra de búsqueda y categorías ---------- */
+  .barra { position: sticky; top: 0; z-index: 20; background: var(--fondo); padding: 12px 16px 8px; border-bottom: 1px solid var(--linea); }
+  .barra-in { max-width: 1100px; margin: 0 auto; }
+  .buscar { width: 100%; padding: 12px 14px 12px 40px; border-radius: 12px; border: 1px solid var(--linea); background: var(--papel)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='none' stroke='%237a6558' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") 13px center no-repeat;
+    font-size: 16px; outline: none; }
+  .buscar:focus { border-color: var(--mole2); }
+  .cats { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 2px; scrollbar-width: none; }
+  .cats::-webkit-scrollbar { display: none; }
+  .cat { flex: none; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--linea); background: var(--papel); font-size: 14px; font-weight: 600; color: var(--suave); }
+  .cat.sel { background: var(--mole); color: #fff; border-color: var(--mole); }
+
+  /* ---------- Productos ---------- */
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .aviso-lista { background: #fff6e2; border: 1px solid #f0d9a4; color: #7a5410; border-radius: 12px; padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 14px; }
+  .prod { background: var(--papel); border-radius: var(--radio); overflow: hidden; box-shadow: var(--sombra); display: flex; flex-direction: column; }
+  .prod .foto { aspect-ratio: 1 / 1; background: #f1e6d6; position: relative; overflow: hidden; }
+  .prod .foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .prod .inicial { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 46px; color: rgba(74,34,22,.35); }
+  .prod .chip { position: absolute; left: 8px; top: 8px; background: rgba(43,26,18,.78); color: #fff; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 999px; }
+  .prod .chip.agotado { background: #8a8a8a; }
+  .prod .info { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .prod h3 { font-size: 15px; line-height: 1.25; font-weight: 800; }
+  .prod .desc { font-size: 12.5px; color: var(--suave); line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .prod .precio { font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: var(--chile); margin-top: auto; padding-top: 4px; }
+  .prod .precio small { font-family: 'Nunito Sans', sans-serif; font-size: 12px; color: var(--suave); font-weight: 600; }
+  .prod .mayoreo { font-size: 12px; color: var(--verde); font-weight: 700; }
+  .prod .pres { font-size: 12px; color: var(--mole2); font-weight: 700; }
+  .prod .agregar { margin-top: 8px; background: var(--mole); color: #fff; font-weight: 800; padding: 10px; border-radius: 12px; font-size: 14px; }
+  .prod .agregar:disabled { background: #c9bcae; }
+  .prod .en-carrito { background: var(--verde); }
+  .vacio { text-align: center; color: var(--suave); padding: 50px 10px; }
+  .cargando .prod { opacity: .5; }
+  .esqueleto { height: 290px; border-radius: var(--radio); background: linear-gradient(90deg, #efe4d4 25%, #f6eee2 50%, #efe4d4 75%); background-size: 200% 100%; animation: brillo 1.2s infinite; }
+  @keyframes brillo { to { background-position: -200% 0; } }
+
+  /* ---------- Botón de carrito ---------- */
+  .btn-carrito { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 30;
+    background: var(--chile); color: #fff; border-radius: 999px; padding: 14px 22px; font-weight: 800; font-size: 16px;
+    box-shadow: 0 10px 30px rgba(184,50,31,.35); display: flex; gap: 12px; align-items: center; white-space: nowrap; }
+  .btn-carrito .n { background: #fff; color: var(--chile); border-radius: 999px; min-width: 26px; height: 26px; display: grid; place-items: center; font-size: 14px; padding: 0 6px; }
+
+  /* ---------- Hojas (bottom sheets) ---------- */
+  .fondo-hoja { position: fixed; inset: 0; background: rgba(30,15,8,.5); z-index: 50; display: none; align-items: flex-end; justify-content: center; }
+  .fondo-hoja.activo { display: flex; animation: aparecer .15s ease-out; }
+  @keyframes aparecer { from { opacity: 0; } }
+  .hoja { background: var(--papel); width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; border-radius: 22px 22px 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); animation: subir .2s ease-out; }
+  @keyframes subir { from { transform: translateY(40px); } }
+  @media (min-width: 700px) { .fondo-hoja { align-items: center; } .hoja { border-radius: 22px; } }
+  .hoja h2 { font-family: 'Fraunces', Georgia, serif; font-size: 22px; margin-bottom: 4px; }
+  .hoja .sub { color: var(--suave); font-size: 14px; margin-bottom: 14px; }
+  .cerrar-x { float: right; font-size: 24px; line-height: 1; color: var(--suave); padding: 2px 6px; }
+  .campo { margin-bottom: 12px; }
+  .campo label { display: block; font-size: 13px; font-weight: 700; color: var(--suave); margin-bottom: 5px; }
+  .campo input, .campo textarea, .campo select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--linea); background: #fff; font-size: 16px; outline: none; }
+  .campo input:focus, .campo textarea:focus { border-color: var(--mole2); }
+  .btn { display: block; width: 100%; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 16px; text-align: center; }
+  .btn-pri { background: var(--mole); color: #fff; }
+  .btn-pri:disabled { opacity: .5; }
+  .btn-chile { background: var(--chile); color: #fff; }
+  .btn-sec { background: #f2e9dc; color: var(--mole); margin-top: 8px; }
+  .btn-wa { background: #25d366; color: #fff; margin-top: 8px; }
+  .enlace { color: var(--chile); font-weight: 700; text-decoration: underline; }
+  .error { color: var(--chile); font-size: 14px; min-height: 20px; margin: 4px 0 8px; font-weight: 600; }
+  .nota-chica { font-size: 12.5px; color: var(--suave); margin-top: 10px; text-align: center; }
+
+  /* Cantidad */
+  .cant-caja { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 14px 0; }
+  .cant-caja button { width: 48px; height: 48px; border-radius: 50%; background: #f2e9dc; color: var(--mole); font-size: 26px; font-weight: 800; }
+  .cant-caja input { width: 110px; text-align: center; font-size: 26px; font-weight: 800; padding: 8px; border-radius: 12px; border: 1px solid var(--linea); }
+  .cant-caja .u { font-weight: 700; color: var(--suave); }
+  .rapidos { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .rapidos button { padding: 7px 12px; border-radius: 999px; border: 1px solid var(--linea); font-weight: 700; font-size: 14px; background: #fff; }
+  .modo-unidad { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 4px; }
+  .modo-unidad button { padding: 10px; border-radius: 12px; border: 2px solid var(--linea); font-weight: 700; background: #fff; font-size: 14px; }
+  .modo-unidad button.sel { border-color: var(--mole); background: #f7efe4; }
+  .subtotal-linea { text-align: center; font-size: 15px; color: var(--suave); margin-bottom: 14px; }
+  .subtotal-linea b { font-family: 'Fraunces', Georgia, serif; font-size: 24px; color: var(--tinta); }
+
+  /* Carrito */
+  .linea { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 0; border-bottom: 1px dashed var(--linea); }
+  .linea .nom { font-weight: 800; font-size: 15px; }
+  .linea .det { font-size: 13px; color: var(--suave); }
+  .linea .imp { font-weight: 800; text-align: right; }
+  .linea .acc { grid-column: 1 / -1; display: flex; gap: 8px; }
+  .linea .acc button { font-size: 13px; font-weight: 700; color: var(--mole2); padding: 4px 10px; border-radius: 999px; background: #f2e9dc; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 0; font-weight: 800; }
+  .total b { font-family: 'Fraunces', Georgia, serif; font-size: 28px; color: var(--chile); }
+
+  /* Pedidos */
+  .ped { border: 1px solid var(--linea); border-radius: 14px; padding: 12px; margin-bottom: 10px; background: #fff; }
+  .ped .fila { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .ped .folio { font-weight: 800; }
+  .ped .det { font-size: 13px; color: var(--suave); margin-top: 6px; line-height: 1.45; }
+  .estado { font-size: 12px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .e-NUEVO { background: #fff3d6; color: #8a5a00; }
+  .e-ACEPTADO { background: #e3efff; color: #1d4f91; }
+  .e-LISTO { background: #dff5e7; color: #1f6b3f; }
+  .e-ENTREGADO { background: #eee; color: #555; }
+  .e-CANCELADO { background: #fde4e1; color: #9b2a1a; }
+  .exito { text-align: center; padding: 10px 0; }
+  .exito .ico { font-size: 54px; }
+  .exito .folio-grande { font-family: 'Fraunces', Georgia, serif; font-size: 30px; color: var(--mole); margin: 6px 0; }
+
+  .toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); background: var(--tinta); color: #fff; padding: 11px 18px;
+    border-radius: 999px; font-weight: 700; font-size: 14px; z-index: 100; box-shadow: var(--sombra); max-width: 92vw; text-align: center; }
+  footer { text-align: center; color: var(--suave); font-size: 12.5px; padding: 26px 16px 10px; }
+</style>
+</head>
+<body>
+
+<header class="cab">
+  <div class="cab-fila">
+    <img src="https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png" alt="Moles Chabelita" onerror="this.style.visibility='hidden'">
+    <div class="cab-titulo">
+      <h1>Moles Chabelita</h1>
+      <p>Haz tu pedido y recógelo en tienda</p>
+    </div>
+    <button class="btn-cuenta" id="btnCuenta" onclick="abrirCuenta()">Entrar</button>
+  </div>
+  <div class="recoger">
+    <label>Recoger en</label>
+    <div class="tiendas" id="tiendas"></div>
+  </div>
+</header>
+
+<div class="barra">
+  <div class="barra-in">
+    <input class="buscar" id="buscar" type="search" placeholder="Buscar mole, chile, especias…" autocomplete="off" oninput="pintar()">
+    <div class="cats" id="cats"></div>
+  </div>
+</div>
+
+<main>
+  <div class="aviso-lista oculto" id="avisoLista"></div>
+  <div class="grid" id="grid">
+    <div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div>
+  </div>
+</main>
+<footer>Los precios pueden cambiar sin previo aviso. La tienda confirma tu pedido antes de prepararlo.</footer>
+
+<button class="btn-carrito oculto" id="btnCarrito" onclick="abrirCarrito()">
+  <span class="n" id="nCarrito">0</span> Ver pedido · <span id="totCarrito">$0.00</span>
+</button>
+
+<!-- Agregar producto -->
+<div class="fondo-hoja" id="hojaProducto" onclick="if(event.target===this) cerrar('hojaProducto')">
+  <div class="hoja">
+    <button class="cerrar-x" onclick="cerrar('hojaProducto')" aria-label="Cerrar">×</button>
+    <h2 id="hpNombre"></h2>
+    <div class="sub" id="hpPrecio"></div>
+    <div class="modo-unidad oculto" id="hpModo"></div>
+    <div class="cant-caja">
+      <button onclick="pasoCant(-1)" aria-label="Menos">−</button>
+      <input type="number" id="hpCant" inputmode="decimal" min="0" step="any" oninput="actualizarSub()">
+      <span class="u" id="hpUnidad"></span>
+      <button onclick="pasoCant(1)" aria-label="Más">+</button>
+    </div>
+    <div class="rapidos" id="hpRapidos"></div>
+    <div class="subtotal-linea" id="hpSub"></div>
+    <button class="btn btn-pri" id="hpOk" onclick="confirmarProducto()">Agregar al pedido</button>
+    <button class="btn btn-sec oculto" id="hpQuitar" onclick="quitarDelCarrito()">Quitar del pedido</button>
+  </div>
+</div>
+
+<!-- Carrito -->
+<div class="fondo-hoja" id="hojaCarrito" onclick="if(event.target===this) cerrar('hojaCarrito')">
+  <div class="hoja">
+    <button class="cerrar-x" onclick="cerrar('hojaCarrito')" aria-label="Cerrar">×</button>
+    <h2>Tu pedido</h2>
+    <div class="sub" id="carTienda"></div>
+    <div id="carLineas"></div>
+    <div class="total"><span>Total estimado</span><b id="carTotal">$0.00</b></div>
+    <div id="carDatos">
+      <div class="campo">
+        <label for="carRecoger">¿Cuándo pasas por él?</label>
+        <select id="carRecoger"></select>
+      </div>
+      <div class="campo">
+        <label for="carNotas">Notas para la tienda (opcional)</label>
+        <textarea id="carNotas" rows="2" maxlength="300" placeholder="Ej. el mole en bolsas de 1 kg"></textarea>
+      </div>
+    </div>
+    <div class="error" id="carError"></div>
+    <button class="btn btn-chile" id="btnEnviar" onclick="enviarPedido()">Enviar pedido</button>
+    <p class="nota-chica">El total puede variar si el peso real de los productos a granel cambia un poco.</p>
+  </div>
+</div>
+
+<!-- Entrar / crear cuenta -->
+<div class="fondo-hoja" id="hojaLogin" onclick="if(event.target===this) cerrar('hojaLogin')">
+  <div class="hoja">
+    <button class="cerrar-x" onclick="cerrar('hojaLogin')" aria-label="Cerrar">×</button>
+    <div id="vistaEntrar">
+      <h2>Entrar</h2>
+      <p class="sub" id="loginMotivo">Para hacer pedidos entra con tu teléfono y tu PIN.</p>
+      <form onsubmit="event.preventDefault(); entrar();">
+        <div class="campo"><label for="lgTel">Teléfono (10 dígitos)</label><input id="lgTel" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14"></div>
+        <div class="campo"><label for="lgPin">PIN</label><input id="lgPin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="8"></div>
+        <div class="error" id="lgError"></div>
+        <button class="btn btn-pri" id="btnEntrar" type="submit">Entrar</button>
+      </form>
+      <p class="nota-chica">¿Aún no tienes cuenta? <a href="#" class="enlace" onclick="event.preventDefault(); verRegistro(true)">Pídela aquí</a><br>¿Olvidaste tu PIN? Pídelo en la tienda.</p>
+    </div>
+    <div id="vistaRegistro" class="oculto">
+      <h2>Pedir mi cuenta</h2>
+      <p class="sub">La tienda revisa tu solicitud y te avisa cuando puedas hacer pedidos.</p>
+      <form onsubmit="event.preventDefault(); registrar();">
+        <div class="campo"><label for="rgNombre">Nombre o nombre de tu negocio</label><input id="rgNombre" autocomplete="name" maxlength="80"></div>
+        <div class="campo"><label for="rgTel">Teléfono (10 dígitos)</label><input id="rgTel" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14"></div>
+        <div class="campo"><label for="rgPin">Crea un PIN (4 a 8 números)</label><input id="rgPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
+        <div class="campo"><label for="rgPin2">Repite tu PIN</label><input id="rgPin2" type="password" inputmode="numeric" autocomplete="new-password" maxlength="8"></div>
+        <div class="campo"><label for="rgNotas">¿De dónde nos visitas? (opcional)</label><input id="rgNotas" maxlength="200" placeholder="Ej. fonda en San Pedro"></div>
+        <input id="rgSitio" class="oculto" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="error" id="rgError"></div>
+        <button class="btn btn-pri" id="btnRegistrar" type="submit">Enviar solicitud</button>
+      </form>
+      <p class="nota-chica"><a href="#" class="enlace" onclick="event.preventDefault(); verRegistro(false)">Ya tengo cuenta</a></p>
+    </div>
+    <div id="vistaRegistrado" class="oculto exito">
+      <div class="ico">📨</div>
+      <h2>¡Solicitud enviada!</h2>
+      <p class="sub">Te avisaremos cuando tu cuenta esté lista. Después entra con tu teléfono y el PIN que creaste.</p>
+      <button class="btn btn-pri" onclick="cerrar('hojaLogin')">Seguir viendo el catálogo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mi cuenta / mis pedidos -->
+<div class="fondo-hoja" id="hojaCuenta" onclick="if(event.target===this) cerrar('hojaCuenta')">
+  <div class="hoja">
+    <button class="cerrar-x" onclick="cerrar('hojaCuenta')" aria-label="Cerrar">×</button>
+    <h2 id="cuNombre"></h2>
+    <p class="sub" id="cuTel"></p>
+    <h3 style="margin:6px 0 10px;">Mis pedidos</h3>
+    <div id="cuPedidos"></div>
+    <button class="btn btn-sec" onclick="salir()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- Pedido enviado -->
+<div class="fondo-hoja" id="hojaExito">
+  <div class="hoja exito">
+    <div class="ico">✅</div>
+    <h2>¡Pedido enviado!</h2>
+    <div class="folio-grande" id="exFolio"></div>
+    <p class="sub" id="exTexto"></p>
+    <a class="btn btn-wa oculto" id="exWa" target="_blank" rel="noopener">Avisar a la tienda por WhatsApp</a>
+    <button class="btn btn-pri" style="margin-top:8px;" onclick="cerrar('hojaExito'); abrirCuenta();">Ver mis pedidos</button>
+    <button class="btn btn-sec" onclick="cerrar('hojaExito')">Seguir comprando</button>
+  </div>
+</div>
+
+<script>
+// 👇 La misma dirección (/exec) que usa el POS
+const API_URL = 'https://script.google.com/macros/s/AKfycbwse_u-LUzUTu7Grc6jgKyu4xu8Cs4-DBoxeTFYKxW9-Cogy_wYyoTAinS2gHk-yvTeEA/exec';
+const K = { datos: 'cat_datos', sesion: 'cat_sesion', carrito: 'cat_carrito', tienda: 'cat_tienda' };
+
+const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const leer = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pesos = n => '$' + (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const r3 = n => Math.round(n * 1000) / 1000;
+const plural = (n, p) => n === 1 ? p : (/[aeiouáéíóú]$/i.test(p) ? p + 's' : p + 'es');
+
+let datos = leer(K.datos, null);          // { puntos, productos }
+let sesion = leer(K.sesion, null);        // { token, cliente, precios }
+let carrito = leer(K.carrito, []);        // [{ id, cantidad, cajas }]
+let tienda = leer(K.tienda, '');
+let categoria = '';
+
+async function api(body) {
+  const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+function toast(t) {
+  const d = document.createElement('div');
+  d.className = 'toast'; d.textContent = t;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 2600);
+}
+function abrir(id) { document.getElementById(id).classList.add('activo'); }
+function cerrar(id) { document.getElementById(id).classList.remove('activo'); }
+
+// ---------- Fotos: URL, enlace de Google Drive o nombre de archivo en la carpeta fotos/ ----------
+function urlFoto(v) {
+  v = String(v || '').trim();
+  if (!v) return '';
+  const drive = v.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
+  if (drive) return `https://drive.google.com/thumbnail?id=${drive[1]}&sz=w600`;
+  if (/^https?:\/\//i.test(v)) return v;
+  return 'fotos/' + encodeURIComponent(v);
+}
+
+// ---------- Precios (igual que el POS) ----------
+function puntoActual() { return (datos && datos.puntos.find(p => p.codigo === tienda)) || null; }
+function listaActual() { return (sesion && sesion.cliente.lista) || (puntoActual() ? puntoActual().lista : ''); }
+function preciosDe(p) {
+  const l = listaActual();
+  if (sesion && sesion.precios && sesion.precios[p.id]) return sesion.precios[p.id];
+  return p.precios[l || '_'] || p.precios[Object.keys(p.precios)[0]] || { p: [0, 0, 0, 0], m: [0, 0, 0, 0], pp: 0 };
+}
+function precioPorCantidad(pr, c) {
+  for (let n = 3; n >= 1; n--) if (pr.m[n] > 0 && c >= pr.m[n] && pr.p[n] > 0) return pr.p[n];
+  return pr.p[0];
+}
+function lineaInfo(it) {
+  const p = datos.productos.find(x => x.id === it.id);
+  if (!p) return null;
+  const pr = preciosDe(p);
+  const cantidad = it.cajas && p.pres ? r3(it.cajas * p.pres.contenido) : it.cantidad;
+  const sub = it.cajas && p.pres && pr.pp > 0 ? it.cajas * pr.pp : precioPorCantidad(pr, cantidad) * cantidad;
+  return { p, pr, cantidad, subtotal: Math.round(sub * 100) / 100 };
+}
+function textoCant(p, it) {
+  if (it.cajas && p.pres) return `${it.cajas} ${plural(it.cajas, p.pres.nombre.toLowerCase())} (${r3(it.cajas * p.pres.contenido)} ${p.granel ? 'kg' : 'pzas'})`;
+  return p.granel ? `${r3(it.cantidad)} kg` : `${it.cantidad} ${plural(it.cantidad, 'pieza')}`;
+}
+
+// ---------- Cargar catálogo ----------
+async function cargar() {
+  if (datos) iniciar();
+  try {
+    const r = await fetch(API_URL + '?accion=catalogo');
+    const j = await r.json();
+    if (!j.success) throw new Error(j.error);
+    datos = { puntos: j.puntos, productos: j.productos };
+    guardar(K.datos, datos);
+    iniciar();
+  } catch (e) {
+    if (!datos) document.getElementById('grid').innerHTML = '<div class="vacio" style="grid-column:1/-1">No se pudo cargar el catálogo. Revisa tu conexión e inténtalo de nuevo.</div>';
+    else toast('Sin conexión: mostramos el último catálogo guardado');
+  }
+  if (sesion) refrescarSesion();
+}
+function iniciar() {
+  if (!datos.puntos.length) {
+    document.getElementById('tiendas').innerHTML = '<span style="opacity:.8">Por ahora no hay tiendas recibiendo pedidos.</span>';
+  }
+  if (!datos.puntos.some(p => p.codigo === tienda)) tienda = datos.puntos[0] ? datos.puntos[0].codigo : '';
+  // quitar del carrito lo que ya no exista
+  carrito = carrito.filter(it => datos.productos.some(p => p.id === it.id));
+  pintarTiendas(); pintarCats(); pintar(); pintarCuenta();
+}
+function pintarTiendas() {
+  document.getElementById('tiendas').innerHTML = datos.puntos.map(p =>
+    `<button class="tienda ${p.codigo === tienda ? 'sel' : ''}" onclick="elegirTienda('${esc(p.codigo)}')">📍 ${esc(p.nombre)}</button>`).join('');
+}
+function elegirTienda(c) { tienda = c; guardar(K.tienda, c); pintarTiendas(); pintar(); }
+function pintarCats() {
+  const cats = [...new Set(datos.productos.map(p => p.depto).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
+  document.getElementById('cats').innerHTML = cats.length < 2 ? '' :
+    [`<button class="cat ${!categoria ? 'sel' : ''}" onclick="elegirCat('')">Todo</button>`]
+      .concat(cats.map(c => `<button class="cat ${c === categoria ? 'sel' : ''}" onclick="elegirCat(this.dataset.c)" data-c="${esc(c)}">${esc(c)}</button>`)).join('');
+}
+function elegirCat(c) { categoria = c; pintarCats(); pintar(); }
+
+function pintar() {
+  if (!datos) return;
+  const q = document.getElementById('buscar').value.trim().toLowerCase();
+  const lista = datos.productos.filter(p => preciosDe(p).p[0] > 0 &&
+    (!categoria || p.depto === categoria) &&
+    (!q || (p.nombre + ' ' + p.desc + ' ' + p.depto).toLowerCase().includes(q)));
+  const aviso = document.getElementById('avisoLista');
+  if (sesion && sesion.cliente.lista) { aviso.textContent = `Hola ${sesion.cliente.nombre.split(' ')[0]} 👋 Estás viendo tus precios de cliente.`; aviso.classList.remove('oculto'); }
+  else aviso.classList.add('oculto');
+  document.getElementById('grid').innerHTML = lista.length ? lista.map(p => {
+    const pr = preciosDe(p), u = p.granel ? 'kg' : 'pieza';
+    const disp = !p.disp || p.disp[tienda] !== false;
+    const enCar = carrito.find(it => it.id === p.id);
+    const may = [1, 2, 3].filter(n => pr.m[n] > 0 && pr.p[n] > 0 && pr.p[n] < pr.p[0]).map(n => `Desde ${pr.m[n]} ${p.granel ? 'kg' : 'pzas'}: ${pesos(pr.p[n])}`);
+    const presTxt = p.pres ? `${p.pres.nombre} de ${p.pres.contenido} ${p.granel ? 'kg' : 'pzas'}` + (pr.pp > 0 ? `: ${pesos(pr.pp)}` : '') : '';
+    const foto = urlFoto(p.img);
+    return `<article class="prod">
+      <div class="foto">
+        <div class="inicial">${esc(p.nombre.charAt(0))}</div>
+        ${foto ? `<img src="${esc(foto)}" alt="${esc(p.nombre)}" loading="lazy" onerror="this.remove()">` : ''}
+        ${!disp ? '<span class="chip agotado">Agotado en esta tienda</span>' : p.granel ? '<span class="chip">A granel</span>' : ''}
+      </div>
+      <div class="info">
+        <h3>${esc(p.nombre)}</h3>
+        ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
+        <div class="precio">${pesos(pr.p[0])} <small>/ ${u}</small></div>
+        ${may.length ? `<div class="mayoreo">${esc(may[0])}</div>` : ''}
+        ${presTxt ? `<div class="pres">📦 ${esc(presTxt)}</div>` : ''}
+        <button class="agregar ${enCar ? 'en-carrito' : ''}" ${disp ? '' : 'disabled'} onclick="abrirProducto('${esc(p.id)}')">
+          ${!disp ? 'Sin existencia' : enCar ? '✓ ' + esc(textoCant(p, enCar)) : 'Agregar'}</button>
+      </div>
+    </article>`;
+  }).join('') : '<div class="vacio" style="grid-column:1/-1">No encontramos productos con esa búsqueda.</div>';
+  pintarBotonCarrito();
+}
+
+// ---------- Agregar / editar un producto ----------
+let hp = null;   // { p, modo: 'suelto'|'pres', cant }
+function abrirProducto(id) {
+  const p = datos.productos.find(x => x.id === id);
+  if (!p) return;
+  const ya = carrito.find(it => it.id === id);
+  hp = { p, modo: ya && ya.cajas ? 'pres' : 'suelto', cant: ya ? (ya.cajas || ya.cantidad) : (p.granel ? 1 : 1) };
+  if (!ya && p.pres && !p.granel) hp.modo = 'suelto';
+  document.getElementById('hpNombre').textContent = p.nombre;
+  const modo = document.getElementById('hpModo');
+  modo.classList.toggle('oculto', !p.pres);
+  if (p.pres) modo.innerHTML = `<button data-m="suelto" onclick="cambiarModo('suelto')">Por ${p.granel ? 'kilo' : 'pieza'}</button>
+    <button data-m="pres" onclick="cambiarModo('pres')">Por ${esc(p.pres.nombre.toLowerCase())} (${p.pres.contenido} ${p.granel ? 'kg' : 'pzas'})</button>`;
+  document.getElementById('hpQuitar').classList.toggle('oculto', !ya);
+  document.getElementById('hpOk').textContent = ya ? 'Guardar cambios' : 'Agregar al pedido';
+  pintarHp();
+  abrir('hojaProducto');
+}
+function cambiarModo(m) { hp.modo = m; hp.cant = 1; pintarHp(); }
+function pintarHp() {
+  const p = hp.p, pr = preciosDe(p), pres = hp.modo === 'pres';
+  document.querySelectorAll('#hpModo button').forEach(b => b.classList.toggle('sel', b.dataset.m === hp.modo));
+  document.getElementById('hpPrecio').textContent = pres && pr.pp > 0 ? `${pesos(pr.pp)} por ${p.pres.nombre.toLowerCase()}`
+    : `${pesos(pr.p[0])} por ${p.granel ? 'kilo' : 'pieza'}` + ([1, 2, 3].some(n => pr.m[n] > 0 && pr.p[n] > 0) ? ' · precio de mayoreo según cantidad' : '');
+  document.getElementById('hpCant').value = hp.cant;
+  document.getElementById('hpCant').step = (!pres && p.granel) ? '0.25' : '1';
+  document.getElementById('hpUnidad').textContent = pres ? plural(hp.cant, p.pres.nombre.toLowerCase()) : (p.granel ? 'kg' : plural(hp.cant, 'pieza'));
+  document.getElementById('hpRapidos').innerHTML = (!pres && p.granel ? [0.25, 0.5, 1, 2, 5] : [1, 2, 5, 10])
+    .map(n => `<button onclick="fijarCant(${n})">${n}${!pres && p.granel ? ' kg' : ''}</button>`).join('');
+  actualizarSub();
+}
+function fijarCant(n) { hp.cant = n; pintarHp(); }
+function pasoCant(d) {
+  const granelSuelto = hp.p.granel && hp.modo !== 'pres';
+  const paso = granelSuelto ? 0.25 : 1;
+  hp.cant = Math.max(paso, r3((parseFloat(document.getElementById('hpCant').value) || 0) + d * paso));
+  pintarHp();
+}
+function itemDeHp() {
+  let n = parseFloat(document.getElementById('hpCant').value) || 0;
+  const granelSuelto = hp.p.granel && hp.modo !== 'pres';
+  n = granelSuelto ? r3(n) : Math.round(n);
+  hp.cant = n;
+  return hp.modo === 'pres' ? { id: hp.p.id, cajas: n, cantidad: 0 } : { id: hp.p.id, cantidad: n };
+}
+function actualizarSub() {
+  const it = itemDeHp();
+  const ok = (it.cajas || it.cantidad) > 0;
+  const info = ok ? lineaInfo(it) : null;
+  document.getElementById('hpSub').innerHTML = ok ? `Importe: <b>${pesos(info.subtotal)}</b>` : 'Escribe una cantidad';
+  document.getElementById('hpOk').disabled = !ok;
+  document.getElementById('hpUnidad').textContent = hp.modo === 'pres' ? plural(it.cajas, hp.p.pres.nombre.toLowerCase()) : (hp.p.granel ? 'kg' : plural(it.cantidad, 'pieza'));
+}
+function confirmarProducto() {
+  const it = itemDeHp();
+  if (!(it.cajas || it.cantidad)) return;
+  const i = carrito.findIndex(x => x.id === it.id);
+  if (i >= 0) carrito[i] = it; else carrito.push(it);
+  guardar(K.carrito, carrito);
+  cerrar('hojaProducto');
+  pintar();
+  toast(i >= 0 ? 'Pedido actualizado' : `Agregaste ${hp.p.nombre}`);
+}
+function quitarDelCarrito() {
+  carrito = carrito.filter(x => x.id !== hp.p.id);
+  guardar(K.carrito, carrito);
+  cerrar('hojaProducto');
+  pintar();
+  if (document.getElementById('hojaCarrito').classList.contains('activo')) pintarCarrito();
+}
+
+// ---------- Carrito ----------
+function totalCarrito() { return carrito.reduce((s, it) => { const i = lineaInfo(it); return s + (i ? i.subtotal : 0); }, 0); }
+function pintarBotonCarrito() {
+  const b = document.getElementById('btnCarrito');
+  b.classList.toggle('oculto', !carrito.length);
+  document.getElementById('nCarrito').textContent = carrito.length;
+  document.getElementById('totCarrito').textContent = pesos(totalCarrito());
+}
+function opcionesRecoger() {
+  const sel = document.getElementById('carRecoger');
+  const previo = sel.value;
+  const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const ops = ['Lo antes posible'];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(Date.now() + i * 86400000);
+    ops.push(i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : `${dias[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`);
+  }
+  sel.innerHTML = ops.map(o => `<option>${o}</option>`).join('');
+  if (ops.includes(previo)) sel.value = previo;
+}
+function abrirCarrito() { opcionesRecoger(); pintarCarrito(); abrir('hojaCarrito'); }
+function pintarCarrito() {
+  const pt = puntoActual();
+  document.getElementById('carTienda').innerHTML = pt ? `Recoges en <b>${esc(pt.nombre)}</b> · <a href="#" class="enlace" onclick="event.preventDefault(); cerrar('hojaCarrito'); window.scrollTo(0,0)">cambiar</a>` : '';
+  document.getElementById('carLineas').innerHTML = carrito.length ? carrito.map(it => {
+    const i = lineaInfo(it);
+    if (!i) return '';
+    const agot = i.p.disp && i.p.disp[tienda] === false;
+    return `<div class="linea">
+      <div><div class="nom">${esc(i.p.nombre)}</div><div class="det">${esc(textoCant(i.p, it))}${agot ? ' · <b style="color:var(--chile)">agotado en esta tienda</b>' : ''}</div></div>
+      <div class="imp">${pesos(i.subtotal)}</div>
+      <div class="acc"><button onclick="cerrar('hojaCarrito'); abrirProducto('${esc(it.id)}')">Cambiar cantidad</button></div>
+    </div>`;
+  }).join('') : '<p class="vacio" style="padding:20px 0">Tu pedido está vacío.</p>';
+  document.getElementById('carTotal').textContent = pesos(totalCarrito());
+  document.getElementById('carError').textContent = '';
+  document.getElementById('btnEnviar').disabled = !carrito.length;
+  document.getElementById('btnEnviar').textContent = sesion ? 'Enviar pedido' : 'Entrar para enviar el pedido';
+}
+async function enviarPedido() {
+  const err = document.getElementById('carError');
+  if (!carrito.length) return;
+  if (!sesion) { cerrar('hojaCarrito'); abrirLogin('Entra con tu teléfono y PIN para enviar tu pedido.'); return; }
+  const pt = puntoActual();
+  if (!pt) { err.textContent = 'Elige la tienda donde vas a recoger.'; return; }
+  const agotados = carrito.map(lineaInfo).filter(i => i && i.p.disp && i.p.disp[tienda] === false);
+  if (agotados.length) { err.textContent = `${agotados[0].p.nombre} está agotado en ${pt.nombre}. Quítalo o elige otra tienda.`; return; }
+  const b = document.getElementById('btnEnviar');
+  b.disabled = true; b.textContent = 'Enviando…'; err.textContent = '';
+  const ref = (leer('cat_ref', null)) || (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+  guardar('cat_ref', ref);   // si se corta la conexión y reintenta, no se duplica
+  try {
+    const r = await api({ accion: 'catalogo_pedido', token: sesion.token, punto: tienda, ref,
+      items: carrito.map(it => ({ id: it.id, cantidad: it.cantidad, cajas: it.cajas || 0 })),
+      recoger: document.getElementById('carRecoger').value, notas: document.getElementById('carNotas').value.trim() });
+    if (r.sesionInvalida) { salir(true); cerrar('hojaCarrito'); abrirLogin(r.error); return; }
+    if (!r.success) throw new Error(r.error);
+    localStorage.removeItem('cat_ref');
+    carrito = []; guardar(K.carrito, carrito);
+    document.getElementById('carNotas').value = '';
+    cerrar('hojaCarrito');
+    pintar();
+    mostrarExito(r);
+  } catch (e) {
+    err.textContent = e.message && !/HTTP|fetch/i.test(e.message) ? e.message : 'No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.';
+  } finally {
+    b.disabled = false; b.textContent = 'Enviar pedido';
+  }
+}
+function mensajeWa(folio, items, total, recoger) {
+  return `Hola, soy ${sesion.cliente.nombre}. Acabo de hacer el pedido ${folio} en el catálogo:\n` +
+    items.map(i => `• ${i.nombre}: ${i.cajas ? i.cajas + ' ' + plural(i.cajas, i.presentacion.toLowerCase()) : (i.granel ? r3(i.cantidad) + ' kg' : i.cantidad + ' pzas')}`).join('\n') +
+    `\nTotal: ${pesos(total)}` + (recoger ? `\nPaso por él: ${recoger}` : '');
+}
+function mostrarExito(r) {
+  document.getElementById('exFolio').textContent = r.folio;
+  document.getElementById('exTexto').textContent = `Total estimado ${pesos(r.total)}. Recoges en ${r.punto}. Te avisaremos cuando esté listo; puedes ver cómo va en "Mis pedidos".`;
+  const wa = document.getElementById('exWa');
+  if (r.whatsapp) {
+    wa.href = `https://wa.me/${r.whatsapp.length === 10 ? '52' + r.whatsapp : r.whatsapp}?text=` + encodeURIComponent(mensajeWa(r.folio, r.items || [], r.total, document.getElementById('carRecoger').value));
+    wa.classList.remove('oculto');
+  } else wa.classList.add('oculto');
+  abrir('hojaExito');
+}
+
+// ---------- Cuenta ----------
+function pintarCuenta() {
+  document.getElementById('btnCuenta').textContent = sesion ? '👤 ' + sesion.cliente.nombre.split(' ')[0] : 'Entrar';
+}
+function abrirCuenta() { sesion ? abrirMisPedidos() : abrirLogin(); }
+function abrirLogin(motivo) {
+  verRegistro(false);
+  document.getElementById('loginMotivo').textContent = motivo || 'Para hacer pedidos entra con tu teléfono y tu PIN.';
+  document.getElementById('lgError').textContent = '';
+  abrir('hojaLogin');
+}
+function verRegistro(si) {
+  document.getElementById('vistaEntrar').classList.toggle('oculto', si);
+  document.getElementById('vistaRegistro').classList.toggle('oculto', !si);
+  document.getElementById('vistaRegistrado').classList.add('oculto');
+  document.getElementById('rgError').textContent = '';
+}
+async function entrar() {
+  const err = document.getElementById('lgError'), b = document.getElementById('btnEntrar');
+  const tel = document.getElementById('lgTel').value.replace(/\D/g, ''), pin = document.getElementById('lgPin').value.trim();
+  if (tel.length < 10 || !pin) { err.textContent = 'Escribe tu teléfono a 10 dígitos y tu PIN.'; return; }
+  b.disabled = true; b.textContent = 'Entrando…'; err.textContent = '';
+  try {
+    const r = await api({ accion: 'catalogo_login', telefono: tel, pin });
+    if (!r.success) { err.textContent = r.error; return; }
+    sesion = { token: r.token, cliente: r.cliente, precios: r.precios || null };
+    guardar(K.sesion, sesion);
+    document.getElementById('lgPin').value = '';
+    cerrar('hojaLogin');
+    pintarCuenta(); pintar();
+    toast(`¡Bienvenido, ${r.cliente.nombre.split(' ')[0]}!`);
+    if (carrito.length) abrirCarrito();
+  } catch (e) { err.textContent = 'No se pudo conectar. Inténtalo de nuevo.'; }
+  finally { b.disabled = false; b.textContent = 'Entrar'; }
+}
+async function registrar() {
+  const err = document.getElementById('rgError'), b = document.getElementById('btnRegistrar');
+  const v = id => document.getElementById(id).value.trim();
+  const tel = v('rgTel').replace(/\D/g, '');
+  if (v('rgNombre').length < 3) { err.textContent = 'Escribe tu nombre o el de tu negocio.'; return; }
+  if (tel.length < 10) { err.textContent = 'Escribe tu teléfono a 10 dígitos.'; return; }
+  if (!/^\d{4,8}$/.test(v('rgPin'))) { err.textContent = 'El PIN debe ser de 4 a 8 números.'; return; }
+  if (v('rgPin') !== v('rgPin2')) { err.textContent = 'Los PIN no coinciden.'; return; }
+  b.disabled = true; b.textContent = 'Enviando…'; err.textContent = '';
+  try {
+    const r = await api({ accion: 'catalogo_registro', nombre: v('rgNombre'), telefono: tel, pin: v('rgPin'), notas: v('rgNotas'), sitio: v('rgSitio') });
+    if (!r.success) { err.textContent = r.error; return; }
+    ['rgPin', 'rgPin2'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('lgTel').value = tel;
+    document.getElementById('vistaRegistro').classList.add('oculto');
+    document.getElementById('vistaRegistrado').classList.remove('oculto');
+  } catch (e) { err.textContent = 'No se pudo conectar. Inténtalo de nuevo.'; }
+  finally { b.disabled = false; b.textContent = 'Enviar solicitud'; }
+}
+async function refrescarSesion() {
+  try {
+    const r = await api({ accion: 'catalogo_sesion', token: sesion.token });
+    if (r.sesionInvalida) { salir(true); toast('Tu sesión terminó. Vuelve a entrar.'); return; }
+    if (r.success) { sesion.cliente = r.cliente; sesion.precios = r.precios || null; guardar(K.sesion, sesion); pintarCuenta(); pintar(); }
+  } catch (e) {}
+}
+function salir(silencioso) {
+  sesion = null; localStorage.removeItem(K.sesion);
+  cerrar('hojaCuenta'); pintarCuenta(); pintar();
+  if (!silencioso) toast('Cerraste sesión');
+}
+const NOMBRE_ESTADO = { NUEVO: 'Recibido', ACEPTADO: 'Preparando', LISTO: 'Listo para recoger', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' };
+let misPedidos = [];
+async function abrirMisPedidos() {
+  document.getElementById('cuNombre').textContent = sesion.cliente.nombre;
+  document.getElementById('cuTel').textContent = '📱 ' + sesion.cliente.telefono;
+  const cont = document.getElementById('cuPedidos');
+  cont.innerHTML = '<p class="sub">Cargando…</p>';
+  abrir('hojaCuenta');
+  try {
+    const r = await api({ accion: 'catalogo_mis_pedidos', token: sesion.token });
+    if (r.sesionInvalida) { salir(true); abrirLogin(r.error); return; }
+    if (!r.success) throw new Error(r.error);
+    misPedidos = r.pedidos;
+    cont.innerHTML = r.pedidos.length ? r.pedidos.map(p => `<div class="ped">
+      <div class="fila"><span class="folio">${esc(p.folio)}</span><span class="estado e-${esc(p.estado)}">${esc(NOMBRE_ESTADO[p.estado] || p.estado)}</span></div>
+      <div class="det">${esc(p.fecha.split('-').reverse().join('/'))} ${esc(p.hora)} · ${esc(p.punto)}${p.recoger ? ' · ' + esc(p.recoger) : ''}<br>
+        ${p.items.map(i => esc(i.nombre) + ': ' + (i.cajas ? i.cajas + ' ' + esc(plural(i.cajas, i.presentacion.toLowerCase())) : (i.granel ? r3(i.cantidad) + ' kg' : i.cantidad + ' pzas'))).join(' · ')}<br>
+        <b>Total ${pesos(p.total)}</b>${p.estado === 'CANCELADO' && p.motivo ? '<br>Motivo: ' + esc(p.motivo) : ''}</div>
+      ${p.estado === 'NUEVO' ? `<button class="btn btn-sec" style="padding:9px;font-size:14px" onclick="cancelarPedido('${esc(p.folio)}')">Cancelar pedido</button>` : ''}
+      <button class="btn btn-sec" style="padding:9px;font-size:14px" onclick="repetirPedido('${esc(p.folio)}')">Volver a pedir lo mismo</button>
+    </div>`).join('') : '<p class="sub">Aún no tienes pedidos.</p>';
+  } catch (e) {
+    cont.innerHTML = '<p class="error">No se pudieron cargar tus pedidos. Revisa tu conexión.</p>';
+  }
+}
+async function cancelarPedido(folio) {
+  if (!confirm(`¿Cancelar el pedido ${folio}?`)) return;
+  try {
+    const r = await api({ accion: 'catalogo_cancelar', token: sesion.token, folio });
+    if (!r.success) { toast(r.error); return; }
+    toast('Pedido cancelado');
+    abrirMisPedidos();
+  } catch (e) { toast('No se pudo conectar'); }
+}
+function repetirPedido(folio) {
+  const p = misPedidos.find(x => x.folio === folio);
+  if (!p) return;
+  let faltan = 0;
+  p.items.forEach(i => {
+    const prod = datos.productos.find(x => x.id === i.id) || datos.productos.find(x => x.nombre === i.nombre);
+    if (!prod) { faltan++; return; }
+    const it = i.cajas && prod.pres ? { id: prod.id, cajas: i.cajas, cantidad: 0 } : { id: prod.id, cantidad: i.cantidad };
+    const k = carrito.findIndex(x => x.id === prod.id);
+    if (k >= 0) carrito[k] = it; else carrito.push(it);
+  });
+  guardar(K.carrito, carrito);
+  cerrar('hojaCuenta'); pintar();
+  toast(faltan ? `Agregado. ${faltan} producto(s) ya no están en el catálogo.` : 'Listo, revisa tu pedido');
+  abrirCarrito();
+}
+
+cargar();
+</script>
+</body>
+</html>
