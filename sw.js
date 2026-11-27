@@ -1,7 +1,7 @@
 // Service worker del POS Moles Chabelita.
 // IMPORTANTE: cada vez que subas cambios a index.html, aumenta VERSION
 // para que los teléfonos descarguen la versión nueva.
-const VERSION = 'pos-v14';
+const VERSION = 'pos-v19';
 // Cada copia de la app (carpeta distinta en el mismo sitio) usa sus propios cachés
 const PREFIJO = self.registration.scope + '::';
 const CACHE_APP = PREFIJO + VERSION;
@@ -28,6 +28,10 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  // El catálogo (carpeta catalogo/) y la app de San Vicente (carpeta sv/) son otras páginas: no se mezclan
+  const BASE = new URL(self.registration.scope).pathname;
+  if (url.pathname.startsWith(BASE + 'catalogo/') || url.pathname.startsWith(BASE + 'sv/')) return;
 
   // La API de Google Sheets no se cachea aquí: la app ya guarda su propia copia.
   if (url.hostname.includes('script.google.com') || url.hostname.includes('googleusercontent.com')) return;

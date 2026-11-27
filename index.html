@@ -6,7 +6,7 @@
 <title>POS - Moles Chabelita</title>
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#1a1a2e" id="metaTema">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,8 +14,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="POS Chabelita">
 <style>
+  :root { --fondo: #1a1a2e; --panel: #16213e; --panel2: #0f3460; --acento: #f4a261; --acento-rgb: 244,162,97; }
   * { box-sizing: border-box; font-family: 'Segoe UI', -apple-system, sans-serif; margin: 0; padding: 0; }
-  body { background: #1a1a2e; color: #fff; min-height: 100vh; overflow-x: hidden; }
+  body { background: var(--fondo); color: #fff; min-height: 100vh; overflow-x: hidden; }
   
   .app { display: grid; grid-template-columns: 1fr 400px; gap: 12px; padding: 12px; height: 100vh; }
   .catalogo { display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
@@ -30,7 +31,7 @@
     flex-wrap: wrap;
   }
   .topbar img { height: 45px; }
-  .topbar h1 { font-size: 18px; color: #f4a261; flex: 1; min-width: 120px; }
+  .topbar h1 { font-size: 18px; color: var(--acento); flex: 1; min-width: 120px; }
   .estado { font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; }
   .estado.online { background: #2ecc71; color: #000; }
   .estado.cache { background: #f39c12; color: #000; }
@@ -48,7 +49,7 @@
     background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; white-space: nowrap;
     font-size: 13px; transition: all 0.2s;
   }
-  .filtros button.activo { background: #f4a261; color: #000; border-color: #f4a261; font-weight: 700; }
+  .filtros button.activo { background: var(--acento); color: #000; border-color: var(--acento); font-weight: 700; }
 
   .productos {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -60,7 +61,7 @@
     padding: 10px; cursor: pointer; transition: all 0.15s; position: relative;
     display: flex; flex-direction: column; gap: 6px;
   }
-  .producto:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(244,162,97,0.4); }
+  .producto:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(var(--acento-rgb),0.4); }
   .producto.agotado { opacity: 0.4; cursor: not-allowed; }
   .producto.sin-stock { box-shadow: inset 0 0 0 2px #e74c3c; }
   .producto.sin-stock img { opacity: 0.6; }
@@ -89,7 +90,7 @@
     padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
     display: flex; justify-content: space-between; align-items: center;
   }
-  .ticket-header h2 { font-size: 16px; color: #f4a261; }
+  .ticket-header h2 { font-size: 16px; color: var(--acento); }
   .ticket-header .folio { font-size: 11px; color: #888; }
 
   .cliente-box { padding: 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -127,7 +128,7 @@
   }
   .item-info { flex: 1; min-width: 0; }
   .item-info .n { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-info .p { font-size: 11px; color: #f4a261; }
+  .item-info .p { font-size: 11px; color: var(--acento); }
   .item .cant { display: flex; align-items: center; gap: 6px; }
   .item .cant button {
     width: 28px; height: 28px; border: none; border-radius: 6px; cursor: pointer;
@@ -138,7 +139,7 @@
   .item .cant span { min-width: 22px; text-align: center; font-weight: 700; font-size: 14px; }
   .item .cant input {
     width: 58px; padding: 5px 4px; text-align: center; font-weight: 700; font-size: 14px;
-    border: 2px solid #f4a261; border-radius: 6px; background: rgba(255,255,255,0.95); color: #000;
+    border: 2px solid var(--acento); border-radius: 6px; background: rgba(255,255,255,0.95); color: #000;
   }
   .item .cant input:focus { outline: none; border-color: #2ecc71; }
   .item .subtotal { font-size: 13px; font-weight: 700; min-width: 60px; text-align: right; }
@@ -148,7 +149,7 @@
     width: 72px; padding: 5px 4px; text-align: right; font-weight: 800; font-size: 14px;
     border: 2px solid #2ecc71; border-radius: 6px; background: rgba(255,255,255,0.95); color: #000;
   }
-  .item .importe input:focus { outline: none; border-color: #f4a261; }
+  .item .importe input:focus { outline: none; border-color: var(--acento); }
   .item.fijo .importe input { background: #d5f5e3; }
   .item input[type=number]::-webkit-inner-spin-button,
   .item input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -179,10 +180,10 @@
   }
   .modal.activo { display: flex; }
   .modal-box {
-    background: #16213e; border-radius: 16px; max-width: 500px; width: 100%;
+    background: var(--panel); border-radius: 16px; max-width: 500px; width: 100%;
     max-height: 90vh; overflow-y: auto; padding: 20px; color: #fff;
   }
-  .modal-box h2 { color: #f4a261; margin-bottom: 15px; font-size: 20px; }
+  .modal-box h2 { color: var(--acento); margin-bottom: 15px; font-size: 20px; }
   
   .metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
   .metodos button {
@@ -190,7 +191,7 @@
     background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-size: 14px; font-weight: 600;
     transition: all 0.2s;
   }
-  .metodos button.activo { background: #f4a261; color: #000; border-color: #f4a261; }
+  .metodos button.activo { background: var(--acento); color: #000; border-color: var(--acento); }
   
   .campo { margin-bottom: 12px; }
   .campo label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; font-weight: 600; text-transform: uppercase; }
@@ -224,18 +225,18 @@
 
   .hist-item {
     background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px;
-    margin-bottom: 10px; border-left: 3px solid #f4a261;
+    margin-bottom: 10px; border-left: 3px solid var(--acento);
   }
   .hist-dia { margin-bottom: 20px; }
-  .hist-dia h3 { color: #f4a261; font-size: 16px; margin-bottom: 10px; }
+  .hist-dia h3 { color: var(--acento); font-size: 16px; margin-bottom: 10px; }
   .hist-resumen {
-    background: rgba(244,162,97,0.1); border-radius: 10px; padding: 12px;
+    background: rgba(var(--acento-rgb),0.1); border-radius: 10px; padding: 12px;
   }
   .hist-resumen .titulo { font-size: 12px; color: #aaa; margin-bottom: 8px; }
   .hist-resumen .fila {
     display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0;
   }
-  .hist-resumen .fila .cant { color: #f4a261; font-weight: 700; }
+  .hist-resumen .fila .cant { color: var(--acento); font-weight: 700; }
   .hist-resumen .total-dia {
     display: flex; justify-content: space-between; margin-top: 10px;
     padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-weight: 700;
@@ -249,14 +250,14 @@
     .topbar img { height: 32px; }
     .topbar .btn-sec { padding: 6px 10px; font-size: 12px; }
     .topbar .estado, .topbar .sync, .chip-punto { font-size: 11px; padding: 4px 8px; }
-    .ticket-panel { position: fixed; inset: 0; z-index: 500; border-radius: 0; display: none; background: #16213e; }
+    .ticket-panel { position: fixed; inset: 0; z-index: 500; border-radius: 0; display: none; background: var(--panel); }
     .ticket-panel.abierto { display: flex; }
     .productos { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
     .btn-flotante {
       position: fixed; bottom: 20px; right: 20px; z-index: 400;
-      background: #f4a261; color: #000; border: none; border-radius: 50%;
+      background: var(--acento); color: #000; border: none; border-radius: 50%;
       width: 65px; height: 65px; font-size: 26px; font-weight: 800; cursor: pointer;
-      box-shadow: 0 6px 25px rgba(244,162,97,0.6);
+      box-shadow: 0 6px 25px rgba(var(--acento-rgb),0.6);
       display: flex; align-items: center; justify-content: center;
     }
     .cerrar-ticket { display: block !important; }
@@ -268,23 +269,23 @@
 
   .btn-imprimir {
     width: 100%; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
-    background: #f4a261; color: #000; font-size: 16px; font-weight: 800; margin-top: 8px;
+    background: var(--acento); color: #000; font-size: 16px; font-weight: 800; margin-top: 8px;
   }
   .config-fila { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 12px; color: #aaa; justify-content: center; }
   .config-fila select { padding: 4px 8px; border-radius: 6px; border: none; }
 
   /* ---------- Login ---------- */
   .login {
-    position: fixed; inset: 0; z-index: 2000; background: #1a1a2e;
+    position: fixed; inset: 0; z-index: 2000; background: var(--fondo);
     display: none; align-items: center; justify-content: center; padding: 20px;
   }
   .login.activo { display: flex; }
   .login-box {
-    background: #16213e; border-radius: 18px; padding: 26px 22px; width: 100%; max-width: 380px;
+    background: var(--panel); border-radius: 18px; padding: 26px 22px; width: 100%; max-width: 380px;
     display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   }
   .login-box img { height: 70px; object-fit: contain; align-self: center; }
-  .login-box h2 { text-align: center; color: #f4a261; font-size: 20px; }
+  .login-box h2 { text-align: center; color: var(--acento); font-size: 20px; }
   .login-box input[type=text], .login-box input[type=password] {
     width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px;
     background: rgba(255,255,255,0.95); color: #000;
@@ -299,10 +300,10 @@
   .login-error { color: #ff7b6b; font-size: 14px; text-align: center; min-height: 18px; }
   .recordados { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
   .recordados button {
-    padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(244,162,97,0.6);
-    background: rgba(244,162,97,0.12); color: #fff; cursor: pointer; font-size: 14px;
+    padding: 8px 14px; border-radius: 20px; border: 1px solid rgba(var(--acento-rgb),0.6);
+    background: rgba(var(--acento-rgb),0.12); color: #fff; cursor: pointer; font-size: 14px;
   }
-  .recordados button.sel { background: #f4a261; color: #000; font-weight: 700; }
+  .recordados button.sel { background: var(--acento); color: #000; font-weight: 700; }
 
   /* ---------- Barra superior: usuario y sincronización ---------- */
   .usuario-btn { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -356,13 +357,13 @@
 
   /* ---------- Punto de venta, avisos y recepciones ---------- */
   .chip-punto { font-size: 12px; padding: 5px 10px; border-radius: 12px; border: none; cursor: pointer;
-                background: rgba(244,162,97,0.18); color: #f4a261; font-weight: 700; white-space: nowrap; }
+                background: rgba(var(--acento-rgb),0.18); color: var(--acento); font-weight: 700; white-space: nowrap; }
   .chip-punto.sin-punto { background: #e74c3c; color: #fff; animation: latido 1.2s infinite; }
   @keyframes latido { 50% { opacity: 0.6; } }
   .btn-recibir { background: #2980b9 !important; color: #fff !important; font-weight: 700; }
   #listaPuntos { display: grid; gap: 8px; }
   #listaPuntos button { padding: 16px; font-size: 16px; }
-  #listaPuntos button.sel { background: #f4a261; color: #000; }
+  #listaPuntos button.sel { background: var(--acento); color: #000; }
   .toast {
     position: fixed; left: 50%; top: 12px; transform: translateX(-50%) translateY(-20px);
     background: #f39c12; color: #000; font-weight: 700; padding: 12px 18px; border-radius: 12px;
@@ -400,7 +401,7 @@
   .edo-saldo { font-size: 32px; font-weight: 800; color: #f39c12; }
   .edo-saldo.cero { color: #2ecc71; }
   .edo-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 14px; }
-  .edo-sec h3 { color: #f4a261; font-size: 14px; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .5px; }
+  .edo-sec h3 { color: var(--acento); font-size: 14px; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: .5px; }
   .edo-fila { display: flex; gap: 8px; align-items: center; padding: 9px 10px; background: rgba(255,255,255,0.04);
               border-radius: 8px; margin-bottom: 5px; font-size: 13px; }
   .edo-fila .info { flex: 1; min-width: 0; }
@@ -419,7 +420,7 @@
     color: #fff; cursor: pointer; text-align: left; font-size: 16px; font-weight: 700;
   }
   .pres-opciones button small { display: block; font-weight: 400; color: #bbb; font-size: 13px; margin-top: 3px; }
-  .pres-opciones button:hover { border-color: #f4a261; }
+  .pres-opciones button:hover { border-color: var(--acento); }
   .item.pres { border-left: 3px solid #8e44ad; }
   .item .cant .uni { font-size: 11px; color: #d7bde2; }
 
@@ -430,7 +431,7 @@
   #modalAutorizar h2 { color: #f39c12; }
   .aut-accion { background: rgba(243,156,18,0.12); border-radius: 8px; padding: 10px; font-size: 14px; margin-bottom: 12px; }
   .aut-error { color: #ff7b6b; font-size: 13px; min-height: 18px; text-align: center; margin: 6px 0; }
-  .precio-edit { background: none; border: none; color: #f4a261; cursor: pointer; font-size: 12px; padding: 0 2px; }
+  .precio-edit { background: none; border: none; color: var(--acento); cursor: pointer; font-size: 12px; padding: 0 2px; }
   .precio-manual { color: #f1c40f !important; }
   .badge.lista { background: #8e44ad; color: #fff; }
   .lista-opc { display: grid; gap: 8px; }
@@ -458,6 +459,107 @@
   .item .tag-vale { font-size: 10px; color: #85c1e9; }
   .item .cant-fija { font-weight: 700; font-size: 13px; text-align: center; min-width: 70px; }
   .vales-ticket { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .gramos-rapidos { display: flex; gap: 6px; margin-top: 6px; }
+  /* 🆕 Cotizaciones */
+  body.modo-cot .ticket-panel { box-shadow: inset 0 4px 0 #9b59b6; }
+  body.modo-cot .ticket-header h2 { color: #c39bd3; }
+  body.modo-cot .btn-cobrar:not(:disabled) { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+  .btn-cotizar.activo { background: #9b59b6 !important; color: #fff !important; }
+  .cot-card { background: var(--panel2); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #9b59b6; }
+  .cot-card.VENDIDA { border-left-color: #2ecc71; opacity: .7; } .cot-card.VENCIDA { border-left-color: #888; }
+  .cot-card .cab { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .cot-card .est { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 10px; background: #9b59b6; color: #fff; }
+  .cot-card .est.VENDIDA { background: #2ecc71; color: #111; } .cot-card .est.VENCIDA { background: #666; }
+  .cot-card small { display: block; color: #bbb; font-size: 12px; margin-top: 4px; line-height: 1.45; }
+  .cot-card .acciones { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .cot-card .acciones button { padding: 8px 12px; border-radius: 9px; border: none; font-weight: 700; cursor: pointer; }
+  /* 🆕 Caja */
+  .btn-caja.abierta { background: rgba(46,204,113,.25) !important; border-color: #2ecc71 !important; }
+  .btn-caja.cerrada { background: rgba(231,76,60,.22) !important; }
+  .caja-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .caja-kpis div { background: var(--panel2); border-radius: 10px; padding: 10px; }
+  .caja-kpis small { display: block; color: #aaa; font-size: 11px; text-transform: uppercase; font-weight: 700; }
+  .caja-kpis b { font-size: 18px; }
+  .caja-kpis .grande { grid-column: 1 / -1; background: rgba(var(--acento-rgb), .18); }
+  .caja-kpis .grande b { font-size: 26px; color: var(--acento); }
+  .caja-acciones { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .caja-acciones button { padding: 12px 6px; border: none; border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; }
+  .caja-acciones .ent { background: #2ecc71; color: #111; } .caja-acciones .sal { background: #e67e22; color: #111; }
+  .caja-acciones .cor { background: var(--acento); color: #111; }
+  .caja-form { background: var(--panel2); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+  .chips-concepto { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 10px; }
+  .chips-concepto button { padding: 6px 10px; border-radius: 14px; border: 1px solid #555; background: transparent; color: #ddd; font-size: 12px; cursor: pointer; }
+  .caja-movs { font-size: 13px; }
+  .caja-movs .mv { display: grid; grid-template-columns: 46px 1fr auto; gap: 8px; padding: 7px 0; border-bottom: 1px dashed #444; align-items: center; }
+  .caja-movs .mv small { color: #999; } .caja-movs .mas { color: #2ecc71; font-weight: 700; } .caja-movs .menos { color: #e67e22; font-weight: 700; }
+  .caja-movs .neutro { color: #aaa; }
+  .denoms { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; margin-bottom: 10px; }
+  .denoms label { display: flex; align-items: center; gap: 6px; background: var(--panel2); border-radius: 8px; padding: 6px 8px; font-size: 13px; }
+  .denoms label span { min-width: 52px; font-weight: 700; }
+  .denoms input { width: 100%; padding: 7px; border-radius: 6px; border: none; font-size: 15px; }
+  .dif { text-align: center; padding: 12px; border-radius: 10px; font-weight: 800; margin: 10px 0; }
+  .dif.cuadra { background: rgba(46,204,113,.25); }
+  /* 🆕 Compras y precios */
+  #modalCompras .modal-box { max-width: 760px; }
+  .cmp-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cmp-tabs button { flex: 1; min-width: 100px; padding: 9px; border-radius: 10px; border: none; background: var(--panel2); color: #ccc; font-weight: 700; cursor: pointer; }
+  .cmp-tabs button.sel { background: var(--acento); color: #111; }
+  .cmp-fila { display: flex; gap: 8px; align-items: center; }
+  .cmp-fila input, .cmp-fila select { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 15px; min-width: 0; }
+  .cmp-fila button { padding: 10px 12px; border-radius: 8px; border: none; background: var(--panel2); color: #fff; font-weight: 700; cursor: pointer; }
+  .cmp-sug { background: #fff; color: #111; border-radius: 8px; margin-top: 4px; max-height: 220px; overflow-y: auto; }
+  .cmp-sug div { padding: 9px 11px; border-bottom: 1px solid #eee; cursor: pointer; font-size: 14px; }
+  .cmp-sug div:hover { background: #f3f3f3; }
+  .cmp-sug small { color: #777; }
+  .cmp-chip { background: rgba(var(--acento-rgb), .2); border: 1px solid var(--acento); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .cmp-linea { background: var(--panel2); border-radius: 10px; padding: 10px; margin-top: 8px; }
+  .cmp-linea .top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .cmp-linea .campos { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .cmp-linea .campos label { font-size: 11px; color: #aaa; font-weight: 700; display: flex; flex-direction: column; gap: 3px; }
+  .cmp-linea .campos input { padding: 8px; border-radius: 7px; border: none; font-size: 15px; width: 100%; }
+  .cmp-linea .nota { font-size: 12px; margin-top: 6px; color: #bbb; }
+  .sube { color: #e74c3c; font-weight: 800; } .baja { color: #2ecc71; font-weight: 800; }
+  .cmp-total { display: flex; justify-content: space-between; font-size: 20px; font-weight: 800; margin: 12px 0; }
+  .cmp-metodos { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-bottom: 10px; }
+  .cmp-metodos button { padding: 10px 6px; border-radius: 9px; border: 2px solid #555; background: transparent; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .cmp-metodos button.sel { background: var(--acento); color: #111; border-color: var(--acento); }
+  .prov-card { background: var(--panel2); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .prov-card small { color: #aaa; display: block; }
+  .saldo-rojo { color: #e74c3c; font-weight: 800; }
+  #modalPrecios { z-index: 1150; }
+  .prec-card { background: var(--panel2); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .prec-card table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; table-layout: fixed; }
+  .prec-card td:nth-child(1) { width: 44%; } .prec-card td:nth-child(2) { width: 28%; } .prec-card td:nth-child(3) { width: 28%; }
+  .prec-card td { padding: 5px 4px; border-bottom: 1px dashed #444; }
+  .prec-card td input { width: 100%; max-width: 110px; padding: 7px; border-radius: 6px; border: none; font-size: 15px; }
+  .prec-card .mg { font-size: 12px; color: #aaa; }
+  .prec-card .mg.bajo { color: #e74c3c; font-weight: 700; } .dif.falta { background: rgba(231,76,60,.3); } .dif.sobra { background: rgba(52,152,219,.3); }
+  .gramos-rapidos button { padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(var(--acento-rgb), .6); background: transparent;
+    color: var(--acento); font-weight: 700; font-size: 13px; cursor: pointer; }
+  .gramos-rapidos button.sel { background: var(--acento); color: #111; }
+  .vales-ticket span.chip-pedido { background: rgba(46,204,113,0.25); }
+  /* 🆕 Pedidos del catálogo */
+  .btn-pedidos.hay { background: #27ae60 !important; color: #fff !important; font-weight: 700; animation: latido 1.6s ease-in-out infinite; }
+  @keyframes latido { 50% { box-shadow: 0 0 0 6px rgba(39,174,96,.35); } }
+  .ped-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .ped-tabs button { flex: 1; padding: 9px; border-radius: 10px; border: none; background: var(--panel2); color: #ccc; font-weight: 700; cursor: pointer; }
+  .ped-tabs button.sel { background: var(--acento); color: #111; }
+  .ped-filtro { display: flex; gap: 8px; align-items: center; font-size: 13px; color: #aaa; margin-bottom: 8px; }
+  .ped-card { background: var(--panel2); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #888; }
+  .ped-card.NUEVO { border-left-color: #f1c40f; } .ped-card.ACEPTADO { border-left-color: #3498db; }
+  .ped-card.LISTO { border-left-color: #2ecc71; } .ped-card.CANCELADO, .ped-card.ENTREGADO { opacity: .6; }
+  .ped-card .cab { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .ped-card .est { font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 10px; background: #444; }
+  .ped-card .est.NUEVO { background: #f1c40f; color: #222; } .ped-card .est.ACEPTADO { background: #3498db; }
+  .ped-card .est.LISTO { background: #2ecc71; color: #111; }
+  .ped-card small { display: block; color: #bbb; font-size: 12px; margin-top: 4px; line-height: 1.45; }
+  .ped-card ul { margin: 6px 0 0 18px; font-size: 13px; }
+  .ped-card .acciones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .ped-card .acciones button, .ped-card .acciones a { padding: 8px 10px; border-radius: 9px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; }
+  .b-ok { background: #3498db; color: #fff; } .b-listo { background: #2ecc71; color: #111; } .b-cobrar { background: var(--acento); color: #111; }
+  .b-no { background: #555; color: #fff; } .b-wa { background: #25d366; color: #fff; }
+  .cta-form { background: var(--panel2); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .cta-form input, .cta-form select { width: 100%; padding: 9px; border-radius: 9px; border: none; margin-top: 6px; }
   .vales-ticket span { background: rgba(52,152,219,0.25); border-radius: 12px; padding: 3px 8px; font-size: 11px; }
   .vales-ticket button { background: none; border: none; color: #fff; cursor: pointer; font-size: 12px; }
   .vc-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border-radius: 10px; margin-bottom: 6px;
@@ -468,7 +570,7 @@
   .vc-item small { display: block; color: #aaa; }
 
   /* ---------- Escalas de precio / precio directo ---------- */
-  .precio-inline input { width: 72px; padding: 3px 4px; border-radius: 6px; border: 2px solid #f4a261;
+  .precio-inline input { width: 72px; padding: 3px 4px; border-radius: 6px; border: 2px solid var(--acento);
                          background: rgba(255,255,255,0.95); color: #000; font-weight: 700; font-size: 13px; }
   .precio-inline input:focus { outline: none; border-color: #2ecc71; }
   select.escala { margin-top: 3px; padding: 2px 4px; border-radius: 6px; border: none; font-size: 11px;
@@ -498,6 +600,24 @@
     #zonaImpresion img { width: 100%; display: block; }
   }
 </style>
+<!-- 🎨 TEMA DE COLORES: 'original' (azul con naranja), 'mama' (verde azulado con rosa mexicano) o 'sv' (morado con dorado).
+     Si hay dos negocios, cada app usa su tema para no confundirse. -->
+<script>
+const TEMA = 'original';
+(function () {
+  const TEMAS = {
+    original: { fondo: '#1a1a2e', panel: '#16213e', panel2: '#0f3460', acento: '#f4a261', acentoRgb: '244,162,97' },
+    mama:     { fondo: '#0f2a2a', panel: '#143b3a', panel2: '#0b4f4d', acento: '#ec4f8c', acentoRgb: '236,79,140' },
+    sv:       { fondo: '#1c1530', panel: '#271d42', panel2: '#3a2a63', acento: '#f5c542', acentoRgb: '245,197,66' }
+  };
+  const t = TEMAS[TEMA] || TEMAS.original;
+  const r = document.documentElement.style;
+  r.setProperty('--fondo', t.fondo); r.setProperty('--panel', t.panel); r.setProperty('--panel2', t.panel2);
+  r.setProperty('--acento', t.acento); r.setProperty('--acento-rgb', t.acentoRgb);
+  window.COLOR_ACENTO = t.acento;
+  const m = document.getElementById('metaTema'); if (m) m.setAttribute('content', t.fondo);
+})();
+</script>
 </head>
 <body>
 
@@ -508,8 +628,12 @@
       <h1>Punto de Venta</h1>
       <button class="chip-punto" id="chipPunto" onclick="pedirPunto()">📍 ---</button>
       <button class="btn-sec btn-recibir oculto" id="btnRecibir" onclick="abrirRecepciones()">🚚 0 por recibir</button>
+      <button class="btn-sec btn-pedidos oculto" id="btnPedidos" onclick="abrirPedidos()">🛍️ Pedidos</button>
       <span class="estado cache" id="estado">🟡 Cargando...</span>
       <button class="sync ok" id="syncEstado" onclick="enviarPendientes(true)" title="Ventas por subir a Google Sheets">☁️ Al día</button>
+      <button class="btn-sec btn-caja oculto" id="btnCaja" onclick="abrirCaja()">💵 Caja</button>
+      <button class="btn-sec btn-cotizar oculto" id="btnCotizar" onclick="alternarCotizacion()">📝 Cotizar</button>
+      <button class="btn-sec oculto" id="btnCompras" onclick="abrirCompras()">🛒 Compras</button>
       <button class="btn-sec" id="btnHistorial" onclick="abrirHistorial()">📊 Historial</button>
       <button class="btn-sec" id="btnClientes" onclick="abrirClientes()">👥 Clientes</button>
       <button class="btn-sec btn-vales oculto" id="btnVales" onclick="cambiarModo(modo === 'vale' ? 'venta' : 'vale')">📦 Vales</button>
@@ -530,7 +654,7 @@
   <div class="ticket-panel" id="ticketPanel">
     <div class="ticket-header">
       <div>
-        <h2>🧾 Ticket</h2>
+        <h2 id="tituloTicket">🧾 Ticket</h2>
         <span class="folio" id="folioActual">---</span>
       </div>
       <button class="btn-sec cerrar-ticket" onclick="cerrarTicket()" style="display:none;">✕</button>
@@ -558,6 +682,7 @@
       <div class="botones">
         <button class="btn-cobrar" id="btnCobrar" onclick="abrirCobro()" disabled>💵 COBRAR</button>
         <button class="btn-sec" style="grid-column:1/-1;" id="btnImportarVales" onclick="abrirImportarVales()">📥 Cobrar vales de salida</button>
+        <button class="btn-sec" style="grid-column:1/-1;" id="btnImportarCot" onclick="abrirCotizaciones()">📝 Cobrar una cotización</button>
         <button class="btn-sec" onclick="cancelarTicket()">🗑️ Cancelar</button>
         <button class="btn-sec" onclick="limpiarTicket()">🧹 Vaciar</button>
       </div>
@@ -626,7 +751,7 @@
     
     <div class="campo">
       <label>Total a cobrar</label>
-      <input type="text" id="totalCobrar" readonly style="background:#0f3460; color:#2ecc71; font-weight:800; font-size:20px;">
+      <input type="text" id="totalCobrar" readonly style="background:var(--panel2); color:#2ecc71; font-weight:800; font-size:20px;">
     </div>
     
     <div id="camposEfectivo">
@@ -657,7 +782,7 @@
     <div id="camposCredito" style="display:none;">
       <div class="campo">
         <label>Cliente</label>
-        <input type="text" id="creditoCliente" readonly style="background:#0f3460; color:#fff;">
+        <input type="text" id="creditoCliente" readonly style="background:var(--panel2); color:#fff;">
       </div>
       <div class="campo">
         <label>Anticipo (opcional)</label>
@@ -707,7 +832,7 @@
 
 <div class="modal" id="modalTicketGen">
   <div class="modal-box" style="text-align:center;">
-    <h2>✅ Venta Registrada</h2>
+    <h2 id="tgTitulo">✅ Venta Registrada</h2>
     <img id="ticketImg" class="ticket-preview" alt="Ticket">
     <button class="btn-imprimir" onclick="imprimirTicket()">🖨️ Imprimir ticket</button>
     <div class="config-fila">
@@ -717,10 +842,16 @@
         <option value="58">58 mm</option>
         <option value="80">80 mm</option>
       </select>
+      Letra:
+      <select class="sel-letra" onchange="guardarLetra(this.value)">
+        <option value="normal">Normal</option>
+        <option value="grande">Grande</option>
+        <option value="extra">Extra grande</option>
+      </select>
     </div>
     <button class="btn-confirmar" onclick="compartirTicket()">📱 Compartir por WhatsApp</button>
     <button class="btn-sec" onclick="descargarTicket()" style="margin-top:8px; width:100%;">💾 Descargar imagen</button>
-    <button class="btn-cerrar" onclick="cerrarModal('modalTicketGen');nuevaVenta();">🆕 Nueva Venta</button>
+    <button class="btn-cerrar" id="tgNuevo" onclick="cerrarTicketGen()">🆕 Nueva Venta</button>
   </div>
 </div>
 
@@ -746,6 +877,12 @@
         <option value="58">58 mm</option>
         <option value="80">80 mm</option>
       </select>
+      Letra:
+      <select class="sel-letra" onchange="guardarLetra(this.value)">
+        <option value="normal">Normal</option>
+        <option value="grande">Grande</option>
+        <option value="extra">Extra grande</option>
+      </select>
     </div>
     <button class="btn-confirmar" onclick="compartirVale()">📱 Compartir por WhatsApp</button>
     <button class="btn-sec" onclick="descargarBlob(valeBlob, 'vale-' + valeActual.folio + '.png')" style="margin-top:8px; width:100%;">💾 Descargar imagen</button>
@@ -767,6 +904,33 @@
     <p style="color:#aaa; font-size:13px; margin-bottom:12px;">Define qué precios y qué inventario usa. Se puede cambiar después en este mismo botón.</p>
     <div id="listaPuntos"></div>
     <button class="btn-cerrar" onclick="cerrarModal('modalPunto')">Cerrar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalPedidos">
+  <div class="modal-box ancho">
+    <h2>🛍️ Pedidos del catálogo</h2>
+    <div class="ped-tabs" id="pedTabs">
+      <button id="tabPedidos" class="sel" onclick="verTabPedidos('pedidos')">Pedidos</button>
+      <button id="tabCuentas" onclick="verTabPedidos('cuentas')">Cuentas</button>
+    </div>
+    <div id="pedVista">
+      <label class="ped-filtro"><input type="checkbox" id="pedTodos" onchange="cargarPedidos()"> Ver pedidos de todas las tiendas</label>
+      <div id="pedLista"></div>
+    </div>
+    <div id="ctaVista" class="oculto">
+      <div id="ctaLista"></div>
+      <div class="cta-form">
+        <b>🔑 Dar acceso a un cliente que ya existe</b>
+        <small style="display:block;color:#aaa;margin-top:4px;">Con esto entra al catálogo con su teléfono y este PIN. Sirve también para cambiarle el PIN si lo olvidó.</small>
+        <input type="text" id="ctaBuscar" placeholder="🔍 Buscar cliente" oninput="buscarClienteAcceso()" autocomplete="off">
+        <select id="ctaCliente" onchange="elegirClienteAcceso()"></select>
+        <input type="tel" id="ctaTel" placeholder="Teléfono a 10 dígitos" inputmode="numeric" maxlength="14">
+        <input type="text" id="ctaPin" placeholder="PIN de 4 a 8 números" inputmode="numeric" maxlength="8">
+        <button class="btn-confirmar" id="btnDarAcceso" onclick="darAccesoCatalogo()">Dar acceso</button>
+      </div>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalPedidos')">Cerrar</button>
   </div>
 </div>
 
@@ -936,6 +1100,167 @@
     <div class="campo"><label>Aplicar a</label><select id="abNota"></select></div>
     <button class="btn-confirmar" id="btnGuardarAbono" onclick="guardarAbono()">✅ REGISTRAR ABONO</button>
     <button class="btn-cerrar" onclick="cerrarModal('modalAbono')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalCaja">
+  <div class="modal-box ancho">
+    <h2>💵 Caja</h2>
+    <div id="cajaCerrada">
+      <p style="color:#ccc;margin-bottom:12px;">Abre tu caja para empezar a cobrar. Escribe con cuánto efectivo empiezas (el fondo para dar cambio).</p>
+      <div class="campo"><label>Fondo inicial</label><input type="number" id="cajaFondo" inputmode="decimal" step="0.5" min="0" placeholder="0.00"></div>
+      <button class="btn-confirmar" onclick="abrirTurno()">🔓 Abrir caja</button>
+    </div>
+    <div id="cajaAbierta" class="oculto">
+      <div style="font-size:13px;color:#aaa;margin-bottom:10px;" id="cajaInfo"></div>
+      <div class="caja-kpis" id="cajaKpis"></div>
+      <div class="caja-acciones">
+        <button class="ent" onclick="formMovCaja('ENTRADA')">➕ Entrada</button>
+        <button class="sal" onclick="formMovCaja('SALIDA')">➖ Salida</button>
+        <button class="cor" onclick="abrirCorte()">🧾 Corte</button>
+      </div>
+      <div class="caja-form oculto" id="cajaMovForm">
+        <b id="cajaMovTitulo"></b>
+        <div class="campo" style="margin-top:8px;"><label>Concepto</label><input type="text" id="cajaMovConcepto" maxlength="120" placeholder="¿Para qué es?"></div>
+        <div class="chips-concepto" id="cajaMovChips"></div>
+        <div class="campo"><label>Cantidad</label><input type="number" id="cajaMovMonto" inputmode="decimal" step="0.5" min="0"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-confirmar" style="margin-top:0" onclick="guardarMovCaja()">Guardar</button>
+          <button class="btn-cerrar" style="margin-top:0" onclick="document.getElementById('cajaMovForm').classList.add('oculto')">Cancelar</button>
+        </div>
+      </div>
+      <h3 style="font-size:15px;margin:6px 0;">Movimientos del turno</h3>
+      <div class="caja-movs" id="cajaMovs"></div>
+    </div>
+    <details style="margin-top:14px;" id="cajaCortesPrev">
+      <summary style="cursor:pointer;color:#aaa;">Cortes anteriores en este dispositivo</summary>
+      <div class="caja-movs" id="cajaCortesLista"></div>
+    </details>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCaja')">Cerrar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalCorte">
+  <div class="modal-box ancho">
+    <h2>🧾 Corte de caja</h2>
+    <p style="color:#ccc;font-size:13px;margin-bottom:10px;">Cuenta el efectivo de la caja. Puedes llenar los billetes y monedas o escribir el total directo.</p>
+    <div class="denoms" id="corteDenoms"></div>
+    <div class="campo"><label>Efectivo contado</label><input type="number" id="corteContado" inputmode="decimal" step="0.5" oninput="corteManual=true; pintarDiferencia()"></div>
+    <div class="dif" id="corteDif"></div>
+    <div class="campo"><label>Se queda en caja como fondo para el siguiente turno</label><input type="number" id="corteDeja" inputmode="decimal" step="0.5" min="0" oninput="pintarDiferencia()"></div>
+    <div style="font-size:13px;color:#aaa;margin:-4px 0 10px;" id="corteRetiro"></div>
+    <div class="campo"><label>Notas (opcional)</label><input type="text" id="corteNotas" maxlength="300" placeholder="Ej. faltante por error de cambio"></div>
+    <button class="btn-confirmar" onclick="confirmarCorte()">✅ Hacer corte y cerrar caja</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCorte')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalCorteGen">
+  <div class="modal-box" style="text-align:center;">
+    <h2>✅ Corte de caja</h2>
+    <img id="corteImg" class="ticket-preview" alt="Corte de caja">
+    <button class="btn-imprimir" onclick="imprimirCorte()">🖨️ Imprimir corte</button>
+    <button class="btn-confirmar" onclick="compartirCorte()">📱 Compartir</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCorteGen')">Listo</button>
+  </div>
+</div>
+
+<div class="modal" id="modalCompras">
+  <div class="modal-box ancho">
+    <h2>🛒 Compras</h2>
+    <div class="cmp-tabs">
+      <button id="cmpTabNueva" onclick="verTabCompras('nueva')">Nueva compra</button>
+      <button id="cmpTabProv" onclick="verTabCompras('prov')">Proveedores</button>
+      <button id="cmpTabHist" onclick="verTabCompras('hist')">Historial</button>
+      <button id="cmpTabPrec" onclick="verTabCompras('prec')">Precios</button>
+    </div>
+
+    <div id="cmpNueva">
+      <div class="campo"><label>Proveedor</label>
+        <div id="cmpProvElegido"></div>
+        <div id="cmpProvBuscar">
+          <div class="cmp-fila"><input type="text" id="cmpProvInput" placeholder="🔍 Busca el proveedor" autocomplete="off" oninput="sugerirProveedores()">
+            <button onclick="formProveedor()">➕ Nuevo</button></div>
+          <div class="cmp-sug" id="cmpProvSug"></div>
+        </div>
+      </div>
+      <div class="caja-form oculto" id="cmpProvForm">
+        <b>Nuevo proveedor</b>
+        <div class="campo" style="margin-top:8px;"><label>Nombre</label><input type="text" id="pvNombre" maxlength="80"></div>
+        <div class="cmp-fila" style="margin-bottom:10px;"><input type="tel" id="pvTel" placeholder="Teléfono"><input type="text" id="pvContacto" placeholder="Contacto / vendedor"></div>
+        <div class="campo"><label>Días de crédito (0 = de contado)</label><input type="number" id="pvDias" min="0" step="1" value="0"></div>
+        <div style="display:flex;gap:8px;"><button class="btn-confirmar" style="margin-top:0" onclick="guardarProveedorNuevo()">Guardar proveedor</button>
+          <button class="btn-cerrar" style="margin-top:0" onclick="document.getElementById('cmpProvForm').classList.add('oculto')">Cancelar</button></div>
+      </div>
+      <div style="font-size:13px;color:#aaa;margin:4px 0 10px;" id="cmpRecibe"></div>
+      <div class="campo"><label>Productos</label>
+        <input type="text" id="cmpBuscar" placeholder="🔍 Agrega productos: busca por nombre o ID" autocomplete="off" oninput="sugerirProductosCompra()" style="width:100%;padding:12px;border-radius:8px;border:none;font-size:16px;">
+        <div class="cmp-sug" id="cmpProdSug"></div>
+      </div>
+      <div id="cmpLineas"></div>
+      <div class="cmp-total"><span>Total</span><span id="cmpTotal">$0.00</span></div>
+      <div class="cmp-fila" style="margin-bottom:10px;"><input type="text" id="cmpFactura" placeholder="Factura / nota del proveedor" maxlength="60"><input type="text" id="cmpNotas" placeholder="Notas" maxlength="300"></div>
+      <div class="cmp-metodos" id="cmpMetodos"></div>
+      <div class="caja-form oculto" id="cmpCredito">
+        <div class="cmp-fila" style="margin-bottom:8px;"><label style="flex:1;font-size:12px;color:#aaa;">Anticipo<input type="number" id="cmpAnticipo" min="0" step="0.5" inputmode="decimal" placeholder="0" style="width:100%;margin-top:4px;"></label>
+          <label style="flex:1;font-size:12px;color:#aaa;">Pagado con<select id="cmpAnticipoMetodo" style="width:100%;margin-top:4px;">
+            <option value="caja">Efectivo de caja</option><option value="efectivo">Efectivo (fuera de caja)</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option></select></label></div>
+        <label style="font-size:12px;color:#aaa;">Fecha para pagar<input type="date" id="cmpVence" style="width:100%;margin-top:4px;padding:9px;border-radius:8px;border:none;"></label>
+      </div>
+      <button class="btn-confirmar" id="btnGuardarCompra" onclick="guardarCompra()">✅ Guardar compra</button>
+    </div>
+
+    <div id="cmpProv" class="oculto">
+      <div class="cmp-fila" style="margin-bottom:10px;"><input type="text" id="provFiltro" placeholder="🔍 Buscar proveedor" oninput="pintarProveedores()"><button onclick="verTabCompras('nueva'); formProveedor()">➕ Nuevo</button></div>
+      <div id="provLista"></div>
+      <div id="provDetalle" class="oculto"></div>
+    </div>
+
+    <div id="cmpHist" class="oculto">
+      <div class="cmp-fila" style="margin-bottom:10px;"><select id="histProv" onchange="cargarHistorialCompras()"></select></div>
+      <div id="histLista"></div>
+    </div>
+
+    <div id="cmpPrec" class="oculto">
+      <div class="cmp-fila" style="margin-bottom:6px;"><input type="text" id="precFiltro" placeholder="🔍 Buscar producto" oninput="pintarListaPrecios()"><select id="precListaTab" onchange="pintarListaPrecios()"></select></div>
+      <p style="font-size:12px;color:#aaa;margin-bottom:8px;">Toca un producto para cambiar sus precios. El margen se calcula con el último costo de compra.</p>
+      <div id="precLista"></div>
+    </div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCompras')">Cerrar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalPrecios">
+  <div class="modal-box ancho">
+    <h2 id="precTitulo">💲 Precios</h2>
+    <p style="font-size:13px;color:#ccc;margin-bottom:10px;" id="precIntro"></p>
+    <div class="campo"><label>Lista de precios a editar</label><select id="precLista2" onchange="cambiarListaEditor()"></select></div>
+    <div id="precEditor"></div>
+    <button class="btn-confirmar" onclick="guardarPrecios()">💾 Guardar precios</button>
+    <button class="btn-cerrar" onclick="cerrarEditorPrecios()" id="precCerrar">Ahora no</button>
+  </div>
+</div>
+
+<div class="modal" id="modalGuardarCot">
+  <div class="modal-box">
+    <h2>📝 Guardar cotización</h2>
+    <div class="cambio-box" style="background:#9b59b6;color:#fff;"><div class="lbl">TOTAL COTIZADO</div><div class="val" id="gcTotal">$0.00</div></div>
+    <div class="campo"><label>Cliente</label><input type="text" id="gcCliente" maxlength="60" placeholder="Público general"></div>
+    <div class="campo"><label>Precios válidos por</label><select id="gcVigencia">
+      <option value="3">3 días</option><option value="7" selected>7 días</option><option value="15">15 días</option><option value="30">30 días</option></select></div>
+    <div class="campo"><label>Notas (salen impresas)</label><input type="text" id="gcNotas" maxlength="300" placeholder="Ej. entrega a domicilio sin costo"></div>
+    <button class="btn-confirmar" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);" onclick="guardarCotizacion()">🖨️ Guardar e imprimir</button>
+    <button class="btn-cerrar" onclick="cerrarModal('modalGuardarCot')">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal" id="modalCotizaciones">
+  <div class="modal-box ancho">
+    <h2>📝 Cotizaciones</h2>
+    <div class="cmp-fila" style="margin-bottom:8px;"><input type="text" id="cotBuscar" placeholder="🔍 Buscar por cliente o folio" oninput="pintarCotizaciones()">
+      <select id="cotFiltro" onchange="pintarCotizaciones()"><option value="VIGENTE">Vigentes</option><option value="VENCIDA">Vencidas</option><option value="VENDIDA">Vendidas</option><option value="">Todas</option></select></div>
+    <div id="cotLista"></div>
+    <button class="btn-cerrar" onclick="cerrarModal('modalCotizaciones')">Cerrar</button>
   </div>
 </div>
 
@@ -1111,14 +1436,16 @@ const ORIGENES_ENTRADA = ['Producción / elaboración', 'Proveedor', 'Devolució
 // (excepciones por persona). La app los recibe al iniciar sesión. Estos son solo los valores
 // por omisión mientras no hay conexión.
 const PERMISOS_DEFECTO = {
-  cajero:   ['VENDER', 'ABONOS'],
-  vendedor: ['VENDER'],
-  almacen:  ['VALES']
+  cajero:   ['VENDER', 'ABONOS', 'PEDIDOS', 'SALIDAS_CAJA'],
+  vendedor: ['VENDER', 'PEDIDOS'],
+  almacen:  ['VALES', 'COMPRAS']
 };
 const NOMBRES_PERMISO = {
   VENDER: 'Vender', CAMBIAR_SUCURSAL: 'Cambiar sucursal', CAMBIAR_LISTA_CLIENTE: 'Lista de precios de clientes', ABONOS: 'Abonos',
   CAMBIAR_PRECIO: 'Cambiar precios en ticket', AUTORIZAR_CREDITO: 'Dar crédito', VALES: 'Vales',
-  COBRAR_VALES: 'Cobrar vales', CAMBIAR_ESCALA: 'Elegir escala de precio'
+  COBRAR_VALES: 'Cobrar vales', CAMBIAR_ESCALA: 'Elegir escala de precio',
+  PEDIDOS: 'Pedidos del catálogo', APROBAR_CLIENTES: 'Aprobar cuentas del catálogo',
+  SALIDAS_CAJA: 'Salidas de efectivo de la caja', COMPRAS: 'Compras y proveedores', EDITAR_PRECIOS: 'Cambiar precios de la lista'
 };
 function misPermisos() {
   if (!sesion || !sesion.usuario) return [];
@@ -1490,10 +1817,22 @@ function agregar(id, como) {
       cantidad: 1  // ✅ 1 kg inicial para granel
     });
   }
+  // 🆕 botones rápidos (100 g, 250 g, 500 g) solo en la última línea a granel agregada
+  lineaRapida = granel ? carrito.find(x => String(x.ID) === String(id) && !x.pres && !x.deVale) : null;
   despuesDeAgregar(p);
+}
+let lineaRapida = null;
+const GRAMOS_RAPIDOS = [0.1, 0.25, 0.5];
+function cantidadRapida(idx, kg) {
+  const it = carrito[idx];
+  if (!it) return;
+  it.importeFijo = null;
+  it.cantidad = kg;
+  renderTicket();
 }
 
 function agregarPresentacion(p, pres) {
+  lineaRapida = null;
   const ex = carrito.find(x => String(x.ID) === String(p.ID) && x.pres && !x.deVale);
   if (ex) { ex.cajas++; ex.cantidad = Math.round(ex.cajas * pres.contenido * 1000) / 1000; }
   else {
@@ -1510,7 +1849,7 @@ function despuesDeAgregar(p) {
   // Vender con aviso si no hay existencia en este punto (suma sueltos + cajas del mismo producto)
   const enTicket = carrito.filter(x => String(x.ID) === String(p.ID)).reduce((s, x) => s + x.cantidad, 0);
   const disp = stockPunto(p);
-  if (enTicket > disp) aviso(`⚠️ ${p.NOMBRE}: hay ${Math.round(disp*1000)/1000} en existencia${obtenerPunto() ? ' en ' + PUNTOS[obtenerPunto()] : ''}`);
+  if (enTicket > disp && !modoCot) aviso(`⚠️ ${p.NOMBRE}: hay ${Math.round(disp*1000)/1000} en existencia${obtenerPunto() ? ' en ' + PUNTOS[obtenerPunto()] : ''}`);
   if (window.innerWidth <= 900) {
     document.getElementById('ticketPanel').classList.add('abierto');
   }
@@ -1753,6 +2092,8 @@ function renderTicket() {
         <div class="item-info">
           <div class="n">${it.granel?'⚖️ ':''}${it.NOMBRE}</div>
           <div class="p ${it.precioManual != null ? 'precio-manual' : ''}">${precioHTML(it, i, pu, it.granel ? '/kg' : 'c/u')}${it.precioManual != null ? ` <s style="opacity:.6">$${it.precioOriginal.toFixed(2)}</s>` : ''}</div>
+          ${it.granel && it === lineaRapida ? `<div class="gramos-rapidos">${GRAMOS_RAPIDOS.map(kg =>
+            `<button class="${Math.abs(it.cantidad - kg) < 0.0005 ? 'sel' : ''}" onclick="event.stopPropagation(); cantidadRapida(${i}, ${kg})">${kg * 1000} g</button>`).join('')}</div>` : ''}
         </div>
         <div class="cant">
           <button class="menos" onclick="cambiarCantidad(${i},-1)">−</button>
@@ -1781,6 +2122,9 @@ function cancelarTicket() {
 }
 function limpiarTicket() {
   carrito = [];
+  cotizacionTicket = null;
+  lineaRapida = null;
+  pedidoTicket = null;
   autPrecioVenta = null;
   autEscalaVenta = null;
   autValesVenta = null;
@@ -1799,7 +2143,7 @@ function siguienteFolio(prefijo = 'V', clave = FOLIO_KEY) {
   return { hoy, n, folio: `${prefijo}-${obtenerDispositivo()}-${hoy}-${String(n).padStart(3,'0')}` };
 }
 function generarFolio() {
-  const { folio } = siguienteFolio();
+  const { folio } = modoCot ? siguienteFolio('COT', 'pos_folio_cot') : siguienteFolio();
   document.getElementById('folioActual').textContent = folio;
   return folio;
 }
@@ -1812,7 +2156,9 @@ function consumirFolio(prefijo = 'V', clave = FOLIO_KEY) {
 // ================== COBRO ==================
 function abrirCobro() {
   if (!carrito.length) return;
+  if (modoCot) { abrirGuardarCot(); return; }
   if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
+  if (!turnoActual()) { pedirAbrirCaja('Para cobrar, primero abre tu caja.', abrirCobro); return; }
   const total = getTotal();
   document.getElementById('totalCobrar').value = '$' + total.toFixed(2);
   document.getElementById('pagoCon').value = '';
@@ -1884,6 +2230,23 @@ function calcularCambio() {
   }
 }
 
+// Productos del ticket como se guardan (venta o cotización)
+function itemsDelCarrito() {
+  return carrito.map(it => ({
+    ID: it.ID, NOMBRE: it.NOMBRE,
+    cantidad: it.cantidad,                       // siempre en kg o piezas (lo que se descuenta del inventario)
+    granel: it.granel || false,
+    precio: it.pres ? Math.round(subtotalItem(it) / it.cantidad * 100) / 100 : calcularPrecio(it),
+    subtotal: subtotalItem(it),
+    ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
+    ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {}),
+    ...(it.deVale ? { deVale: it.deVale } : {}),
+    ...(it.dePedido && (it.precioManual == null || it.autorizoPrecio === 'Precio del pedido') ? { dePedido: it.dePedido } : {}),
+    ...(it.deCotizacion && (it.precioManual == null || it.autorizoPrecio === 'Precio de cotización') ? { deCotizacion: it.deCotizacion } : {}),
+    ...(it.escala && it.precioManual == null ? { escala: it.escala } : {})
+  }));
+}
+
 function confirmarCobro() {
   if (!sesion) { mostrarLogin('Inicia sesión para registrar la venta'); return; }
   if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
@@ -1932,20 +2295,13 @@ function confirmarCobro() {
     clienteId: clienteSel ? clienteSel.id : '',
     ...(metodoPago === 'credito' ? { anticipo, anticipoMetodo, saldo: Math.round((total - anticipo) * 100) / 100,
                                      vence: venceCredito(clienteSel) } : {}),
-    items: carrito.map(it => ({
-      ID: it.ID, NOMBRE: it.NOMBRE,
-      cantidad: it.cantidad,                       // siempre en kg o piezas (lo que se descuenta del inventario)
-      granel: it.granel || false,
-      precio: it.pres ? Math.round(subtotalItem(it) / it.cantidad * 100) / 100 : calcularPrecio(it),
-      subtotal: subtotalItem(it),
-      ...(it.pres ? { presentacion: it.pres.nombre, cantPresentacion: it.cajas, contenido: it.pres.contenido } : {}),
-      ...(it.precioManual != null ? { precioOriginal: Math.round(it.precioOriginal * 100) / 100, autorizoPrecio: it.autorizoPrecio } : {}),
-      ...(it.deVale ? { deVale: it.deVale } : {}),
-      ...(it.escala && it.precioManual == null ? { escala: it.escala } : {})
-    })),
+    items: itemsDelCarrito(),
     ...(autEscalaVenta && carrito.some(it => it.escala && !it.deVale) ? { autEscala: autEscalaVenta } : {}),
     ...(valesEnTicket().length ? { valesOrigen: valesEnTicket(), autVales: autValesVenta } : {}),
     lista: listaPrecios(),
+    turno: turnoActual() ? turnoActual().folio : '',
+    ...(pedidoTicket ? { pedido: pedidoTicket } : {}),
+    ...(cotizacionTicket ? { cotizacion: cotizacionTicket } : {}),
     ...(autPrecioVenta && carrito.some(it => it.precioManual != null) ? { autPrecio: autPrecioVenta } : {}),
     total,
     metodoPago,
@@ -1962,6 +2318,8 @@ function confirmarCobro() {
   ventaActual = venta;
   moverStockLocal(venta.items.filter(it => !it.deVale), -1);   // lo de vales ya salió del inventario
   if (venta.metodoPago === 'credito') sumarSaldoLocal(venta.clienteId, venta.saldo);
+  if (venta.pedido) { const pd = pedidosCat.find(x => x.folio === venta.pedido); if (pd) pd.estado = 'ENTREGADO'; pedidoTicket = null; pintarBotonPedidos(); }
+  if (venta.cotizacion) { marcarCotLocal(venta.cotizacion, venta.folio); cotizacionTicket = null; }
   cerrarModal('modalCobro');
   generarTicketImagen(venta);
   enviarPendientes();
@@ -1973,7 +2331,8 @@ function confirmarCobro() {
 //  opciones.bn  -> true = blanco y negro puro (para impresora térmica)
 function dibujarTicket(venta, opciones) {
   const { W = 500, bn = false } = opciones || {};
-  const f = W / 500 * (bn ? 1.25 : 1);     // escala de letra (más grande al imprimir)
+  // escala de letra: en pantalla depende del ancho; al imprimir, del tamaño elegido (igual en 58 y 80 mm)
+  const f = bn ? escalaImpresion() : W / 500;
   const M = Math.round(W * 0.05);          // margen lateral
   const px = n => Math.round(n * f) + 'px';
   const C = bn
@@ -1983,8 +2342,9 @@ function dibujarTicket(venta, opciones) {
   // Canvas temporal alto; al final se recorta a la altura real usada
   const tmp = document.createElement('canvas');
   tmp.width = W;
-  tmp.height = Math.round((600 + venta.items.length * 60) * Math.max(f, 1));
+  tmp.height = Math.round((1000 + venta.items.length * 120) * Math.max(f, 1));
   const ctx = tmp.getContext('2d');
+  if (bn) negritasImpresion(ctx);
   ctx.fillStyle = '#fff';
   ctx.fillRect(0, 0, tmp.width, tmp.height);
 
@@ -1995,10 +2355,11 @@ function dibujarTicket(venta, opciones) {
     ctx.beginPath(); ctx.moveTo(M*0.7, y); ctx.lineTo(W - M*0.7, y); ctx.stroke();
     ctx.setLineDash([]);
   };
+  // devuelve el alto extra si el valor tuvo que bajar de renglón
   const fila = (izq, der, y, font, colorDer) => {
     ctx.font = font;
-    ctx.textAlign = 'left';  ctx.fillStyle = C.texto; ctx.fillText(izq, M, y);
-    ctx.textAlign = 'right'; ctx.fillStyle = colorDer || C.texto; ctx.fillText(der, W - M, y);
+    ctx.fillStyle = colorDer || C.texto;
+    return filaLR(ctx, izq, der, y, M, W - M, Math.round(20 * f));
   };
 
   if (C.barra) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 8); }
@@ -2011,7 +2372,9 @@ function dibujarTicket(venta, opciones) {
   y += Math.round(24 * f);
   ctx.font = px(13) + ' Arial';
   ctx.fillStyle = C.sub;
-  ctx.fillText('Ticket de venta', W/2, y);
+  ctx.textAlign = 'center';
+  if (venta.esCotizacion) { ctx.font = 'bold ' + px(17) + ' Arial'; ctx.fillStyle = C.titulo; }
+  ctx.fillText(venta.esCotizacion ? 'COTIZACIÓN' : 'Ticket de venta', W/2, y);
   y += Math.round(24 * f);
   raya(y, true);
   y += Math.round(22 * f);
@@ -2024,13 +2387,15 @@ function dibujarTicket(venta, opciones) {
   ctx.font = px(13) + ' Arial';
   ctx.fillStyle = C.texto;
   ctx.textAlign = 'left';
-  [['Folio:', venta.folio], ['Fecha:', fechaStr], ['Cliente:', venta.cliente.substring(0,28)],
+  [['Folio:', venta.folio], ['Fecha:', fechaStr], ['Cliente:', bn ? venta.cliente : venta.cliente.substring(0,28)],
    ...(venta.punto && PUNTOS[venta.punto] ? [['Sucursal:', PUNTOS[venta.punto]]] : []),
    ...(venta.valesOrigen && venta.valesOrigen.length ? partirFolios(venta.valesOrigen.map(x => x.folio)) : []),
-   ['Pago:', metodos[venta.metodoPago]],
+   ...(venta.esCotizacion ? (venta.vence ? [['Vigencia:', 'hasta ' + fechaCorta(venta.vence)]] : []) : [['Pago:', metodos[venta.metodoPago]]]),
    ...(venta.usuario ? [['Atendió:', String(venta.usuario.nombre || '').substring(0,28)]] : [])].forEach(([k, v]) => {
-    ctx.fillText(k, M, y); ctx.fillText(v, colVal, y);
-    y += Math.round(18 * f);
+    ctx.textAlign = 'left';
+    ctx.fillText(k, M, y);
+    // el valor se parte en renglones si no cabe (letra grande)
+    partirTexto(ctx, String(v), W - M - colVal).forEach((l, i) => { ctx.fillText(l, colVal, y); y += Math.round(18 * f); });
   });
   y += Math.round(6 * f);
   raya(y, true);
@@ -2040,16 +2405,34 @@ function dibujarTicket(venta, opciones) {
   const colCant = Math.round(W * 0.66);
   ctx.font = 'bold ' + px(13) + ' Arial';
   ctx.fillStyle = C.titulo;
-  ctx.textAlign = 'left';   ctx.fillText('Producto', M, y);
-  ctx.textAlign = 'center'; ctx.fillText('Cant', colCant, y);
+  ctx.textAlign = 'left';   ctx.fillText(bn ? 'Producto / Cantidad' : 'Producto', M, y);
+  if (!bn) { ctx.textAlign = 'center'; ctx.fillText('Cant', colCant, y); }
   ctx.textAlign = 'right';  ctx.fillText('Importe', W - M, y);
   y += Math.round(6 * f);
   raya(y, false, C.titulo);
   y += Math.round(20 * f);
 
-  // Productos (el nombre se recorta para que no choque con la columna Cant)
+  // Al imprimir: nombre completo en un renglón y abajo "cantidad x precio ...... importe"
+  if (bn) venta.items.forEach(it => {
+    ctx.font = px(13) + ' Arial'; ctx.fillStyle = C.texto; ctx.textAlign = 'left';
+    partirTexto(ctx, it.NOMBRE, W - 2 * M).forEach(l => { ctx.fillText(l, M, y); y += Math.round(17 * f); });
+    const u = it.granel ? 'kg' : 'pzas';
+    const cant = it.presentacion
+      ? `${textoPres(it.cantPresentacion, { nombre: it.presentacion })} x $${(it.subtotal / it.cantPresentacion).toFixed(2)}`
+      : it.granel ? `${Math.round(it.cantidad * 1000) / 1000} kg x $${Number(it.precio).toFixed(2)}`
+                  : `${it.cantidad} x $${Number(it.precio).toFixed(2)}`;
+    ctx.font = px(12) + ' Arial';
+    y += filaLR(ctx, '  ' + cant, '$' + it.subtotal.toFixed(2), y, M, W - M, Math.round(17 * f));
+    if (it.presentacion) {
+      y += Math.round(16 * f);
+      ctx.font = px(11) + ' Arial'; ctx.textAlign = 'left';
+      ctx.fillText(`  (= ${Math.round(it.cantidad * 1000) / 1000} ${u})`, M, y);
+    }
+    y += Math.round(24 * f);
+  });
+  // En pantalla: columnas (el nombre se recorta para que no choque con la columna Cant)
   const anchoNombre = colCant - M - Math.round(30 * f);
-  venta.items.forEach(it => {
+  if (!bn) venta.items.forEach(it => {
     ctx.font = px(13) + ' Arial';
     ctx.fillStyle = C.texto;
     let nom = it.NOMBRE;
@@ -2077,23 +2460,22 @@ function dibujarTicket(venta, opciones) {
 
   ctx.font = 'bold ' + px(22) + ' Arial';
   ctx.textAlign = 'left';  ctx.fillStyle = C.titulo; ctx.fillText('TOTAL', M, y);
-  ctx.textAlign = 'right'; ctx.fillStyle = C.verde;  ctx.fillText('$' + venta.total.toFixed(2), W - M, y);
+  ctx.fillStyle = C.verde;
+  ajustarFuente(ctx, '$' + venta.total.toFixed(2), W - 2 * M - ctx.measureText('TOTAL ').width);
+  ctx.textAlign = 'right'; ctx.fillText('$' + venta.total.toFixed(2), W - M, y);
   y += Math.round(32 * f);
 
   if (venta.metodoPago === 'efectivo' || venta.metodoPago === 'mixto') {
     if (venta.detalleMixto) {
-      fila('Efectivo:', '$' + venta.detalleMixto.efectivo.toFixed(2), y, px(14) + ' Arial');
+      y += fila('Efectivo:', '$' + venta.detalleMixto.efectivo.toFixed(2), y, px(14) + ' Arial');
       y += Math.round(22 * f);
-      fila(metodos[venta.detalleMixto.tipoOtro] + ':', '$' + venta.detalleMixto.otro.toFixed(2), y, px(14) + ' Arial');
+      y += fila(metodos[venta.detalleMixto.tipoOtro] + ':', '$' + venta.detalleMixto.otro.toFixed(2), y, px(14) + ' Arial');
       y += Math.round(22 * f);
     }
-    fila('Pago con:', '$' + venta.pagoCon.toFixed(2), y, px(14) + ' Arial');
+    y += fila('Pago con:', '$' + venta.pagoCon.toFixed(2), y, px(14) + ' Arial');
     y += Math.round(22 * f);
     if (venta.cambio > 0) {
-      ctx.font = 'bold ' + px(16) + ' Arial';
-      ctx.fillStyle = C.verde;
-      ctx.textAlign = 'left';  ctx.fillText('CAMBIO:', M, y);
-      ctx.textAlign = 'right'; ctx.fillText('$' + venta.cambio.toFixed(2), W - M, y);
+      y += fila('CAMBIO:', '$' + venta.cambio.toFixed(2), y, 'bold ' + px(16) + ' Arial', C.verde);
       y += Math.round(26 * f);
     }
   }
@@ -2102,20 +2484,16 @@ function dibujarTicket(venta, opciones) {
     ctx.font = px(12) + ' Arial';
     ctx.fillStyle = C.sub;
     ctx.textAlign = 'left';
-    ctx.fillText('Ref: ' + venta.referencia, M, y);
-    y += Math.round(20 * f);
+    partirTexto(ctx, 'Ref: ' + venta.referencia, W - 2 * M).forEach(l => { ctx.fillText(l, M, y); y += Math.round(20 * f); });
   }
 
   if (venta.metodoPago === 'credito') {
     if (venta.anticipo > 0) {
-      fila(`Anticipo (${metodos[venta.anticipoMetodo] || venta.anticipoMetodo}):`, '$' + venta.anticipo.toFixed(2), y, px(14) + ' Arial');
+      y += fila(`Anticipo (${metodos[venta.anticipoMetodo] || venta.anticipoMetodo}):`, '$' + venta.anticipo.toFixed(2), y, px(14) + ' Arial');
       y += Math.round(22 * f);
     }
-    ctx.font = 'bold ' + px(17) + ' Arial';
-    ctx.fillStyle = C.titulo;
-    ctx.textAlign = 'left';  ctx.fillText('SALDO A CRÉDITO:', M, y);
-    ctx.textAlign = 'right'; ctx.fillText('$' + venta.saldo.toFixed(2), W - M, y);
-    y += Math.round(22 * f);
+    y += fila('SALDO A CRÉDITO:', '$' + venta.saldo.toFixed(2), y, 'bold ' + px(17) + ' Arial', C.titulo);
+    y += Math.round(24 * f);
     if (venta.vence) {
       ctx.font = px(13) + ' Arial'; ctx.textAlign = 'left'; ctx.fillStyle = C.texto;
       ctx.fillText('Fecha de pago: ' + fechaCorta(venta.vence), M, y);
@@ -2126,8 +2504,10 @@ function dibujarTicket(venta, opciones) {
     ctx.strokeStyle = C.titulo; ctx.lineWidth = bn ? 2 : 1;
     ctx.beginPath(); ctx.moveTo(W * 0.2, y); ctx.lineTo(W * 0.8, y); ctx.stroke();
     ctx.textAlign = 'center'; ctx.font = 'bold ' + px(12) + ' Arial'; ctx.fillStyle = C.titulo;
+    ajustarFuente(ctx, venta.cliente, W - 2 * M);
     ctx.fillText(venta.cliente.substring(0, 34), W / 2, y + Math.round(16 * f));
     ctx.font = px(10) + ' Arial'; ctx.fillStyle = C.sub;
+    ajustarFuente(ctx, 'Acepto el adeudo de esta nota', W - 2 * M);
     ctx.fillText('Acepto el adeudo de esta nota', W / 2, y + Math.round(30 * f));
     y += Math.round(40 * f);
   }
@@ -2136,10 +2516,22 @@ function dibujarTicket(venta, opciones) {
   ctx.textAlign = 'center';
   ctx.font = 'italic ' + px(14) + ' Arial';
   ctx.fillStyle = C.sub;
-  ctx.fillText('¡Gracias por su compra!', W/2, y);
+  if (venta.esCotizacion) {
+    ctx.font = px(12) + ' Arial'; ctx.fillStyle = C.texto;
+    const avisos = [...(venta.notas ? ['Notas: ' + venta.notas] : []),
+      `Precios válidos${venta.vence ? ' hasta el ' + fechaCorta(venta.vence) : ''}, sujetos a existencia.`,
+      'Este documento no es un comprobante de venta.'];
+    avisos.forEach(t => { partirTexto(ctx, t, W - 2 * M).forEach(l => { ctx.fillText(l, W / 2, y); y += Math.round(17 * f); }); y += Math.round(4 * f); });
+    y += Math.round(10 * f);
+    ctx.font = 'italic ' + px(14) + ' Arial'; ctx.fillStyle = C.sub;
+  }
+  const gracias = venta.esCotizacion ? '¡Gracias por su preferencia!' : '¡Gracias por su compra!';
+  ajustarFuente(ctx, gracias, W - 2 * M);
+  ctx.fillText(gracias, W/2, y);
   y += Math.round(20 * f);
   ctx.font = px(11) + ' Arial';
   ctx.fillStyle = C.gris;
+  ajustarFuente(ctx, nombreTicket(venta.punto), W - 2 * M);
   ctx.fillText(nombreTicket(venta.punto), W/2, y);
   y += Math.round(bn ? 40 : 22) ;  // al imprimir deja espacio para cortar el papel
 
@@ -2149,15 +2541,56 @@ function dibujarTicket(venta, opciones) {
   out.width = W; out.height = H;
   const octx = out.getContext('2d');
   octx.drawImage(tmp, 0, 0);
-  if (C.barra) { octx.fillStyle = '#f4a261'; octx.fillRect(0, H - 8, W, 8); }
+  if (C.barra) { octx.fillStyle = (window.COLOR_ACENTO || '#f4a261'); octx.fillRect(0, H - 8, W, 8); }
   return new Promise(res => out.toBlob(res, 'image/png'));
 }
 
 async function generarTicketImagen(venta) {
   ticketBlob = await dibujarTicket(venta, { W: 500, bn: false });
   document.getElementById('ticketImg').src = URL.createObjectURL(ticketBlob);
+  document.getElementById('tgTitulo').textContent = venta.esCotizacion ? (ticketReimpresion ? '📝 Cotización' : '✅ Cotización guardada') : (ticketReimpresion ? '🧾 Ticket' : '✅ Venta Registrada');
+  document.querySelector('#modalTicketGen .btn-imprimir').textContent = venta.esCotizacion ? '🖨️ Imprimir cotización' : '🖨️ Imprimir ticket';
+  document.getElementById('tgNuevo').textContent = ticketReimpresion ? 'Cerrar' : venta.esCotizacion ? '🆕 Nueva cotización' : '🆕 Nueva Venta';
   document.getElementById('anchoPapel').value = almacen.getItem(PAPEL_KEY) || '58';
+  document.querySelectorAll('.sel-letra').forEach(x => x.value = letraImpresion());
   document.getElementById('modalTicketGen').classList.add('activo');
+}
+
+// ================== TAMAÑO DE LETRA AL IMPRIMIR ==================
+// Escala de la letra en tickets, vales y abonos impresos (no cambia la vista en pantalla).
+// normal = como antes; grande ≈ letra de ticket de tienda; extra = para vista cansada.
+const LETRA_KEY = 'pos_letra';
+const ESCALAS_LETRA = { normal: 1.0, grande: 1.55, extra: 1.85 };
+function letraImpresion() { return almacen.getItem(LETRA_KEY) || 'grande'; }
+function escalaImpresion() { return ESCALAS_LETRA[letraImpresion()] || ESCALAS_LETRA.grande; }
+function guardarLetra(v) {
+  almacen.setItem(LETRA_KEY, v);
+  document.querySelectorAll('.sel-letra').forEach(x => x.value = v);
+}
+// Al imprimir, todo el texto en negritas (sale más oscuro en papel térmico)
+function negritasImpresion(ctx) {
+  const d = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'font');
+  Object.defineProperty(ctx, 'font', {
+    configurable: true,
+    get() { return d.get.call(ctx); },
+    set(v) { d.set.call(ctx, /bold/.test(v) ? v : (/^italic /.test(v) ? v.replace(/^italic /, 'italic bold ') : 'bold ' + v)); }
+  });
+}
+// Reduce la letra actual hasta que el texto quepa en maxW
+function ajustarFuente(ctx, texto, maxW, minPx) {
+  let t = parseInt((ctx.font.match(/(\d+)px/) || [])[1] || 12);
+  while (t > (minPx || 10) && ctx.measureText(texto).width > maxW) { t--; ctx.font = ctx.font.replace(/\d+px/, t + 'px'); }
+}
+// Texto a la izquierda y valor a la derecha; si no caben juntos, el valor baja al siguiente renglón.
+// Devuelve cuánto alto extra se usó.
+function filaLR(ctx, izq, der, y, x1, x2, alto) {
+  const cabe = ctx.measureText(izq).width + ctx.measureText(der).width + 12 <= x2 - x1;
+  ctx.textAlign = 'left';  ctx.fillText(izq, x1, y);
+  ctx.textAlign = 'right';
+  if (!cabe) { ctx.save(); ajustarFuente(ctx, der, x2 - x1); }
+  ctx.fillText(der, x2, cabe ? y : y + alto);
+  if (!cabe) ctx.restore();
+  return cabe ? 0 : alto;
 }
 
 // ================== IMPRESIÓN TÉRMICA ==================
@@ -2207,7 +2640,10 @@ async function compartirTicket() {
   if (!ticketBlob) return;
   const file = new File([ticketBlob], `ticket-${ventaActual.folio}.png`, {type:'image/png'});
   
-  const texto = `🧾 *Ticket ${ventaActual.folio}*\n` +
+  const texto = ventaActual.esCotizacion
+    ? `📝 *Cotización ${ventaActual.folio}*\nCliente: ${ventaActual.cliente}\nTotal: $${ventaActual.total.toFixed(2)}\n` +
+      (ventaActual.vence ? `Precios válidos hasta el ${fechaCorta(ventaActual.vence)}\n` : '') + `\n¡Gracias por su preferencia!`
+    : `🧾 *Ticket ${ventaActual.folio}*\n` +
     `Cliente: ${ventaActual.cliente}\n` +
     `Total: $${ventaActual.total.toFixed(2)}\n` +
     (ventaActual.cambio > 0 ? `Cambio: $${ventaActual.cambio.toFixed(2)}\n` : '') +
@@ -2248,6 +2684,8 @@ function descargarBlob(blob, nombre) {
 
 function nuevaVenta() {
   carrito = [];
+  cotizacionTicket = null;
+  pedidoTicket = null;
   autPrecioVenta = null;
   autEscalaVenta = null;
   autValesVenta = null;
@@ -2528,10 +2966,17 @@ function leerHistorial() { return leerJSON(almacen, VENTAS_KEY, []); }
 // El orden importa: primero los clientes nuevos, luego ventas (crean notas) y al final abonos.
 const COLAS = [
   { clave: CLIENTES_NUEVOS_KEY, accion: 'clientes_nuevos', campo: 'clientes', nombre: 'clientes' },
+  { clave: 'pos_cotizaciones', accion: 'cotizaciones', campo: 'cotizaciones', nombre: 'cotizaciones' },
   { clave: VENTAS_KEY, accion: 'ventas', campo: 'ventas', nombre: 'ventas' },
   { clave: VALES_KEY,  accion: 'vales',  campo: 'vales',  nombre: 'vales' },
   { clave: ABONOS_KEY, accion: 'abonos', campo: 'abonos', nombre: 'abonos' },
-  { clave: 'pos_etiquetas', accion: 'etiquetas', campo: 'etiquetas', nombre: 'registros de etiquetas' }
+  { clave: 'pos_etiquetas', accion: 'etiquetas', campo: 'etiquetas', nombre: 'registros de etiquetas' },
+  { clave: 'pos_caja_mov', accion: 'caja_movimientos', campo: 'movimientos', nombre: 'movimientos de caja' },
+  { clave: 'pos_cortes', accion: 'cortes', campo: 'cortes', nombre: 'cortes de caja' },
+  { clave: 'pos_proveedores_nuevos', accion: 'proveedores_nuevos', campo: 'proveedores', nombre: 'proveedores', permiso: 'COMPRAS' },
+  { clave: 'pos_compras', accion: 'compras', campo: 'compras', nombre: 'compras', permiso: 'COMPRAS' },
+  { clave: 'pos_pagos_prov', accion: 'pagos_proveedor', campo: 'pagos', nombre: 'pagos a proveedores', permiso: 'COMPRAS' },
+  { clave: 'pos_precios', accion: 'precios', campo: 'cambios', nombre: 'cambios de precio' }
 ];
 function pendientesDe(clave) {
   return leerJSON(almacen, clave, []).filter(v => v.pendiente && !v.sincronizada);
@@ -2562,6 +3007,7 @@ async function enviarPendientes(manual) {
       const pendientes = pendientesDe(cola.clave);
       // Los vales solo los puede subir un usuario con permiso de vales
       if (cola.accion === 'vales' && !puedeHacerVales()) { if (pendientes.length) huboError = true; continue; }
+      if (cola.permiso && !tengoPermiso(cola.permiso)) { if (pendientes.length) huboError = true; continue; }
       for (let i = 0; i < pendientes.length; i += 25) {
         const lote = pendientes.slice(i, i + 25).map(v => {
           const { pendiente, sincronizada, ...datos } = v;
@@ -2588,6 +3034,7 @@ async function enviarPendientes(manual) {
           if (porFolio[v.folio]) {
             v.sincronizada = true; v.pendiente = false;
             if (!porFolio[v.folio].duplicada) v.resultado = porFolio[v.folio];   // p. ej. a qué notas se aplicó un abono
+            if (porFolio[v.folio].rechazado) aviso(`⚠️ No se aplicó un cambio de precio: ${porFolio[v.folio].error}`);
           }
         });
         almacen.setItem(cola.clave, JSON.stringify(lista));
@@ -2670,7 +3117,10 @@ function codigoPunto(nombre) {
 function aplicarPermisosUI() {
   const vende = tengoPermiso('VENDER'), vales = puedeHacerVales();
   document.getElementById('btnVales').classList.toggle('oculto', !(vende && vales));
-  ['btnHistorial', 'btnClientes', 'btnIrVentas'].forEach(id => document.getElementById(id).classList.toggle('oculto', !vende));
+  ['btnHistorial', 'btnClientes', 'btnIrVentas', 'btnCaja', 'btnCotizar'].forEach(id => document.getElementById(id).classList.toggle('oculto', !vende));
+  pintarBotonPedidos();
+  pintarBotonCaja();
+  document.getElementById('btnCompras').classList.toggle('oculto', !tengoPermiso('COMPRAS'));
   if (!vende && vales) cambiarModo('vale');
   else if (modo === 'vale' && !vales) cambiarModo('venta');
   if (!vende && !vales) aviso('⚠️ Tu usuario no tiene permisos de venta ni de vales. Pide al administrador que los asigne.');
@@ -2681,6 +3131,7 @@ function puedeHacerVales() {
 
 function cambiarModo(m) {
   if (m === 'vale' && !puedeHacerVales()) return;
+  if (m === 'vale' && modoCot) alternarCotizacion();
   if (m === 'venta' && sesion && !tengoPermiso('VENDER') && puedeHacerVales()) m = 'vale';
   modo = m;
   const vale = m === 'vale';
@@ -2929,6 +3380,7 @@ async function mostrarVale(vale, titulo) {
   document.getElementById('valeGenTitulo').textContent = titulo;
   document.getElementById('btnCerrarValeGen').textContent = valeRecienCreado ? '🆕 Nuevo vale' : 'Cerrar';
   document.getElementById('anchoPapelVale').value = almacen.getItem(PAPEL_KEY) || '58';
+  document.querySelectorAll('.sel-letra').forEach(x => x.value = letraImpresion());
   const etq = etiquetasDe(vale);
   const btnE = document.getElementById('btnEtiquetas'), prev = document.getElementById('etiquetaPreview');
   btnE.classList.toggle('oculto', !etq.length);
@@ -2991,7 +3443,7 @@ function partirTexto(ctx, texto, ancho) {
 
 function dibujarVale(vale, opciones) {
   const { W = 500, bn = false } = opciones || {};
-  const f = W / 500 * (bn ? 1.25 : 1);
+  const f = bn ? escalaImpresion() : W / 500;
   const M = Math.round(W * 0.05);
   const px = n => Math.round(n * f) + 'px';
   const sp = n => Math.round(n * f);
@@ -3001,8 +3453,9 @@ function dibujarVale(vale, opciones) {
 
   const tmp = document.createElement('canvas');
   tmp.width = W;
-  tmp.height = Math.round((900 + vale.items.length * 70) * Math.max(f, 1));
+  tmp.height = Math.round((1400 + vale.items.length * 140) * Math.max(f, 1));
   const ctx = tmp.getContext('2d');
+  if (bn) negritasImpresion(ctx);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
   const raya = (y, punteada, color, grosor) => {
     ctx.strokeStyle = color || C.lin; ctx.lineWidth = grosor || (bn ? 2 : 1);
@@ -3024,6 +3477,7 @@ function dibujarVale(vale, opciones) {
   ctx.fillStyle = bn ? '#000' : C.acento;
   ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
   ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial';
+  ajustarFuente(ctx, banda, W - M * 1.6);
   ctx.fillText(banda, W / 2, y);
   y += sp(30);
 
@@ -3085,6 +3539,7 @@ function dibujarVale(vale, opciones) {
   raya(y - sp(8), false, C.tit);
   y += sp(16);
   ctx.textAlign = 'center'; ctx.font = 'bold ' + px(14) + ' Arial'; ctx.fillStyle = C.tit;
+  ajustarFuente(ctx, resumenCantidades(vale.items), W - 2 * M);
   ctx.fillText(resumenCantidades(vale.items), W / 2, y);
   y += sp(24);
 
@@ -3106,6 +3561,7 @@ function dibujarVale(vale, opciones) {
     ctx.strokeStyle = C.tit; ctx.lineWidth = bn ? 2 : 1;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + anchoFirma, y); ctx.stroke();
     ctx.textAlign = 'center'; ctx.fillStyle = C.tit; ctx.font = 'bold ' + px(12) + ' Arial';
+    ajustarFuente(ctx, rotulo, anchoFirma);
     ctx.fillText(rotulo, x + anchoFirma / 2, y + sp(16));
     ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
     const n = nombre ? partirTexto(ctx, nombre, anchoFirma)[0] : 'Nombre y firma';
@@ -3113,6 +3569,7 @@ function dibujarVale(vale, opciones) {
   });
   y += sp(56);
   ctx.textAlign = 'center'; ctx.font = px(10) + ' Arial'; ctx.fillStyle = C.sub;
+  ajustarFuente(ctx, 'Documento interno · no es comprobante fiscal', W - 2 * M);
   ctx.fillText('Documento interno · no es comprobante fiscal', W / 2, y);
   y += sp(bn ? 40 : 18);
 
@@ -3166,6 +3623,7 @@ function reabrirVale(folio) {
 let traspasosPend = [];
 
 async function revisarTraspasos() {
+  revisarPedidos();
   const btn = document.getElementById('btnRecibir');
   if (!sesion || !sesion.token || !obtenerPunto() || !navigator.onLine) { btn.classList.add('oculto'); return; }
   try {
@@ -3178,6 +3636,7 @@ async function revisarTraspasos() {
   } catch (e) { /* sin conexión: se revisa después */ }
 }
 setInterval(revisarTraspasos, 5 * 60000);
+setInterval(() => revisarPedidos(), 2 * 60000);
 window.addEventListener('online', () => revisarTraspasos());
 
 function abrirRecepciones() {
@@ -3554,6 +4013,7 @@ async function abrirAbono(notaFolio) {
 async function guardarAbono() {
   const monto = Math.round((parseFloat(document.getElementById('abMonto').value) || 0) * 100) / 100;
   if (monto <= 0) { alert('Escribe el monto del abono'); return; }
+  if (metodoAbono === 'efectivo' && !turnoActual()) { pedirAbrirCaja('El abono en efectivo entra a tu caja: primero ábrela.', () => document.getElementById('modalAbono').classList.add('activo')); return; }
   if (monto > edoActual.saldoMostrado + 0.005 &&
       !confirm(`El abono (${pesos(monto)}) es mayor que lo que debe (${pesos(edoActual.saldoMostrado)}). El excedente quedará registrado como "sin aplicar". ¿Continuar?`)) return;
   const btn = document.getElementById('btnGuardarAbono');
@@ -3564,7 +4024,7 @@ async function guardarAbono() {
     referencia: document.getElementById('abRef').value.trim(), notaFolio: document.getElementById('abNota').value,
     saldoAnterior: edoActual.saldoMostrado,
     autorizacion: autAbono && autAbono.autorizacion, autorizo: autAbono && !autAbono.propio ? autAbono.nombre : '',
-    punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
+    punto: obtenerPunto(), dispositivo: obtenerDispositivo(), turno: turnoActual() ? turnoActual().folio : '',
     usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true
   };
   const cola = leerJSON(almacen, ABONOS_KEY, []);
@@ -3582,58 +4042,61 @@ async function guardarAbono() {
 
 function dibujarAbono(a, opciones) {
   const { W = 500, bn = false } = opciones || {};
-  const f = W / 500 * (bn ? 1.25 : 1), M = Math.round(W * 0.05);
+  const f = bn ? escalaImpresion() : W / 500, M = Math.round(W * 0.05);
   const px = n => Math.round(n * f) + 'px', sp = n => Math.round(n * f);
   const C = bn ? { tit: '#000', sub: '#000', txt: '#000', acento: '#000' } : { tit: '#1a1a2e', sub: '#666', txt: '#333', acento: '#2980b9' };
   const tmp = document.createElement('canvas');
-  tmp.width = W; tmp.height = Math.round(1100 * Math.max(f, 1));
+  tmp.width = W; tmp.height = Math.round((1400 + ((a.resultado && a.resultado.aplicado) || []).length * 60) * Math.max(f, 1));
   const ctx = tmp.getContext('2d');
+  if (bn) negritasImpresion(ctx);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
+  // devuelve el alto extra si el valor tuvo que bajar de renglón
   const fila = (k, v, y, negrita) => {
-    ctx.textAlign = 'left'; ctx.font = (negrita ? 'bold ' : '') + px(13) + ' Arial'; ctx.fillStyle = C.txt; ctx.fillText(k, M, y);
-    ctx.textAlign = 'right'; ctx.fillText(v, W - M, y);
+    ctx.font = (negrita ? 'bold ' : '') + px(13) + ' Arial'; ctx.fillStyle = C.txt;
+    return filaLR(ctx, k, String(v), y, M, W - M, sp(18));
   };
   if (!bn) { ctx.fillStyle = C.acento; ctx.fillRect(0, 0, W, 8); }
   let y = sp(38);
   ctx.textAlign = 'center'; ctx.fillStyle = C.tit; ctx.font = 'bold ' + px(24 * (bn ? 0.9 : 1)) + ' Arial';
   encabezado(ctx, nombreTicket(a.punto), W, y, Math.round(24 * (bn ? 0.9 : 1) * f)); y += sp(28);
   ctx.fillStyle = bn ? '#000' : C.acento; ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
-  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial'; ctx.fillText('COMPROBANTE DE ABONO', W / 2, y); y += sp(32);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial'; ctx.textAlign = 'center';
+  ajustarFuente(ctx, 'COMPROBANTE DE ABONO', W - M * 1.6); ctx.fillText('COMPROBANTE DE ABONO', W / 2, y); y += sp(32);
   const fecha = new Date(a.fecha);
   const metodos = { efectivo: 'Efectivo', transferencia: 'Transferencia', tarjeta: 'Tarjeta' };
   [['Folio:', a.folio], ['Fecha:', fecha.toLocaleDateString('es-MX') + ' ' + fecha.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })],
    ['Cliente:', a.cliente.substring(0, 34)], ['Recibió:', a.usuario.nombre], ...(a.punto ? [['Sucursal:', PUNTOS[a.punto] || a.punto]] : []),
    ['Forma de pago:', metodos[a.metodo] || a.metodo], ...(a.referencia ? [['Referencia:', a.referencia]] : [])]
-    .forEach(([k, v]) => { fila(k, v, y); y += sp(19); });
+    .forEach(([k, v]) => { y += fila(k, v, y); y += sp(19); });
   y += sp(16);
   ctx.textAlign = 'center'; ctx.font = px(13) + ' Arial'; ctx.fillStyle = C.sub; ctx.fillText('MONTO RECIBIDO', W / 2, y); y += sp(34);
-  ctx.font = 'bold ' + px(32) + ' Arial'; ctx.fillStyle = C.tit; ctx.fillText(pesos(a.monto), W / 2, y); y += sp(26);
+  ctx.font = 'bold ' + px(32) + ' Arial'; ctx.fillStyle = C.tit; ajustarFuente(ctx, pesos(a.monto), W - 2 * M); ctx.fillText(pesos(a.monto), W / 2, y); y += sp(26);
   ctx.strokeStyle = C.tit; ctx.lineWidth = bn ? 2 : 1;
   ctx.beginPath(); ctx.moveTo(M * 0.7, y); ctx.lineTo(W - M * 0.7, y); ctx.stroke(); y += sp(22);
   if (a.resultado && a.resultado.aplicado) {
     ctx.textAlign = 'left'; ctx.font = 'bold ' + px(13) + ' Arial'; ctx.fillStyle = C.tit; ctx.fillText('Aplicado a:', M, y); y += sp(20);
     a.resultado.aplicado.forEach(x => {
-      fila(`Nota ${x.nota}`, pesos(x.monto), y); y += sp(15);
+      y += fila(`Nota ${x.nota}`, pesos(x.monto), y); y += sp(15);
       ctx.textAlign = 'right'; ctx.font = px(11) + ' Arial'; ctx.fillStyle = C.sub;
       ctx.fillText(x.saldo > 0 ? 'queda ' + pesos(x.saldo) : 'LIQUIDADA', W - M, y); y += sp(19);
     });
-    if (a.resultado.sinAplicar > 0) { fila('Sin aplicar (a favor):', pesos(a.resultado.sinAplicar), y); y += sp(20); }
+    if (a.resultado.sinAplicar > 0) { y += fila('Sin aplicar (a favor):', pesos(a.resultado.sinAplicar), y); y += sp(20); }
     y += sp(6);
-    fila('Saldo anterior:', pesos(a.saldoAnterior), y); y += sp(22);
+    y += fila('Saldo anterior:', pesos(a.saldoAnterior), y); y += sp(22);
     ctx.font = 'bold ' + px(17) + ' Arial'; ctx.fillStyle = C.tit;
-    ctx.textAlign = 'left'; ctx.fillText('SALDO ACTUAL:', M, y);
-    ctx.textAlign = 'right'; ctx.fillText(pesos(a.resultado.saldoCliente), W - M, y); y += sp(24);
+    y += filaLR(ctx, 'SALDO ACTUAL:', pesos(a.resultado.saldoCliente), y, M, W - M, sp(22)); y += sp(24);
   } else {
-    fila('Saldo anterior:', pesos(a.saldoAnterior), y); y += sp(22);
+    y += fila('Saldo anterior:', pesos(a.saldoAnterior), y); y += sp(22);
     ctx.font = 'bold ' + px(17) + ' Arial'; ctx.fillStyle = C.tit;
-    ctx.textAlign = 'left'; ctx.fillText('SALDO ESTIMADO:', M, y);
-    ctx.textAlign = 'right'; ctx.fillText(pesos(Math.max(0, a.saldoAnterior - a.monto)), W - M, y); y += sp(20);
+    y += filaLR(ctx, 'SALDO ESTIMADO:', pesos(Math.max(0, a.saldoAnterior - a.monto)), y, M, W - M, sp(22)); y += sp(20);
     ctx.textAlign = 'center'; ctx.font = px(10) + ' Arial'; ctx.fillStyle = C.sub;
-    ctx.fillText('Registrado sin conexión: se aplicará al sincronizar', W / 2, y); y += sp(18);
+    partirTexto(ctx, 'Registrado sin conexión: se aplicará al sincronizar', W - 2 * M).forEach(l => { ctx.fillText(l, W / 2, y); y += sp(14); });
+    y += sp(4);
   }
   y += sp(50);
   ctx.beginPath(); ctx.moveTo(W * 0.25, y); ctx.lineTo(W * 0.75, y); ctx.stroke();
   ctx.textAlign = 'center'; ctx.font = 'bold ' + px(12) + ' Arial'; ctx.fillStyle = C.tit;
+  ajustarFuente(ctx, 'RECIBÍ: ' + a.usuario.nombre, W - 2 * M);
   ctx.fillText('RECIBÍ: ' + a.usuario.nombre, W / 2, y + sp(16));
   y += sp(42);
   ctx.font = 'italic ' + px(13) + ' Arial'; ctx.fillStyle = C.sub; ctx.fillText('¡Gracias por su pago!', W / 2, y);
@@ -3847,7 +4310,11 @@ function partirFolios(folios) {
 function pintarValesTicket() {
   const cont = document.getElementById('valesTicket');
   if (!cont) return;
-  cont.innerHTML = valesEnTicket().map(v =>
+  if (pedidoTicket && !carrito.some(it => it.dePedido === pedidoTicket)) pedidoTicket = null;
+  if (cotizacionTicket && !carrito.some(it => it.deCotizacion === cotizacionTicket)) cotizacionTicket = null;
+  cont.innerHTML = (pedidoTicket ? `<span class="chip-pedido">🛍️ Pedido ${pedidoTicket} <button onclick="quitarPedidoTicket()" title="Ya no cobrar como pedido">✕</button></span>` : '') +
+    (cotizacionTicket ? `<span class="chip-pedido" style="background:rgba(155,89,182,.35)">📝 Cotización ${cotizacionTicket.split('-').slice(-2).join('-')} <button onclick="quitarCotTicket()" title="Cobrar sin ligar a la cotización">✕</button></span>` : '') +
+    valesEnTicket().map(v =>
     `<span>📥 ${v.folio} <button onclick="quitarValeTicket('${v.folio}')" title="Quitar este vale del ticket">✕</button></span>`).join('');
 }
 function quitarValeTicket(folio) {
@@ -3945,6 +4412,1175 @@ function agregarValesAlTicket() {
   renderTicket();
   if (window.innerWidth <= 900) document.getElementById('ticketPanel').classList.add('abierto');
   aviso(`📥 ${elegidos.length} vale(s) agregados. Revisa los precios ✏️ y cobra.`);
+}
+
+// ================== 🆕 COTIZACIONES ==================
+// "📝 Cotizar" cambia el ticket a modo cotización (el ticket de venta a medias se guarda y regresa al salir).
+// Se arma igual que una venta; en lugar de cobrar se guarda e imprime. No mueve inventario.
+// "📝 Cobrar una cotización" la pasa al ticket de venta con sus precios; al cobrar queda VENDIDA.
+const COTS_KEY = 'pos_cotizaciones';
+var modoCot = false, ticketGuardado = null, cotizacionTicket = null, ticketReimpresion = false, cotsRemotas = [];
+
+function estadoTicket() {
+  return { carrito, clienteSel, texto: inpCliente.value, pedidoTicket, cotizacionTicket, autPrecioVenta, autEscalaVenta, autValesVenta };
+}
+function ponerEstadoTicket(e) {
+  carrito = e ? e.carrito : [];
+  pedidoTicket = e ? e.pedidoTicket : null;
+  cotizacionTicket = e ? e.cotizacionTicket : null;
+  autPrecioVenta = e ? e.autPrecioVenta : null; autEscalaVenta = e ? e.autEscalaVenta : null; autValesVenta = e ? e.autValesVenta : null;
+  lineaRapida = null;
+  if (e && e.clienteSel) elegirCliente(e.clienteSel, true);
+  else { quitarCliente(); inpCliente.value = e ? e.texto : ''; }
+  renderTicket(); generarFolio();
+}
+function alternarCotizacion() {
+  if (!tengoPermiso('VENDER')) return;
+  if (modo === 'vale') cambiarModo('venta');
+  const otro = ticketGuardado;
+  ticketGuardado = estadoTicket();
+  modoCot = !modoCot;
+  ponerEstadoTicket(otro);
+  pintarModoCot();
+  aviso(modoCot ? '📝 Modo cotización: arma la cotización y presiona "Guardar e imprimir"' : '🛒 De regreso a ventas');
+}
+function pintarModoCot() {
+  document.body.classList.toggle('modo-cot', modoCot);
+  document.getElementById('tituloTicket').textContent = modoCot ? '📝 Cotización' : '🧾 Ticket';
+  document.getElementById('btnCobrar').innerHTML = modoCot ? '🖨️ GUARDAR E IMPRIMIR' : '💵 COBRAR';
+  const b = document.getElementById('btnCotizar');
+  b.textContent = modoCot ? '🛒 Volver a vender' : '📝 Cotizar';
+  b.classList.toggle('activo', modoCot);
+  document.getElementById('btnImportarVales').classList.toggle('oculto', modoCot);
+  document.getElementById('btnImportarCot').textContent = modoCot ? '📋 Ver cotizaciones guardadas' : '📝 Cobrar una cotización';
+  document.querySelector('.topbar h1').textContent = modoCot ? 'Cotización' : 'Punto de Venta';
+}
+function abrirGuardarCot() {
+  if (!sesion) { mostrarLogin('Inicia sesión para guardar la cotización'); return; }
+  if (!obtenerPunto()) { pedirPunto(); return; }
+  document.getElementById('gcTotal').textContent = pesos(getTotal());
+  document.getElementById('gcCliente').value = clienteSel ? clienteSel.nombre : inpCliente.value.trim();
+  document.getElementById('gcCliente').disabled = !!clienteSel;
+  document.getElementById('gcNotas').value = '';
+  document.getElementById('modalGuardarCot').classList.add('activo');
+}
+async function guardarCotizacion() {
+  const dias = parseInt(document.getElementById('gcVigencia').value) || 7;
+  const cot = {
+    folio: consumirFolio('COT', 'pos_folio_cot'), esCotizacion: true,
+    fecha: new Date().toISOString(), dia: diaLocal(), hora: horaLocal(), dispositivo: obtenerDispositivo(), punto: obtenerPunto(),
+    usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre },
+    cliente: clienteSel ? clienteSel.nombre : (document.getElementById('gcCliente').value.trim() || 'Público general'),
+    clienteId: clienteSel ? clienteSel.id : '', lista: listaPrecios(),
+    items: itemsDelCarrito(), total: getTotal(), vigencia: dias, vence: diaLocal(new Date(Date.now() + dias * 86400000)),
+    notas: document.getElementById('gcNotas').value.trim(), estado: 'VIGENTE', pendiente: true
+  };
+  const lista = leerJSON(almacen, COTS_KEY, []);
+  lista.push(cot);
+  almacen.setItem(COTS_KEY, JSON.stringify(lista));
+  cerrarModal('modalGuardarCot');
+  ventaActual = cot; ticketReimpresion = false;
+  await generarTicketImagen(cot);
+  enviarPendientes();
+  try { await imprimirTicket(); } catch (e) {}   // si el teléfono no deja imprimir directo, queda el botón 🖨️
+}
+function cerrarTicketGen() {
+  cerrarModal('modalTicketGen');
+  if (ticketReimpresion) { ticketReimpresion = false; return; }
+  nuevaVenta();
+}
+function marcarCotLocal(folio, nota) {
+  const lista = leerJSON(almacen, COTS_KEY, []);
+  const c = lista.find(x => x.folio === folio);
+  if (c) { c.estado = 'VENDIDA'; c.notaVenta = nota; almacen.setItem(COTS_KEY, JSON.stringify(lista)); }
+  const r = cotsRemotas.find(x => x.folio === folio);
+  if (r) { r.estado = 'VENDIDA'; r.notaVenta = nota; }
+}
+function quitarCotTicket() {
+  if (!confirm('¿Cobrar estos productos como venta normal (sin ligarlos a la cotización)? Los precios cotizados que sean distintos a los actuales necesitarán autorización.')) return;
+  carrito.forEach(it => { delete it.deCotizacion; });
+  cotizacionTicket = null;
+  renderTicket();
+}
+
+// ----- Lista de cotizaciones -----
+function todasCotizaciones() {
+  const hoy = diaLocal();
+  const locales = leerJSON(almacen, COTS_KEY, []).map(c => ({ ...c, estado: c.estado === 'VENDIDA' ? 'VENDIDA' : (c.vence && c.vence < hoy ? 'VENCIDA' : 'VIGENTE') }));
+  const m = {};
+  cotsRemotas.forEach(c => { m[c.folio] = c; });
+  locales.forEach(c => { if (!m[c.folio] || (c.estado === 'VENDIDA' && m[c.folio].estado !== 'VENDIDA')) m[c.folio] = { ...(m[c.folio] || {}), ...c }; });
+  return Object.values(m).sort((a, b) => (b.dia + b.hora).localeCompare(a.dia + a.hora));
+}
+async function abrirCotizaciones() {
+  document.getElementById('cotFiltro').value = modoCot ? '' : 'VIGENTE';
+  document.getElementById('cotBuscar').value = '';
+  document.getElementById('modalCotizaciones').classList.add('activo');
+  pintarCotizaciones();
+  if (!navigator.onLine || !sesion) return;
+  try {
+    await enviarPendientes();
+    const r = await apiPost({ accion: 'lista_cotizaciones', token: sesion.token, dias: 90 });
+    if (r.success) { cotsRemotas = r.cotizaciones; pintarCotizaciones(); }
+  } catch (e) {}
+}
+function pintarCotizaciones() {
+  const q = document.getElementById('cotBuscar').value.trim().toLowerCase();
+  const f = document.getElementById('cotFiltro').value;
+  const lista = todasCotizaciones().filter(c => (!f || c.estado === f) && (!q || (c.cliente + ' ' + c.folio).toLowerCase().includes(q))).slice(0, 80);
+  document.getElementById('cotLista').innerHTML = lista.length ? lista.map(c => `<div class="cot-card ${c.estado}">
+      <div class="cab"><b>${escH(c.cliente)}</b><span class="est ${c.estado}">${{ VIGENTE: 'Vigente', VENCIDA: 'Vencida', VENDIDA: 'Vendida' }[c.estado]}</span></div>
+      <small>${escH(c.folio)} · ${fechaCorta(c.dia)} ${c.hora || ''} · ${escH(PUNTOS[c.punto] || c.punto)} · ${escH((c.usuario && c.usuario.nombre) || '')}
+        ${c.vence ? '<br>Válida hasta ' + fechaCorta(c.vence) : ''}${c.notaVenta ? ' · nota ' + escH(c.notaVenta) : ''}${c.pendiente ? ' · ☁️ por subir' : ''}
+        <br>${(c.items || []).map(i => escH(i.NOMBRE)).join(', ')}</small>
+      <div style="font-weight:800;margin-top:6px;">Total: ${pesos(c.total)}</div>
+      <div class="acciones">
+        ${c.estado !== 'VENDIDA' && tengoPermiso('VENDER') ? `<button style="background:var(--acento);color:#111" onclick="importarCotizacion('${escH(c.folio)}')">💵 Pasar al ticket y cobrar</button>` : ''}
+        <button style="background:#555;color:#fff" onclick="reimprimirCotizacion('${escH(c.folio)}')">🖨️ Ver / imprimir</button>
+      </div></div>`).join('')
+    : '<p style="text-align:center;color:#888;padding:16px;">No hay cotizaciones con ese filtro.</p>';
+}
+async function reimprimirCotizacion(folio) {
+  const c = todasCotizaciones().find(x => x.folio === folio);
+  if (!c) return;
+  ventaActual = { ...c, esCotizacion: true, fecha: c.fecha || new Date(c.dia + 'T' + (c.hora || '00:00')).toISOString() };
+  ticketReimpresion = true;
+  await generarTicketImagen(ventaActual);
+}
+function importarCotizacion(folio) {
+  const c = todasCotizaciones().find(x => x.folio === folio);
+  if (!c) return;
+  if (modoCot) alternarCotizacion();
+  if (modo === 'vale') cambiarModo('venta');
+  if (carrito.length && !confirm('El ticket actual tiene productos. ¿Quitarlos y cobrar la cotización?')) return;
+  const vencida = c.estado === 'VENCIDA';
+  const respetar = !vencida || confirm(`La cotización venció el ${fechaCorta(c.vence)}.\n\nAceptar = respetar los precios cotizados\nCancelar = cobrar con los precios de hoy`);
+  limpiarTicket();
+  const cli = c.clienteId && listaClientes().find(x => x.id === c.clienteId);
+  if (cli) elegirCliente(cli, true); else inpCliente.value = c.cliente === 'Público general' ? '' : c.cliente;
+  let faltan = 0;
+  (c.items || []).forEach(i => {
+    const prod = productos.find(x => String(x.ID) === String(i.ID));
+    if (!prod) faltan++;
+    const linea = lineaBase(prod || { ID: i.ID, NOMBRE: i.NOMBRE, PRECIO_1: i.precio, 'GRANEL (S/N)': i.granel ? 'S' : '' }, i.cantidad);
+    linea.NOMBRE = i.NOMBRE; linea.granel = !!i.granel;
+    linea.deCotizacion = c.folio;
+    if (i.presentacion && i.cantPresentacion) {
+      const pres = prod && presentacionDe(prod);
+      const contenido = i.contenido || Math.round(i.cantidad / i.cantPresentacion * 1000) / 1000;
+      linea.pres = { nombre: i.presentacion, contenido, precio: pres && pres.nombre === i.presentacion && pres.contenido === contenido ? pres.precio : 0 };
+      linea.cajas = i.cantPresentacion;
+    }
+    carrito.push(linea);
+    if (respetar) {
+      const actual = linea.pres ? subtotalItem(linea) / linea.cajas : calcularPrecio(linea);
+      const cotizado = linea.pres ? Math.round(i.subtotal / linea.cajas * 100) / 100 : i.precio;
+      if (Math.abs(actual - cotizado) > 0.005) fijarPrecioLinea(linea, cotizado, 'Precio de cotización');
+    } else delete linea.deCotizacion;
+  });
+  cotizacionTicket = c.folio;
+  if (!respetar) carrito.forEach(it => { it.deCotizacion = c.folio; });
+  cerrarModal('modalCotizaciones');
+  renderTicket();
+  if (window.innerWidth <= 900) document.getElementById('ticketPanel').classList.add('abierto');
+  aviso(faltan ? `⚠️ ${faltan} producto(s) de la cotización ya no están en la lista. Revisa el ticket.` : `📝 Cotización en el ticket${respetar ? ' con sus precios' : ' con precios de hoy'}. Revisa y cobra.`);
+}
+
+// ================== 🆕 CAJA: TURNO, ENTRADAS/SALIDAS Y CORTE ==================
+// Cada cajero abre su caja en su dispositivo con un fondo inicial (turno). Las ventas, abonos,
+// movimientos de efectivo y compras/pagos pagados con dinero de la caja guardan el folio del turno.
+// En el corte se cuenta el efectivo y se compara con lo esperado.
+const TURNOS_KEY = 'pos_turnos', CAJA_MOV_KEY = 'pos_caja_mov', CORTES_KEY = 'pos_cortes';
+const DENOMINACIONES = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5];
+const CONCEPTOS = { ENTRADA: ['Cambio / morralla', 'Fondo adicional', 'Devolución de préstamo'],
+                    SALIDA: ['Pago de servicio', 'Compra de insumos', 'Retiro parcial', 'Pago a proveedor', 'Gasolina / flete', 'Comida'] };
+let tipoMovCaja = 'ENTRADA', corteManual = false, corteActual = null, corteBlob = null;
+
+function turnos() { return leerJSON(almacen, TURNOS_KEY, {}); }
+function turnoActual() {
+  if (!sesion || !sesion.usuario) return null;
+  return turnos()[String(sesion.usuario.email).toLowerCase()] || null;
+}
+function guardarTurno(t) {
+  const m = turnos();
+  const k = String(sesion.usuario.email).toLowerCase();
+  if (t) m[k] = t; else delete m[k];
+  almacen.setItem(TURNOS_KEY, JSON.stringify(m));
+  pintarBotonCaja();
+}
+function pintarBotonCaja() {
+  const b = document.getElementById('btnCaja');
+  if (!b) return;
+  const t = turnoActual();
+  b.textContent = t ? '💵 Caja abierta' : '💵 Abrir caja';
+  b.classList.toggle('abierta', !!t);
+  b.classList.toggle('cerrada', !t);
+}
+let _despuesDeAbrir = null;
+function pedirAbrirCaja(motivo, despues) {
+  _despuesDeAbrir = despues || null;
+  abrirCaja();
+  aviso('💵 ' + motivo);
+}
+function abrirCaja() {
+  const t = turnoActual();
+  document.getElementById('cajaCerrada').classList.toggle('oculto', !!t);
+  document.getElementById('cajaAbierta').classList.toggle('oculto', !t);
+  document.getElementById('cajaMovForm').classList.add('oculto');
+  if (!t) {
+    const ult = leerJSON(almacen, CORTES_KEY, []).filter(c => c.punto === obtenerPunto()).pop();
+    document.getElementById('cajaFondo').value = ult && ult.dejaFondo ? ult.dejaFondo : '';
+  } else pintarCaja();
+  pintarCortesPrevios();
+  document.getElementById('modalCaja').classList.add('activo');
+  if (!t) setTimeout(() => document.getElementById('cajaFondo').focus(), 100);
+}
+function abrirTurno() {
+  if (!sesion) return;
+  if (!obtenerPunto()) { cerrarModal('modalCaja'); pedirPunto(); return; }
+  const fondo = Math.round((parseFloat(document.getElementById('cajaFondo').value) || 0) * 100) / 100;
+  if (fondo < 0) return;
+  const ahora = new Date();
+  guardarTurno({ folio: consumirFolio('T', 'pos_folio_turno'), punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
+    usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, apertura: ahora.toISOString(),
+    aperturaTxt: diaLocal() + ' ' + horaLocal(), fondo });
+  aviso(`🔓 Caja abierta con ${pesos(fondo)} de fondo`);
+  if (_despuesDeAbrir) { const f = _despuesDeAbrir; _despuesDeAbrir = null; cerrarModal('modalCaja'); f(); }
+  else abrirCaja();
+}
+
+// Todo lo que pasó en el turno, ya clasificado
+function resumenTurno(t) {
+  const r = { numVentas: 0, ventasTotal: 0, ventasEfectivo: 0, ventasTarjeta: 0, ventasTransferencia: 0, ventasCredito: 0,
+    abonosEfectivo: 0, abonosOtros: 0, entradas: 0, salidas: 0, comprasCaja: 0, movs: [] };
+  const otro = (metodo, monto) => { if (metodo === 'tarjeta') r.ventasTarjeta += monto; else if (metodo === 'transferencia') r.ventasTransferencia += monto; };
+  leerJSON(almacen, VENTAS_KEY, []).filter(v => v.turno === t.folio).forEach(v => {
+    r.numVentas++; r.ventasTotal += v.total;
+    let ef = 0;
+    if (v.metodoPago === 'efectivo') ef = v.total;
+    else if (v.metodoPago === 'mixto' && v.detalleMixto) { ef = v.detalleMixto.efectivo; otro(v.detalleMixto.tipoOtro, v.detalleMixto.otro); }
+    else if (v.metodoPago === 'credito') {
+      r.ventasCredito += v.saldo || 0;
+      if (v.anticipo > 0) { if ((v.anticipoMetodo || 'efectivo') === 'efectivo') ef = v.anticipo; else otro(v.anticipoMetodo, v.anticipo); }
+    } else otro(v.metodoPago, v.total);
+    r.ventasEfectivo += ef;
+    r.movs.push({ hora: v.hora, txt: `Venta ${v.folio.split('-').pop()} · ${v.cliente} · ${v.metodoPago}`, monto: v.total, efectivo: ef, signo: ef ? 1 : 0 });
+  });
+  leerJSON(almacen, ABONOS_KEY, []).filter(a => a.turno === t.folio).forEach(a => {
+    const ef = a.metodo === 'efectivo';
+    if (ef) r.abonosEfectivo += a.monto; else r.abonosOtros += a.monto;
+    r.movs.push({ hora: a.hora, txt: `Abono · ${a.cliente} · ${a.metodo}`, monto: a.monto, efectivo: ef ? a.monto : 0, signo: ef ? 1 : 0 });
+  });
+  leerJSON(almacen, CAJA_MOV_KEY, []).filter(m => m.turno === t.folio).forEach(m => {
+    if (m.tipo === 'SALIDA') r.salidas += m.monto; else r.entradas += m.monto;
+    r.movs.push({ hora: m.hora, txt: `${m.tipo === 'SALIDA' ? 'Salida' : 'Entrada'} · ${m.concepto}`, monto: m.monto, efectivo: m.monto, signo: m.tipo === 'SALIDA' ? -1 : 1 });
+  });
+  leerJSON(almacen, 'pos_compras', []).filter(c => c.turno === t.folio && c.deCaja).forEach(c => {
+    const pagado = c.metodo === 'credito' ? (c.anticipo || 0) : c.total;
+    if (!(pagado > 0)) return;
+    r.comprasCaja += pagado;
+    r.movs.push({ hora: c.hora, txt: `Compra · ${c.proveedor}`, monto: pagado, efectivo: pagado, signo: -1 });
+  });
+  leerJSON(almacen, 'pos_pagos_prov', []).filter(p => p.turno === t.folio && p.deCaja).forEach(p => {
+    r.comprasCaja += p.monto;
+    r.movs.push({ hora: p.hora, txt: `Pago a proveedor · ${p.proveedor}`, monto: p.monto, efectivo: p.monto, signo: -1 });
+  });
+  Object.keys(r).forEach(k => { if (typeof r[k] === 'number' && k !== 'numVentas') r[k] = Math.round(r[k] * 100) / 100; });
+  r.esperado = Math.round((t.fondo + r.ventasEfectivo + r.abonosEfectivo + r.entradas - r.salidas - r.comprasCaja) * 100) / 100;
+  r.movs.sort((a, b) => String(a.hora).localeCompare(String(b.hora)));
+  return r;
+}
+function pintarCaja() {
+  const t = turnoActual();
+  if (!t) return;
+  const r = resumenTurno(t);
+  document.getElementById('cajaInfo').innerHTML = `Turno <b>${t.folio}</b> · ${t.usuario.nombre} · ${PUNTOS[t.punto] || t.punto} · abierta ${fechaCorta(t.aperturaTxt.split(' ')[0])} ${t.aperturaTxt.split(' ')[1]}`;
+  const k = (l, v, c) => `<div class="${c || ''}"><small>${l}</small><b>${v}</b></div>`;
+  document.getElementById('cajaKpis').innerHTML =
+    k('Efectivo que debe haber', pesos(r.esperado), 'grande') +
+    k('Fondo inicial', pesos(t.fondo)) + k(`Ventas (${r.numVentas})`, pesos(r.ventasTotal)) +
+    k('Ventas en efectivo', pesos(r.ventasEfectivo)) + k('Tarjeta', pesos(r.ventasTarjeta)) +
+    k('Transferencia', pesos(r.ventasTransferencia)) + k('Vendido a crédito', pesos(r.ventasCredito)) +
+    k('Abonos en efectivo', pesos(r.abonosEfectivo)) + k('Entradas', pesos(r.entradas)) +
+    k('Salidas', pesos(r.salidas)) + (r.comprasCaja ? k('Compras pagadas de caja', pesos(r.comprasCaja)) : '');
+  document.getElementById('cajaMovs').innerHTML = r.movs.length ? r.movs.slice().reverse().map(m => `<div class="mv">
+      <small>${m.hora || ''}</small><span>${m.txt}</span>
+      <span class="${m.signo > 0 ? 'mas' : m.signo < 0 ? 'menos' : 'neutro'}">${m.signo < 0 ? '−' : m.signo > 0 ? '+' : ''}${pesos(m.signo ? m.efectivo : m.monto)}</span></div>`).join('')
+    : '<p style="color:#888;padding:8px 0;">Todavía no hay movimientos.</p>';
+}
+function pintarCortesPrevios() {
+  const lista = leerJSON(almacen, CORTES_KEY, []).slice(-15).reverse();
+  document.getElementById('cajaCortesPrev').classList.toggle('oculto', !lista.length);
+  document.getElementById('cajaCortesLista').innerHTML = lista.map(c => {
+    const d = Math.round((c.contado - c.resumen.esperado) * 100) / 100;
+    return `<div class="mv"><small>${fechaCorta(c.cierreTxt.split(' ')[0])}</small>
+      <span>${c.usuario.nombre} · contado ${pesos(c.contado)} · ${d === 0 ? 'cuadró' : d < 0 ? 'faltó ' + pesos(-d) : 'sobró ' + pesos(d)}${c.pendiente ? ' · ☁️ por subir' : ''}</span>
+      <button class="btn-sec" style="padding:5px 9px" onclick="verCorte('${c.folio}')">🖨️</button></div>`;
+  }).join('');
+}
+function formMovCaja(tipo) {
+  tipoMovCaja = tipo;
+  document.getElementById('cajaMovTitulo').textContent = tipo === 'SALIDA' ? '➖ Salida de efectivo' : '➕ Entrada de efectivo';
+  document.getElementById('cajaMovConcepto').value = '';
+  document.getElementById('cajaMovMonto').value = '';
+  document.getElementById('cajaMovChips').innerHTML = CONCEPTOS[tipo].map(c =>
+    `<button onclick="document.getElementById('cajaMovConcepto').value=this.textContent">${c}</button>`).join('');
+  document.getElementById('cajaMovForm').classList.remove('oculto');
+  document.getElementById('cajaMovConcepto').focus();
+}
+async function guardarMovCaja() {
+  const t = turnoActual();
+  if (!t) return;
+  const concepto = document.getElementById('cajaMovConcepto').value.trim();
+  const monto = Math.round((parseFloat(document.getElementById('cajaMovMonto').value) || 0) * 100) / 100;
+  if (!concepto) { alert('Escribe el concepto'); return; }
+  if (monto <= 0) { alert('Escribe la cantidad'); return; }
+  let aut = null;
+  if (tipoMovCaja === 'SALIDA') {
+    const r = resumenTurno(t);
+    if (monto > r.esperado + 0.005 && !confirm(`La salida (${pesos(monto)}) es mayor que el efectivo que debe haber (${pesos(r.esperado)}). ¿Continuar?`)) return;
+    aut = await requerirPermiso('SALIDAS_CAJA', `Salida de ${pesos(monto)}: ${concepto}`);
+    if (!aut) return;
+  }
+  const lista = leerJSON(almacen, CAJA_MOV_KEY, []);
+  lista.push({ folio: consumirFolio('CJ', 'pos_folio_caja'), dia: diaLocal(), hora: horaLocal(), tipo: tipoMovCaja, concepto, monto,
+    punto: obtenerPunto(), dispositivo: obtenerDispositivo(), turno: t.folio, usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre },
+    ...(aut && aut.autorizacion ? { autorizacion: aut.autorizacion } : {}), pendiente: true });
+  almacen.setItem(CAJA_MOV_KEY, JSON.stringify(lista));
+  document.getElementById('cajaMovForm').classList.add('oculto');
+  aviso(`${tipoMovCaja === 'SALIDA' ? '➖ Salida' : '➕ Entrada'} de ${pesos(monto)} registrada`);
+  pintarCaja();
+  enviarPendientes();
+}
+
+// ----- Corte -----
+function abrirCorte() {
+  const t = turnoActual();
+  if (!t) return;
+  corteManual = false;
+  document.getElementById('corteDenoms').innerHTML = DENOMINACIONES.map(d =>
+    `<label><span>${d >= 20 ? '💵' : '🪙'} $${d}</span><input type="number" min="0" step="1" inputmode="numeric" data-d="${d}" placeholder="0" oninput="sumarDenoms()"></label>`).join('');
+  document.getElementById('corteContado').value = '';
+  document.getElementById('corteDeja').value = t.fondo || '';
+  document.getElementById('corteNotas').value = '';
+  pintarDiferencia();
+  document.getElementById('modalCorte').classList.add('activo');
+}
+function sumarDenoms() {
+  let total = 0;
+  document.querySelectorAll('#corteDenoms input').forEach(i => { total += (parseInt(i.value) || 0) * Number(i.dataset.d); });
+  document.getElementById('corteContado').value = Math.round(total * 100) / 100;
+  corteManual = false;
+  pintarDiferencia();
+}
+function pintarDiferencia() {
+  const t = turnoActual();
+  if (!t) return;
+  const r = resumenTurno(t);
+  const v = document.getElementById('corteContado').value;
+  const contado = parseFloat(v) || 0;
+  const d = Math.round((contado - r.esperado) * 100) / 100;
+  const el = document.getElementById('corteDif');
+  el.className = 'dif ' + (v === '' ? '' : Math.abs(d) < 0.005 ? 'cuadra' : d < 0 ? 'falta' : 'sobra');
+  el.innerHTML = `Debe haber <b>${pesos(r.esperado)}</b>` + (v === '' ? '' : ` · contaste <b>${pesos(contado)}</b><br>` +
+    (Math.abs(d) < 0.005 ? '✅ La caja cuadra' : d < 0 ? `⚠️ Faltan ${pesos(-d)}` : `Sobran ${pesos(d)}`));
+  const deja = parseFloat(document.getElementById('corteDeja').value) || 0;
+  document.getElementById('corteRetiro').textContent = v === '' ? '' : `Se retira: ${pesos(Math.max(0, contado - deja))}`;
+}
+function confirmarCorte() {
+  const t = turnoActual();
+  if (!t) return;
+  const v = document.getElementById('corteContado').value;
+  if (v === '') { alert('Escribe cuánto efectivo contaste'); return; }
+  const contado = Math.round((parseFloat(v) || 0) * 100) / 100;
+  const deja = Math.round((parseFloat(document.getElementById('corteDeja').value) || 0) * 100) / 100;
+  if (deja > contado + 0.005) { alert('El fondo que se queda no puede ser mayor que lo contado'); return; }
+  const r = resumenTurno(t);
+  const d = Math.round((contado - r.esperado) * 100) / 100;
+  if (!confirm(`¿Cerrar la caja?\n\nDebe haber: ${pesos(r.esperado)}\nContaste: ${pesos(contado)}\n${Math.abs(d) < 0.005 ? 'La caja cuadra ✅' : d < 0 ? 'Faltan ' + pesos(-d) : 'Sobran ' + pesos(d)}`)) return;
+  const denominaciones = {};
+  document.querySelectorAll('#corteDenoms input').forEach(i => { if (parseInt(i.value) > 0) denominaciones[i.dataset.d] = parseInt(i.value); });
+  const { movs, ...resumen } = r;
+  const corte = { folio: t.folio, punto: t.punto, dispositivo: t.dispositivo, usuario: t.usuario, apertura: t.aperturaTxt,
+    cierre: diaLocal() + ' ' + horaLocal(), cierreTxt: diaLocal() + ' ' + horaLocal(), fondo: t.fondo, contado, dejaFondo: deja,
+    notas: document.getElementById('corteNotas').value.trim(), resumen, movs,
+    denominaciones: Object.keys(denominaciones).length && !corteManual ? denominaciones : null, pendiente: true };
+  const lista = leerJSON(almacen, CORTES_KEY, []);
+  lista.push(corte);
+  almacen.setItem(CORTES_KEY, JSON.stringify(lista));
+  guardarTurno(null);
+  cerrarModal('modalCorte'); cerrarModal('modalCaja');
+  enviarPendientes();
+  verCorte(corte.folio);
+}
+async function verCorte(folio) {
+  corteActual = leerJSON(almacen, CORTES_KEY, []).find(c => c.folio === folio);
+  if (!corteActual) return;
+  corteBlob = await dibujarCorte(corteActual, { W: 500, bn: false });
+  document.getElementById('corteImg').src = URL.createObjectURL(corteBlob);
+  document.getElementById('modalCorteGen').classList.add('activo');
+}
+async function imprimirCorte() {
+  if (!corteActual) return;
+  const papel = almacen.getItem(PAPEL_KEY) || '58';
+  return imprimirImagen(await dibujarCorte(corteActual, { W: PUNTOS_PAPEL[papel], bn: true }), `corte-${corteActual.folio}.png`);
+}
+async function compartirCorte() {
+  const c = corteActual;
+  const file = new File([corteBlob], `corte-${c.folio}.png`, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'Corte ' + c.folio }); return; } catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(corteBlob); a.download = file.name; a.click();
+}
+function dibujarCorte(c, opciones) {
+  const { W = 500, bn = false } = opciones || {};
+  const f = bn ? escalaImpresion() : W / 500, M = Math.round(W * 0.05);
+  const px = n => Math.round(n * f) + 'px', sp = n => Math.round(n * f);
+  const C = bn ? { tit: '#000', sub: '#000', txt: '#000', acento: '#000' } : { tit: '#1a1a2e', sub: '#666', txt: '#333', acento: window.COLOR_ACENTO || '#f4a261' };
+  const r = c.resumen;
+  const tmp = document.createElement('canvas');
+  tmp.width = W; tmp.height = Math.round((1700 + (c.movs || []).length * 50) * Math.max(f, 1));
+  const ctx = tmp.getContext('2d');
+  if (bn) negritasImpresion(ctx);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, tmp.width, tmp.height);
+  const fila = (k, v, y, negrita, tam) => {
+    ctx.font = (negrita ? 'bold ' : '') + px(tam || 13) + ' Arial'; ctx.fillStyle = C.txt;
+    return filaLR(ctx, k, String(v), y, M, W - M, sp(18));
+  };
+  const raya = y => { ctx.strokeStyle = C.sub; ctx.lineWidth = bn ? 2 : 1; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(M * .7, y); ctx.lineTo(W - M * .7, y); ctx.stroke(); ctx.setLineDash([]); };
+  const titulo = (t, y) => { ctx.textAlign = 'left'; ctx.font = 'bold ' + px(14) + ' Arial'; ctx.fillStyle = C.tit; ctx.fillText(t, M, y); };
+  if (!bn) { ctx.fillStyle = C.acento; ctx.fillRect(0, 0, W, 8); }
+  let y = sp(38);
+  ctx.textAlign = 'center'; ctx.fillStyle = C.tit;
+  encabezado(ctx, nombreTicket(c.punto), W, y, Math.round(24 * (bn ? 0.9 : 1) * f)); y += sp(28);
+  ctx.fillStyle = bn ? '#000' : C.tit; ctx.fillRect(M * 0.7, y - sp(18), W - M * 1.4, sp(26));
+  ctx.fillStyle = '#fff'; ctx.font = 'bold ' + px(16) + ' Arial'; ctx.textAlign = 'center'; ctx.fillText('CORTE DE CAJA', W / 2, y); y += sp(30);
+  [['Turno:', c.folio.split('-').slice(-2).join('-')], ['Cajero:', c.usuario.nombre], ['Abrió:', c.apertura], ['Cerró:', c.cierre]]
+    .forEach(([k, v]) => { y += fila(k, v, y); y += sp(19); });
+  raya(y); y += sp(24);
+  titulo('VENTAS', y); y += sp(22);
+  [[`Ventas (${r.numVentas}):`, pesos(r.ventasTotal)], ['Efectivo:', pesos(r.ventasEfectivo)], ['Tarjeta:', pesos(r.ventasTarjeta)],
+   ['Transferencia:', pesos(r.ventasTransferencia)], ['A crédito:', pesos(r.ventasCredito)]].forEach(([k, v]) => { y += fila(k, v, y); y += sp(19); });
+  if (r.abonosEfectivo || r.abonosOtros) {
+    y += sp(6); titulo('ABONOS', y); y += sp(22);
+    [['En efectivo:', pesos(r.abonosEfectivo)], ['Otros medios:', pesos(r.abonosOtros)]].forEach(([k, v]) => { y += fila(k, v, y); y += sp(19); });
+  }
+  raya(y); y += sp(24);
+  titulo('EFECTIVO EN CAJA', y); y += sp(22);
+  [['Fondo inicial:', pesos(c.fondo)], ['+ Ventas efectivo:', pesos(r.ventasEfectivo)], ['+ Abonos efectivo:', pesos(r.abonosEfectivo)],
+   ['+ Entradas:', pesos(r.entradas)], ['− Salidas:', pesos(r.salidas)], ...(r.comprasCaja ? [['− Compras/pagos:', pesos(r.comprasCaja)]] : [])]
+    .forEach(([k, v]) => { y += fila(k, v, y); y += sp(19); });
+  y += sp(4);
+  y += fila('DEBE HABER:', pesos(r.esperado), y, true, 16); y += sp(24);
+  y += fila('CONTADO:', pesos(c.contado), y, true, 16); y += sp(24);
+  const d = Math.round((c.contado - r.esperado) * 100) / 100;
+  y += fila(Math.abs(d) < 0.005 ? 'DIFERENCIA:' : d < 0 ? 'FALTANTE:' : 'SOBRANTE:', Math.abs(d) < 0.005 ? '$0.00 ✓' : pesos(Math.abs(d)), y, true, 16); y += sp(24);
+  y += fila('Queda de fondo:', pesos(c.dejaFondo), y); y += sp(19);
+  y += fila('Se retira:', pesos(Math.max(0, c.contado - c.dejaFondo)), y); y += sp(19);
+  if (c.notas) { ctx.textAlign = 'left'; ctx.font = px(12) + ' Arial'; partirTexto(ctx, 'Notas: ' + c.notas, W - 2 * M).forEach(l => { ctx.fillText(l, M, y); y += sp(16); }); }
+  const mov = (c.movs || []).filter(m => m.signo !== 0 && !/^Venta|^Abono/.test(m.txt));
+  if (mov.length) {
+    raya(y); y += sp(24); titulo('ENTRADAS Y SALIDAS', y); y += sp(22);
+    mov.forEach(m => { ctx.font = px(12) + ' Arial'; y += filaLR(ctx, `${m.hora} ${m.txt}`.slice(0, 60), (m.signo < 0 ? '−' : '+') + pesos(m.efectivo), y, M, W - M, sp(16)); y += sp(18); });
+  }
+  y += sp(40);
+  ctx.strokeStyle = C.txt; ctx.lineWidth = bn ? 2 : 1;
+  ctx.beginPath(); ctx.moveTo(M, y); ctx.lineTo(W / 2 - M / 2, y); ctx.moveTo(W / 2 + M / 2, y); ctx.lineTo(W - M, y); ctx.stroke();
+  ctx.font = 'bold ' + px(11) + ' Arial'; ctx.fillStyle = C.tit; ctx.textAlign = 'center';
+  ctx.fillText('ENTREGA', W / 4, y + sp(15)); ctx.fillText('RECIBE', W * 3 / 4, y + sp(15));
+  y += sp(bn ? 50 : 30);
+  const H = y + (bn ? 0 : 8);
+  const out = document.getElementById('canvasTicket');
+  out.width = W; out.height = H;
+  const octx = out.getContext('2d'); octx.drawImage(tmp, 0, 0);
+  if (!bn) { octx.fillStyle = C.acento; octx.fillRect(0, H - 8, W, 8); }
+  return new Promise(res => out.toBlob(res, 'image/png'));
+}
+
+// ================== 🆕 COMPRAS, PROVEEDORES Y PRECIOS ==================
+// Lo comprado entra al inventario del punto actual y su costo (por kg o pieza) pasa a ser el COSTO
+// del producto. Si el costo cambió, se ofrece ajustar los precios ahí mismo (o después en "Precios").
+const PROVS_KEY = 'pos_proveedores', PROVS_NUEVOS_KEY = 'pos_proveedores_nuevos', COMPRAS_KEY = 'pos_compras',
+      PAGOS_PROV_KEY = 'pos_pagos_prov', PRECIOS_KEY = 'pos_precios';
+const METODOS_COMPRA = [['caja', '💵 Efectivo de caja'], ['efectivo', '💵 Efectivo (otro)'], ['transferencia', '🏦 Transferencia'],
+  ['tarjeta', '💳 Tarjeta'], ['credito', '📝 Crédito']];
+let cmpProv = null, cmpLineas = [], cmpMetodo = 'caja', provSel = null;
+const r2 = n => Math.round((Number(n) || 0) * 100) / 100;
+const r4 = n => Math.round((Number(n) || 0) * 10000) / 10000;
+const escH = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function listaProveedores() {
+  const cache = leerJSON(almacen, PROVS_KEY, []);
+  const nuevos = leerJSON(almacen, PROVS_NUEVOS_KEY, []).filter(n => !cache.some(c => c.id === n.id))
+    .map(n => ({ id: n.id, nombre: n.nombre, telefono: n.telefono, contacto: n.contacto, diasCredito: n.diasCredito, saldo: 0, pendientes: [], local: true, activo: true }));
+  // compras a crédito y pagos que aún no suben: ajustar saldos
+  const todos = cache.concat(nuevos).map(p => Object.assign({}, p));
+  leerJSON(almacen, COMPRAS_KEY, []).filter(c => !c.sincronizada && c.metodo === 'credito').forEach(c => {
+    const p = todos.find(x => x.id === c.proveedorId); if (p) p.saldo = r2(p.saldo + c.total - (c.anticipo || 0));
+  });
+  leerJSON(almacen, PAGOS_PROV_KEY, []).filter(x => !x.sincronizada).forEach(x => {
+    const p = todos.find(y => y.id === x.proveedorId); if (p) p.saldo = r2(Math.max(0, p.saldo - x.monto));
+  });
+  return todos.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+}
+async function cargarProveedores() {
+  if (!navigator.onLine || !sesion || !tengoPermiso('COMPRAS')) return;
+  try {
+    const r = await apiPost({ accion: 'proveedores', token: sesion.token });
+    if (r.success) almacen.setItem(PROVS_KEY, JSON.stringify(r.proveedores));
+  } catch (e) {}
+}
+async function abrirCompras() {
+  if (!tengoPermiso('COMPRAS')) { alert('⚠️ Tu usuario no tiene permiso para compras'); return; }
+  if (!obtenerPunto()) { pedirPunto(); return; }
+  document.getElementById('modalCompras').classList.add('activo');
+  verTabCompras('nueva');
+  await enviarPendientes();
+  await cargarProveedores();
+  sugerirProveedores();
+}
+function verTabCompras(t) {
+  ['nueva', 'prov', 'hist', 'prec'].forEach(k => {
+    document.getElementById({ nueva: 'cmpNueva', prov: 'cmpProv', hist: 'cmpHist', prec: 'cmpPrec' }[k]).classList.toggle('oculto', k !== t);
+    document.getElementById({ nueva: 'cmpTabNueva', prov: 'cmpTabProv', hist: 'cmpTabHist', prec: 'cmpTabPrec' }[k]).classList.toggle('sel', k === t);
+  });
+  if (t === 'nueva') pintarCompra();
+  if (t === 'prov') { provSel = null; pintarProveedores(); enviarPendientes().then(cargarProveedores).then(() => { if (!document.getElementById('cmpProv').classList.contains('oculto')) pintarProveedores(); }); }
+  if (t === 'hist') { llenarFiltroHist(); cargarHistorialCompras(); }
+  if (t === 'prec') {
+    document.getElementById('precListaTab').innerHTML = opcionesListas(listaPrecios());
+    pintarListaPrecios();
+  }
+}
+
+// ----- Proveedor de la compra -----
+function sugerirProveedores() {
+  const q = document.getElementById('cmpProvInput').value.trim().toLowerCase();
+  const cont = document.getElementById('cmpProvSug');
+  if (cmpProv) { cont.innerHTML = ''; return; }
+  const lista = listaProveedores().filter(p => p.activo !== false && (!q || (p.nombre + ' ' + (p.contacto || '')).toLowerCase().includes(q))).slice(0, q ? 15 : 6);
+  cont.innerHTML = lista.map(p => `<div onclick="elegirProveedor('${escH(p.id)}')"><b>${escH(p.nombre)}</b>
+    <small>${p.diasCredito ? ' · crédito ' + p.diasCredito + ' días' : ''}${p.saldo > 0 ? ' · le debes ' + pesos(p.saldo) : ''}</small></div>`).join('') ||
+    (q ? `<div onclick="formProveedor(true)">➕ Dar de alta "<b>${escH(q)}</b>"</div>` : '');
+}
+function elegirProveedor(id) {
+  cmpProv = listaProveedores().find(p => p.id === id) || null;
+  if (cmpProv && cmpProv.diasCredito > 0) cmpMetodo = 'credito';
+  pintarCompra();
+}
+function formProveedor(conTexto) {
+  document.getElementById('pvNombre').value = conTexto ? document.getElementById('cmpProvInput').value.trim() : '';
+  ['pvTel', 'pvContacto'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('pvDias').value = 0;
+  document.getElementById('cmpProvForm').classList.remove('oculto');
+  document.getElementById('pvNombre').focus();
+}
+function guardarProveedorNuevo() {
+  const nombre = document.getElementById('pvNombre').value.trim();
+  if (nombre.length < 2) { alert('Escribe el nombre del proveedor'); return; }
+  if (listaProveedores().some(p => p.nombre.toLowerCase() === nombre.toLowerCase()) && !confirm(`Ya hay un proveedor "${nombre}". ¿Darlo de alta de todas formas?`)) return;
+  const id = consumirFolio('PR', 'pos_folio_prov');
+  const n = { folio: id, id, nombre, telefono: document.getElementById('pvTel').value.trim(), contacto: document.getElementById('pvContacto').value.trim(),
+    diasCredito: parseInt(document.getElementById('pvDias').value) || 0, dia: diaLocal(), usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true };
+  const lista = leerJSON(almacen, PROVS_NUEVOS_KEY, []); lista.push(n);
+  almacen.setItem(PROVS_NUEVOS_KEY, JSON.stringify(lista));
+  document.getElementById('cmpProvForm').classList.add('oculto');
+  document.getElementById('cmpProvInput').value = '';
+  elegirProveedor(id);
+  enviarPendientes();
+}
+
+// ----- Productos de la compra -----
+function sugerirProductosCompra() {
+  const q = document.getElementById('cmpBuscar').value.trim().toLowerCase();
+  const cont = document.getElementById('cmpProdSug');
+  if (!q) { cont.innerHTML = ''; return; }
+  cont.innerHTML = productos.filter(p => (String(p.ID) + ' ' + p.NOMBRE).toLowerCase().includes(q)).slice(0, 12).map(p =>
+    `<div onclick="agregarACompra('${escH(p.ID)}')"><b>${escH(p.NOMBRE)}</b> <small>#${escH(p.ID)}${parseFloat(p.COSTO) > 0 ? ' · último costo ' + pesos(p.COSTO) + (esGranel(p) ? '/kg' : '') : ''}</small></div>`).join('')
+    || '<div style="color:#888;cursor:default">Sin resultados</div>';
+}
+function agregarACompra(id) {
+  const p = productos.find(x => String(x.ID) === String(id));
+  if (!p) return;
+  const pres = presentacionDe(p);
+  const costo = parseFloat(p.COSTO) || 0;
+  cmpLineas.push({ ID: String(p.ID), NOMBRE: p.NOMBRE, granel: esGranel(p), pres: pres ? { nombre: pres.nombre, contenido: pres.contenido } : null,
+    porPres: !!pres, cant: 1, costo: pres ? r2(costo * pres.contenido) : costo, costoPrevio: costo });
+  document.getElementById('cmpBuscar').value = '';
+  document.getElementById('cmpProdSug').innerHTML = '';
+  pintarCompra();
+  setTimeout(() => { const ins = document.querySelectorAll('#cmpLineas .cmp-linea:last-child input'); if (ins[0]) { ins[0].focus(); ins[0].select(); } }, 50);
+}
+function lineaBaseCompra(l) {
+  const cont = l.porPres && l.pres ? l.pres.contenido : 1;
+  return { cantidad: Math.round(l.cant * cont * 1000) / 1000, costo: cont ? r4(l.costo / cont) : 0, subtotal: r2(l.cant * l.costo) };
+}
+function cambioLineaCompra(i, campo, v) {
+  const l = cmpLineas[i];
+  if (!l) return;
+  const n = parseFloat(v) || 0;
+  if (campo === 'cant') l.cant = l.granel && !l.porPres ? Math.round(n * 1000) / 1000 : n;
+  if (campo === 'costo') l.costo = n;
+  if (campo === 'importe') l.costo = l.cant > 0 ? r4(n / l.cant) : 0;
+  if (campo === 'porPres') {
+    const base = lineaBaseCompra(l);
+    l.porPres = !!v;
+    const cont = l.pres.contenido;
+    l.cant = l.porPres ? Math.max(1, Math.round(base.cantidad / cont)) : base.cantidad;
+    l.costo = l.porPres ? r2(base.costo * cont) : base.costo;
+  }
+  pintarCompra(campo === 'porPres' ? null : i);
+}
+function quitarLineaCompra(i) { cmpLineas.splice(i, 1); pintarCompra(); }
+function variacion(nuevo, antes) {
+  if (!(antes > 0) || !(nuevo > 0)) return '';
+  const pc = Math.round((nuevo - antes) / antes * 1000) / 10;
+  if (Math.abs(pc) < 0.5) return '<span style="color:#aaa">= mismo costo</span>';
+  return `<span class="${pc > 0 ? 'sube' : 'baja'}">${pc > 0 ? '▲' : '▼'} ${Math.abs(pc)}%</span>`;
+}
+// sinRepintar = índice de la línea que se está escribiendo (solo se actualizan sus textos, no los inputs)
+function pintarCompra(sinRepintar) {
+  const elegido = document.getElementById('cmpProvElegido');
+  elegido.innerHTML = cmpProv ? `<div class="cmp-chip"><span><b>${escH(cmpProv.nombre)}</b>${cmpProv.diasCredito ? ' · crédito ' + cmpProv.diasCredito + ' días' : ''}${cmpProv.saldo > 0 ? ' · le debes ' + pesos(cmpProv.saldo) : ''}</span>
+    <button class="btn-sec" style="padding:4px 9px" onclick="cmpProv=null; pintarCompra(); sugerirProveedores()">Cambiar</button></div>` : '';
+  document.getElementById('cmpProvBuscar').classList.toggle('oculto', !!cmpProv);
+  document.getElementById('cmpRecibe').innerHTML = `📍 Entra al inventario de <b>${PUNTOS[obtenerPunto()] || obtenerPunto() || '—'}</b>`;
+  const total = r2(cmpLineas.reduce((t, l) => t + lineaBaseCompra(l).subtotal, 0));
+  document.getElementById('cmpTotal').textContent = pesos(total);
+  if (sinRepintar != null) {
+    const l = cmpLineas[sinRepintar], b = lineaBaseCompra(l);
+    const card = document.querySelectorAll('#cmpLineas .cmp-linea')[sinRepintar];
+    if (card) {
+      card.querySelector('.nota').innerHTML = notaLineaCompra(l, b);
+      const imp = card.querySelector('[data-imp]'); if (document.activeElement !== imp) imp.value = b.subtotal.toFixed(2);
+      const cst = card.querySelector('[data-cst]'); if (document.activeElement !== cst) cst.value = l.costo;
+    }
+  } else {
+    document.getElementById('cmpLineas').innerHTML = cmpLineas.map((l, i) => {
+      const b = lineaBaseCompra(l), u = l.granel ? 'kg' : 'pza';
+      const uCant = l.porPres ? plural(2, l.pres.nombre.toLowerCase()) : (l.granel ? 'kg' : 'piezas');
+      return `<div class="cmp-linea">
+        <div class="top"><b>${escH(l.NOMBRE)}</b><button class="btn-sec" style="padding:3px 9px" onclick="quitarLineaCompra(${i})">✕</button></div>
+        ${l.pres ? `<label style="font-size:13px;display:flex;gap:6px;align-items:center;margin-top:6px;"><input type="checkbox" ${l.porPres ? 'checked' : ''} onchange="cambioLineaCompra(${i}, 'porPres', this.checked)">
+          Por ${escH(l.pres.nombre.toLowerCase())} (${l.pres.contenido} ${u})</label>` : ''}
+        <div class="campos">
+          <label>Cantidad (${uCant})<input type="number" min="0" step="${l.granel && !l.porPres ? '0.001' : '1'}" inputmode="decimal" value="${l.cant}" onfocus="this.select()" oninput="cambioLineaCompra(${i}, 'cant', this.value)"></label>
+          <label>Costo por ${l.porPres ? escH(l.pres.nombre.toLowerCase()) : u}<input data-cst type="number" min="0" step="0.01" inputmode="decimal" value="${l.costo}" onfocus="this.select()" oninput="cambioLineaCompra(${i}, 'costo', this.value)"></label>
+          <label>Importe<input data-imp type="number" min="0" step="0.01" inputmode="decimal" value="${b.subtotal.toFixed(2)}" onfocus="this.select()" oninput="cambioLineaCompra(${i}, 'importe', this.value)"></label>
+        </div>
+        <div class="nota">${notaLineaCompra(l, b)}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('cmpMetodos').innerHTML = METODOS_COMPRA.map(([k, t]) => `<button class="${cmpMetodo === k ? 'sel' : ''}" onclick="cmpMetodo='${k}'; pintarCompra()">${t}</button>`).join('');
+  document.getElementById('cmpCredito').classList.toggle('oculto', cmpMetodo !== 'credito');
+  if (cmpMetodo === 'credito' && !document.getElementById('cmpVence').value) {
+    const d = new Date(Date.now() + ((cmpProv && cmpProv.diasCredito) || 15) * 86400000);
+    document.getElementById('cmpVence').value = diaLocal(d);
+  }
+}
+function notaLineaCompra(l, b) {
+  const u = l.granel ? 'kg' : 'pza';
+  return `${l.porPres ? `= ${b.cantidad} ${u} · ${pesos(b.costo)}/${u} · ` : ''}` +
+    (l.costoPrevio > 0 ? `Último costo ${pesos(l.costoPrevio)}/${u} ${variacion(b.costo, l.costoPrevio)}` : '<span style="color:#aaa">Sin costo anterior</span>');
+}
+function guardarCompra() {
+  if (!cmpProv) { alert('Elige el proveedor'); return; }
+  const lineas = cmpLineas.filter(l => l.cant > 0);
+  if (!lineas.length) { alert('Agrega los productos de la compra'); return; }
+  if (lineas.some(l => !(l.costo > 0)) && !confirm('Hay productos sin costo. ¿Guardar así?')) return;
+  const total = r2(lineas.reduce((t, l) => t + lineaBaseCompra(l).subtotal, 0));
+  let anticipo = 0, metodoAnticipo = '', deCaja = cmpMetodo === 'caja';
+  if (cmpMetodo === 'credito') {
+    anticipo = r2(parseFloat(document.getElementById('cmpAnticipo').value) || 0);
+    if (anticipo > total) { alert('El anticipo no puede ser mayor que el total'); return; }
+    metodoAnticipo = document.getElementById('cmpAnticipoMetodo').value;
+    deCaja = anticipo > 0 && metodoAnticipo === 'caja';
+  }
+  if (deCaja && !turnoActual()) { pedirAbrirCaja('La compra se paga con dinero de la caja: primero ábrela.', () => document.getElementById('modalCompras').classList.add('activo')); return; }
+  const items = lineas.map(l => {
+    const b = lineaBaseCompra(l);
+    return { ID: l.ID, NOMBRE: l.NOMBRE, cantidad: b.cantidad, granel: l.granel, costo: b.costo, subtotal: b.subtotal,
+      ...(l.porPres ? { presentacion: l.pres.nombre, cantPresentacion: l.cant } : {}) };
+  });
+  const c = { folio: consumirFolio('C', 'pos_folio_compra'), dia: diaLocal(), hora: horaLocal(), punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
+    proveedorId: cmpProv.id, proveedor: cmpProv.nombre, factura: document.getElementById('cmpFactura').value.trim(),
+    notas: document.getElementById('cmpNotas').value.trim(), metodo: cmpMetodo === 'caja' ? 'efectivo' : cmpMetodo, deCaja,
+    ...(cmpMetodo === 'credito' ? { anticipo, metodoAnticipo: metodoAnticipo === 'caja' ? 'efectivo' : metodoAnticipo, vence: document.getElementById('cmpVence').value } : {}),
+    total, items, turno: turnoActual() ? turnoActual().folio : '',
+    usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true };
+  const lista = leerJSON(almacen, COMPRAS_KEY, []); lista.push(c);
+  almacen.setItem(COMPRAS_KEY, JSON.stringify(lista));
+  // inventario y costo en el teléfono (el real lo calcula Google Sheets)
+  moverStockLocal(items, 1);
+  const cambios = [];
+  items.forEach(it => {
+    const p = productos.find(x => String(x.ID) === String(it.ID));
+    if (!p || !(it.costo > 0)) return;
+    const antes = parseFloat(p.COSTO) || 0;
+    if (antes > 0 && Math.abs(it.costo - antes) / antes >= 0.005 && !cambios.some(x => x.id === it.ID)) cambios.push({ id: String(it.ID), antes, nuevo: it.costo });
+    p.COSTO = it.costo;
+  });
+  guardarCacheLocal();
+  aviso(`✅ Compra ${c.folio.split('-').pop()} guardada: ${pesos(total)}`);
+  cmpLineas = []; cmpProv = null; cmpMetodo = 'caja';
+  ['cmpFactura', 'cmpNotas', 'cmpAnticipo', 'cmpVence', 'cmpProvInput'].forEach(i => document.getElementById(i).value = '');
+  pintarCompra(); sugerirProveedores();
+  enviarPendientes().then(cargarProveedores);
+  if (cambios.length) abrirEditorPrecios(cambios.map(x => x.id), cambios);
+}
+function guardarCacheLocal() {
+  const cache = leerJSON(almacen, CACHE_KEY, null);
+  if (cache) { cache.data = productos; almacen.setItem(CACHE_KEY, JSON.stringify(cache)); }
+  renderProductos();
+}
+
+// ----- Proveedores: saldos y pagos -----
+function pintarProveedores() {
+  const q = document.getElementById('provFiltro').value.trim().toLowerCase();
+  const lista = listaProveedores().filter(p => !q || p.nombre.toLowerCase().includes(q));
+  document.getElementById('provDetalle').classList.toggle('oculto', !provSel);
+  document.getElementById('provLista').classList.toggle('oculto', !!provSel);
+  if (provSel) return pintarDetalleProveedor();
+  const deuda = r2(lista.reduce((t, p) => t + (p.saldo || 0), 0));
+  document.getElementById('provLista').innerHTML = (deuda > 0 ? `<p style="margin-bottom:8px;">Total por pagar: <b class="saldo-rojo">${pesos(deuda)}</b></p>` : '') +
+    (lista.map(p => `<div class="prov-card" onclick="provSel='${escH(p.id)}'; pintarProveedores()">
+      <div><b>${escH(p.nombre)}</b>${p.activo === false ? ' <small style="display:inline">(inactivo)</small>' : ''}<small>${[p.telefono, p.contacto, p.diasCredito ? 'crédito ' + p.diasCredito + ' días' : 'contado'].filter(Boolean).map(escH).join(' · ')}${p.local ? ' · ☁️ por subir' : ''}</small></div>
+      <div style="text-align:right">${p.saldo > 0 ? `<span class="saldo-rojo">${pesos(p.saldo)}</span>${p.vencidas ? `<small>${p.vencidas} vencida${p.vencidas > 1 ? 's' : ''}</small>` : ''}` : '<small>Sin adeudo</small>'}</div>
+    </div>`).join('') || '<p style="color:#888;text-align:center;padding:16px;">Aún no hay proveedores.</p>');
+}
+function pintarDetalleProveedor() {
+  const p = listaProveedores().find(x => x.id === provSel);
+  const cont = document.getElementById('provDetalle');
+  if (!p) { provSel = null; return pintarProveedores(); }
+  cont.innerHTML = `<button class="btn-sec" style="margin-bottom:10px" onclick="provSel=null; pintarProveedores()">← Proveedores</button>
+    <div class="caja-form">
+      <div class="campo"><label>Nombre</label><input type="text" id="pdNombre" value="${escH(p.nombre)}"></div>
+      <div class="cmp-fila" style="margin-bottom:8px;"><input type="tel" id="pdTel" value="${escH(p.telefono || '')}" placeholder="Teléfono"><input type="text" id="pdContacto" value="${escH(p.contacto || '')}" placeholder="Contacto"></div>
+      <div class="cmp-fila"><label style="font-size:12px;color:#aaa;flex:1;">Días de crédito<input type="number" id="pdDias" value="${p.diasCredito || 0}" min="0" style="width:100%;margin-top:4px;"></label>
+        <button onclick="guardarDatosProveedor('${escH(p.id)}')">💾 Guardar datos</button></div>
+    </div>
+    <h3 style="margin:8px 0;">Por pagar: <span class="${p.saldo > 0 ? 'saldo-rojo' : ''}">${pesos(p.saldo || 0)}</span></h3>
+    ${(p.pendientes || []).map(c => `<div class="mv" style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed #444;">
+      <span>${escH(c.folio.split('-').slice(-2).join('-'))} · ${fechaCorta(c.fecha)}${c.factura ? ' · fact. ' + escH(c.factura) : ''}${c.vence ? ' · vence ' + fechaCorta(c.vence) : ''}</span><b>${pesos(c.saldo)}</b></div>`).join('')}
+    ${p.saldo > 0 ? `<div class="caja-form" style="margin-top:10px;">
+      <b>💸 Registrar pago</b>
+      <div class="cmp-fila" style="margin:8px 0;"><input type="number" id="pgMonto" min="0" step="0.5" inputmode="decimal" placeholder="Monto"><select id="pgMetodo">
+        <option value="caja">Efectivo de caja</option><option value="efectivo">Efectivo (fuera de caja)</option><option value="transferencia">Transferencia</option><option value="tarjeta">Tarjeta</option></select></div>
+      <div class="cmp-fila" style="margin-bottom:8px;"><input type="text" id="pgRef" placeholder="Referencia (opcional)"><select id="pgCompra"><option value="">Aplicar a las más antiguas</option>
+        ${(p.pendientes || []).map(c => `<option value="${escH(c.folio)}">${escH(c.folio.split('-').slice(-2).join('-'))} (${pesos(c.saldo)})</option>`).join('')}</select></div>
+      <button class="btn-confirmar" style="margin-top:0" onclick="guardarPagoProveedor('${escH(p.id)}')">Registrar pago</button>
+    </div>` : ''}
+    <button class="btn-sec" style="margin-top:10px;width:100%;padding:10px;" onclick="verTabCompras('hist'); document.getElementById('histProv').value='${escH(p.id)}'; cargarHistorialCompras()">📜 Ver sus compras</button>`;
+}
+async function guardarDatosProveedor(id) {
+  try {
+    const r = await apiPost({ accion: 'actualizar_proveedor', token: sesion.token, id, nombre: document.getElementById('pdNombre').value.trim(),
+      telefono: document.getElementById('pdTel').value.trim(), contacto: document.getElementById('pdContacto').value.trim(),
+      diasCredito: parseInt(document.getElementById('pdDias').value) || 0 });
+    if (!r.success) { alert(r.error); return; }
+    await cargarProveedores();
+    aviso('✅ Datos guardados'); pintarProveedores();
+  } catch (e) { alert('📵 Se necesita internet para cambiar los datos del proveedor.'); }
+}
+function guardarPagoProveedor(id) {
+  const p = listaProveedores().find(x => x.id === id);
+  const monto = r2(parseFloat(document.getElementById('pgMonto').value) || 0);
+  if (monto <= 0) { alert('Escribe el monto del pago'); return; }
+  if (monto > p.saldo + 0.005 && !confirm(`El pago (${pesos(monto)}) es mayor que lo que se le debe (${pesos(p.saldo)}). El excedente quedará "a favor". ¿Continuar?`)) return;
+  const m = document.getElementById('pgMetodo').value;
+  if (m === 'caja' && !turnoActual()) { pedirAbrirCaja('El pago sale de la caja: primero ábrela.', () => document.getElementById('modalCompras').classList.add('activo')); return; }
+  const lista = leerJSON(almacen, PAGOS_PROV_KEY, []);
+  lista.push({ folio: consumirFolio('PP', 'pos_folio_pagoprov'), dia: diaLocal(), hora: horaLocal(), proveedorId: id, proveedor: p.nombre, monto,
+    metodo: m === 'caja' ? 'efectivo' : m, deCaja: m === 'caja', referencia: document.getElementById('pgRef').value.trim(),
+    folioCompra: document.getElementById('pgCompra').value, punto: obtenerPunto(), dispositivo: obtenerDispositivo(),
+    turno: turnoActual() ? turnoActual().folio : '', usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true });
+  almacen.setItem(PAGOS_PROV_KEY, JSON.stringify(lista));
+  aviso(`✅ Pago de ${pesos(monto)} a ${p.nombre} registrado`);
+  enviarPendientes().then(() => cargarProveedores()).then(() => pintarProveedores());
+  pintarProveedores();
+}
+
+// ----- Historial -----
+function llenarFiltroHist() {
+  const sel = document.getElementById('histProv'), v = sel.value;
+  sel.innerHTML = '<option value="">Todos los proveedores (últimos 90 días)</option>' + listaProveedores().map(p => `<option value="${escH(p.id)}">${escH(p.nombre)}</option>`).join('');
+  sel.value = v;
+}
+async function cargarHistorialCompras() {
+  const cont = document.getElementById('histLista');
+  const prov = document.getElementById('histProv').value;
+  const locales = leerJSON(almacen, COMPRAS_KEY, []).filter(c => !c.sincronizada && (!prov || c.proveedorId === prov))
+    .map(c => ({ ...c, fecha: c.dia, estado: c.metodo === 'credito' && c.total - (c.anticipo || 0) > 0 ? 'PENDIENTE' : 'PAGADA', saldo: c.metodo === 'credito' ? r2(c.total - (c.anticipo || 0)) : 0, local: true }));
+  cont.innerHTML = '<p style="color:#888;text-align:center;padding:12px;">Cargando...</p>';
+  let remotas = [];
+  try {
+    const r = await apiPost({ accion: 'historial_compras', token: sesion.token, proveedorId: prov, dias: 90 });
+    if (r.success) remotas = r.compras;
+  } catch (e) { if (!locales.length) { cont.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:12px;">📵 Se necesita internet para ver el historial.</p>'; return; } }
+  const todas = locales.concat(remotas);
+  cont.innerHTML = todas.length ? todas.map(c => `<details class="cmp-linea">
+    <summary style="cursor:pointer;display:flex;justify-content:space-between;gap:8px;"><span><b>${escH(c.proveedor)}</b> · ${fechaCorta(c.fecha)}${c.factura ? ' · fact. ' + escH(c.factura) : ''}${c.local ? ' · ☁️' : ''}</span>
+      <span><b>${pesos(c.total)}</b> ${c.estado === 'PENDIENTE' ? `<small class="saldo-rojo">debe ${pesos(c.saldo)}</small>` : '<small style="color:#2ecc71">pagada</small>'}</span></summary>
+    <div style="font-size:13px;margin-top:6px;color:#ccc;">${escH(c.folio)} · ${escH(PUNTOS[c.punto] || c.punto)} · ${escH(c.metodo)}${c.vence ? ' · vence ' + fechaCorta(c.vence) : ''}${c.usuario ? ' · ' + escH(c.usuario.nombre || c.usuario) : ''}</div>
+    <ul style="margin:6px 0 0 18px;font-size:13px;">${(c.items || []).map(it => `<li>${escH(it.NOMBRE)}: ${it.presentacion ? it.cantPresentacion || it.cajas : ''} ${it.presentacion ? escH(it.presentacion.toLowerCase()) + ' = ' : ''}${Math.round(it.cantidad * 1000) / 1000} ${it.granel ? 'kg' : 'pzas'} × ${pesos(it.costo)} = <b>${pesos(it.subtotal)}</b>${it.costoAnterior > 0 ? ' ' + variacion(it.costo, it.costoAnterior) : ''}</li>`).join('')}</ul>
+  </details>`).join('') : '<p style="color:#888;text-align:center;padding:12px;">No hay compras en este periodo.</p>';
+}
+
+// ----- Precios: editor (después de una compra o desde la pestaña Precios) -----
+let precEdit = null;   // { ids, cambiosCosto: {id: {antes, nuevo}}, lista, valores: { id: { campo: valor } } }
+function opcionesListas(sel) {
+  return `<option value="" ${!sel ? 'selected' : ''}>Precio general</option>` +
+    listasDisponibles().map(x => `<option value="${x.lista}" ${x.lista === sel ? 'selected' : ''}>Lista ${escH(nombreLista(x.lista))}</option>`).join('');
+}
+function campoLista(base, lista) { return lista ? base + '_' + lista : base; }
+function precioEfectivo(p, base, lista) {
+  const v = lista ? p[base + '_' + lista] : undefined;
+  if (v !== undefined && v !== '' && v !== null && !isNaN(parseFloat(v))) return parseFloat(v);
+  return parseFloat(p[base]) || 0;
+}
+function pintarListaPrecios() {
+  const q = document.getElementById('precFiltro').value.trim().toLowerCase();
+  const lista = document.getElementById('precListaTab').value;
+  const prods = productos.filter(p => !q || (String(p.ID) + ' ' + p.NOMBRE).toLowerCase().includes(q)).slice(0, 80);
+  document.getElementById('precLista').innerHTML = prods.map(p => {
+    const costo = parseFloat(p.COSTO) || 0, p1 = precioEfectivo(p, 'PRECIO_1', lista);
+    const mg = costo > 0 && p1 > 0 ? Math.round((p1 - costo) / p1 * 1000) / 10 : null;
+    return `<div class="prov-card" onclick="abrirEditorPrecios(['${escH(p.ID)}'])">
+      <div><b>${escH(p.NOMBRE)}</b><small>#${escH(p.ID)} · costo ${costo > 0 ? pesos(costo) : '—'}${esGranel(p) ? '/kg' : ''}</small></div>
+      <div style="text-align:right"><b>${pesos(p1)}</b>${mg != null ? `<small class="${mg < 15 ? 'saldo-rojo' : ''}">margen ${mg}%</small>` : ''}</div></div>`;
+  }).join('') || '<p style="color:#888;text-align:center;padding:12px;">Sin resultados</p>';
+}
+function abrirEditorPrecios(ids, cambiosCosto) {
+  const cc = {};
+  (cambiosCosto || []).forEach(x => { cc[x.id] = x; });
+  precEdit = { ids, cambiosCosto: cc, lista: listaPrecios(), valores: {} };
+  document.getElementById('precTitulo').textContent = cambiosCosto ? '⚠️ Cambió el costo' : '💲 Precios';
+  document.getElementById('precIntro').innerHTML = cambiosCosto
+    ? `En esta compra cambió el costo de <b>${ids.length}</b> producto${ids.length > 1 ? 's' : ''}. Revisa tus precios: el margen ya está calculado con el costo nuevo. Usa <b>"Mantener margen"</b> para subir o bajar los precios en la misma proporción.`
+    : 'Escribe el nuevo precio. Si dejas un precio de lista vacío, esa lista usa el precio general.';
+  document.getElementById('precCerrar').textContent = cambiosCosto ? 'Ahora no (cambiar después)' : 'Cancelar';
+  document.getElementById('precLista2').innerHTML = opcionesListas(precEdit.lista);
+  pintarEditorPrecios();
+  document.getElementById('modalPrecios').classList.add('activo');
+}
+function cambiarListaEditor() { precEdit.lista = document.getElementById('precLista2').value; pintarEditorPrecios(); }
+function camposPrecio(p) {
+  const c = [['PRECIO_1', 'Precio 1 (normal)'], ['PRECIO_2', 'Precio 2'], ['PRECIO_3', 'Precio 3'], ['PRECIO_4', 'Precio 4']];
+  if (presentacionDe(p)) c.push(['PRECIO_PRESENTACION', 'Precio por ' + presentacionDe(p).nombre.toLowerCase()]);
+  return c;
+}
+function margenTxt(precio, costo, contenido) {
+  const cu = costo * (contenido || 1);
+  if (!(precio > 0) || !(cu > 0)) return '';
+  const mg = Math.round((precio - cu) / precio * 1000) / 10;
+  return `<span class="mg ${mg < 15 ? 'bajo' : ''}">gana ${pesos(precio - cu)} · ${mg}%</span>`;
+}
+function pintarEditorPrecios() {
+  const L = precEdit.lista;
+  document.getElementById('precEditor').innerHTML = precEdit.ids.map(id => {
+    const p = productos.find(x => String(x.ID) === String(id));
+    if (!p) return '';
+    const cc = precEdit.cambiosCosto[id];
+    const costo = cc ? cc.nuevo : (parseFloat(p.COSTO) || 0);
+    const u = esGranel(p) ? 'kg' : 'pza';
+    const vals = precEdit.valores[id] || {};
+    const filas = camposPrecio(p).map(([base, nombre]) => {
+      const campo = campoLista(base, L);
+      const actual = precioEfectivo(p, base, L);
+      const propio = L ? (p[campo] !== undefined && p[campo] !== '' && !isNaN(parseFloat(p[campo]))) : true;
+      const v = campo in vals ? vals[campo] : '';
+      const precioVista = v !== '' ? parseFloat(v) : actual;
+      const cont = base === 'PRECIO_PRESENTACION' ? presentacionDe(p).contenido : 1;
+      return `<tr><td>${nombre}<br><small style="color:#999">${actual > 0 ? 'ahora ' + pesos(actual) + (L && !propio ? ' (general)' : '') : 'sin precio'}${cc && actual > 0 ? ' · ' + margenTxt(actual, cc.antes, cont).replace('gana', 'antes ganaba') : ''}</small></td>
+        <td><input type="number" min="0" step="0.5" inputmode="decimal" placeholder="${actual > 0 ? actual : ''}" value="${v}" oninput="valorPrecio('${escH(id)}','${campo}', this.value)"></td>
+        <td data-mg="${escH(id)}|${campo}">${margenTxt(precioVista, costo, cont)}</td></tr>`;
+    }).join('');
+    return `<div class="prec-card">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><b>${escH(p.NOMBRE)}</b>
+        ${cc ? `<button class="btn-sec" style="padding:6px 10px" onclick="mantenerMargen('${escH(id)}')">⚖️ Mantener margen</button>` : ''}</div>
+      <div style="font-size:13px;margin-top:4px;">${cc ? `Costo: ${pesos(cc.antes)} → <b>${pesos(cc.nuevo)}</b>/${u} ${variacion(cc.nuevo, cc.antes)}` : `Costo: ${costo > 0 ? pesos(costo) + '/' + u : 'sin registrar'}`}</div>
+      <table>${filas}</table></div>`;
+  }).join('');
+}
+function valorPrecio(id, campo, v) {
+  (precEdit.valores[id] = precEdit.valores[id] || {})[campo] = v;
+  const p = productos.find(x => String(x.ID) === String(id));
+  const cc = precEdit.cambiosCosto[id];
+  const costo = cc ? cc.nuevo : (parseFloat(p.COSTO) || 0);
+  const L = precEdit.lista;
+  const base = L && campo.endsWith('_' + L) ? campo.slice(0, -(L.length + 1)) : campo;
+  const cont = /^PRECIO_PRESENTACION/.test(campo) ? presentacionDe(p).contenido : 1;
+  const precio = v !== '' ? parseFloat(v) : precioEfectivo(p, base, precEdit.lista);
+  const td = document.querySelector(`[data-mg="${CSS.escape(id + '|' + campo)}"]`);
+  if (td) td.innerHTML = margenTxt(precio, costo, cont);
+}
+// Sube o baja cada precio en la misma proporción que el costo (redondeado a 50 centavos hacia arriba)
+function mantenerMargen(id) {
+  const p = productos.find(x => String(x.ID) === String(id));
+  const cc = precEdit.cambiosCosto[id];
+  if (!p || !cc) return;
+  const vals = precEdit.valores[id] = precEdit.valores[id] || {};
+  camposPrecio(p).forEach(([base]) => {
+    const actual = precioEfectivo(p, base, precEdit.lista);
+    if (actual > 0) vals[campoLista(base, precEdit.lista)] = String(Math.ceil(actual * cc.nuevo / cc.antes * 2) / 2);
+  });
+  pintarEditorPrecios();
+}
+async function guardarPrecios() {
+  const cambios = [];
+  Object.keys(precEdit.valores).forEach(id => {
+    const p = productos.find(x => String(x.ID) === String(id));
+    Object.entries(precEdit.valores[id]).forEach(([campo, v]) => {
+      if (v === '' || isNaN(parseFloat(v))) return;
+      const valor = r2(v), antes = p[campo];
+      if (parseFloat(antes) === valor) return;
+      cambios.push({ id: String(id), nombre: p.NOMBRE, campo, valor, antes: antes === undefined ? '' : antes });
+    });
+  });
+  if (!cambios.length) { cerrarEditorPrecios(); return; }
+  const aut = await requerirPermiso('EDITAR_PRECIOS', `Cambiar ${cambios.length} precio${cambios.length > 1 ? 's' : ''}`);
+  if (!aut) return;
+  const motivo = Object.keys(precEdit.cambiosCosto).length ? 'Cambio de costo en compra' : 'Ajuste de precios';
+  const cola = leerJSON(almacen, PRECIOS_KEY, []);
+  cambios.forEach(c => {
+    cola.push({ folio: consumirFolio('PC', 'pos_folio_precio'), dia: diaLocal(), hora: horaLocal(), ...c, motivo,
+      ...(aut.autorizacion ? { autorizacion: aut.autorizacion } : {}), usuario: { email: sesion.usuario.email, nombre: sesion.usuario.nombre }, pendiente: true });
+    const p = productos.find(x => String(x.ID) === c.id);
+    if (p) p[c.campo] = c.valor;
+  });
+  almacen.setItem(PRECIOS_KEY, JSON.stringify(cola));
+  guardarCacheLocal();
+  repreciarCarrito(); renderTicket();
+  aviso(`💲 ${cambios.length} precio${cambios.length > 1 ? 's' : ''} actualizado${cambios.length > 1 ? 's' : ''}`);
+  cerrarEditorPrecios();
+  enviarPendientes();
+  if (!document.getElementById('cmpPrec').classList.contains('oculto')) pintarListaPrecios();
+}
+function cerrarEditorPrecios() { cerrarModal('modalPrecios'); precEdit = null; }
+
+// ================== 🆕 PEDIDOS DEL CATÁLOGO ==================
+// Los clientes piden desde la página catalogo/. Aquí la tienda los acepta, avisa que están
+// listos y los cobra: el pedido pasa al ticket (con los precios que vio el cliente) y al cobrar
+// se mueve el inventario como en cualquier venta. El pedido queda ENTREGADO con el folio de la nota.
+let pedidosCat = [], cuentasCat = [], cuentasPend = 0, pedidoTicket = null, nuevosAntes = -1;
+const NOM_ESTADO = { NUEVO: 'Nuevo', ACEPTADO: 'Preparando', LISTO: 'Listo para recoger', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' };
+
+function pedidosDelPunto() {
+  const todos = document.getElementById('pedTodos') && document.getElementById('pedTodos').checked;
+  return pedidosCat.filter(p => todos || !obtenerPunto() || p.punto === obtenerPunto());
+}
+function pintarBotonPedidos() {
+  const b = document.getElementById('btnPedidos');
+  if (!b) return;
+  const puede = sesion && tengoPermiso('PEDIDOS');
+  b.classList.toggle('oculto', !puede);
+  if (!puede) return;
+  const nuevos = pedidosCat.filter(p => p.estado === 'NUEVO' && (!obtenerPunto() || p.punto === obtenerPunto())).length;
+  const ctas = tengoPermiso('APROBAR_CLIENTES') ? cuentasPend : 0;
+  const partes = [];
+  if (nuevos) partes.push(`${nuevos} pedido${nuevos > 1 ? 's' : ''} nuevo${nuevos > 1 ? 's' : ''}`);
+  if (ctas) partes.push(`${ctas} cuenta${ctas > 1 ? 's' : ''} por aprobar`);
+  b.textContent = '🛍️ ' + (partes.length ? partes.join(' · ') : 'Pedidos');
+  b.classList.toggle('hay', partes.length > 0);
+  document.getElementById('tabCuentas').textContent = cuentasPend ? `Cuentas (${cuentasPend})` : 'Cuentas';
+}
+async function revisarPedidos() {
+  if (!sesion || !sesion.token || !navigator.onLine || !tengoPermiso('PEDIDOS')) { pintarBotonPedidos(); return; }
+  try {
+    const r = await apiPost({ accion: 'pedidos', token: sesion.token, punto: obtenerPunto(), todos: true });
+    if (!r.success) return;
+    pedidosCat = r.pedidos || [];
+    cuentasPend = r.cuentasPendientes || 0;
+    const nuevos = pedidosCat.filter(p => p.estado === 'NUEVO' && (!obtenerPunto() || p.punto === obtenerPunto())).length;
+    if (nuevosAntes >= 0 && nuevos > nuevosAntes) aviso(`🛍️ Llegó un pedido nuevo del catálogo`);
+    nuevosAntes = nuevos;
+    pintarBotonPedidos();
+    if (document.getElementById('modalPedidos').classList.contains('activo')) pintarPedidos();
+  } catch (e) { /* sin conexión */ }
+}
+async function abrirPedidos() {
+  document.getElementById('pedTabs').classList.toggle('oculto', !tengoPermiso('APROBAR_CLIENTES'));
+  verTabPedidos('pedidos');
+  document.getElementById('modalPedidos').classList.add('activo');
+  pintarPedidos();
+  await cargarPedidos();
+}
+async function cargarPedidos() {
+  if (!pedidosCat.length) document.getElementById('pedLista').innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Cargando pedidos...</p>';
+  await enviarPendientes();
+  await revisarPedidos();
+  pintarPedidos();
+}
+function verTabPedidos(t) {
+  document.getElementById('tabPedidos').classList.toggle('sel', t === 'pedidos');
+  document.getElementById('tabCuentas').classList.toggle('sel', t === 'cuentas');
+  document.getElementById('pedVista').classList.toggle('oculto', t !== 'pedidos');
+  document.getElementById('ctaVista').classList.toggle('oculto', t !== 'cuentas');
+  if (t === 'cuentas') cargarCuentas();
+}
+function telWa(t) { t = String(t || '').replace(/\D/g, ''); return t.length === 10 ? '52' + t : t; }
+function fmtItemPedido(i) {
+  return i.presentacion ? `${textoPres(i.cajas, { nombre: i.presentacion })} (${Math.round(i.cantidad * 1000) / 1000} ${i.granel ? 'kg' : 'pzas'})`
+    : i.granel ? `${Math.round(i.cantidad * 1000) / 1000} kg` : `${i.cantidad} pzas`;
+}
+function pintarPedidos() {
+  const cont = document.getElementById('pedLista');
+  if (!navigator.onLine && !pedidosCat.length) { cont.innerHTML = '<p style="text-align:center;color:#e74c3c;padding:20px;">📵 Se necesita internet para ver los pedidos.</p>'; return; }
+  const orden = { NUEVO: 0, ACEPTADO: 1, LISTO: 2, ENTREGADO: 3, CANCELADO: 4 };
+  const lista = pedidosDelPunto().slice().sort((a, b) => (orden[a.estado] - orden[b.estado]) || (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
+  cont.innerHTML = lista.length ? lista.map(p => {
+    const activo = ['NUEVO', 'ACEPTADO', 'LISTO'].includes(p.estado);
+    const msgListo = encodeURIComponent(`Hola ${p.cliente}, tu pedido ${p.folio} de Moles Chabelita ya está listo para recoger en ${PUNTOS[p.punto] || p.punto}. Total: ${pesos(p.total)}`);
+    return `<div class="ped-card ${p.estado}">
+      <div class="cab"><b>${p.folio} · ${p.cliente}</b><span class="est ${p.estado}">${NOM_ESTADO[p.estado] || p.estado}</span></div>
+      <small>📅 ${fechaCorta(p.fecha)} ${p.hora} · 📍 ${PUNTOS[p.punto] || p.punto}${p.recoger ? ' · recoge: <b>' + p.recoger + '</b>' : ''}
+        ${p.telefono ? ' · 📱 ' + p.telefono : ''}${p.lista ? ' · precios ' + p.lista : ''}
+        ${p.notas ? '<br>📝 ' + p.notas.replace(/</g, '&lt;') : ''}${p.atendio ? '<br>Atendió: ' + p.atendio : ''}
+        ${p.notaVenta ? '<br>Nota de venta: ' + p.notaVenta : ''}${p.motivo ? '<br>Motivo: ' + p.motivo.replace(/</g, '&lt;') : ''}</small>
+      <ul>${p.items.map(i => `<li>${i.NOMBRE}: <b>${fmtItemPedido(i)}</b> — ${pesos(i.subtotal)}</li>`).join('')}</ul>
+      <div style="margin-top:6px;font-weight:800;">Total: ${pesos(p.total)}</div>
+      ${activo ? `<div class="acciones">
+        ${p.estado === 'NUEVO' ? `<button class="b-ok" onclick="cambiarEstadoPedido('${p.folio}','ACEPTADO')">✅ Aceptar</button>` : ''}
+        ${p.estado !== 'LISTO' ? `<button class="b-listo" onclick="cambiarEstadoPedido('${p.folio}','LISTO')">📦 Listo para recoger</button>` : ''}
+        ${tengoPermiso('VENDER') ? `<button class="b-cobrar" onclick="cobrarPedido('${p.folio}')">💵 Cobrar</button>` : ''}
+        ${p.telefono ? `<a class="b-wa" target="_blank" rel="noopener" href="https://wa.me/${telWa(p.telefono)}${p.estado === 'LISTO' ? '?text=' + msgListo : ''}">WhatsApp</a>` : ''}
+        <button class="b-no" onclick="cambiarEstadoPedido('${p.folio}','CANCELADO')">✕ Cancelar</button>
+      </div>` : ''}
+    </div>`;
+  }).join('') : '<p style="text-align:center;color:#888;padding:20px;">No hay pedidos por ahora 👍</p>';
+}
+async function cambiarEstadoPedido(folio, estado) {
+  let motivo = '';
+  if (estado === 'CANCELADO') {
+    motivo = prompt(`¿Por qué se cancela el pedido ${folio}? (el cliente lo verá)`, 'No tenemos el producto');
+    if (motivo === null) return;
+  }
+  try {
+    const r = await apiPost({ accion: 'actualizar_pedido', token: sesion.token, folio, estado, motivo });
+    if (!r.success) { alert(r.error); return; }
+    const p = pedidosCat.find(x => x.folio === folio);
+    if (p) { p.estado = estado; p.atendio = sesion.usuario.nombre; if (motivo) p.motivo = motivo; }
+    aviso(estado === 'LISTO' ? '📦 Marcado como listo. Puedes avisarle por WhatsApp.' : estado === 'ACEPTADO' ? '✅ Pedido aceptado' : 'Pedido cancelado');
+    pintarPedidos(); pintarBotonPedidos();
+  } catch (e) { alert('📵 Se necesita internet para cambiar el pedido.'); }
+}
+function cobrarPedido(folio) {
+  const p = pedidosCat.find(x => x.folio === folio);
+  if (!p) return;
+  if (!tengoPermiso('VENDER')) { alert('⚠️ Tu usuario no tiene permiso para vender'); return; }
+  if (modoCot) alternarCotizacion();
+  if (modo === 'vale') cambiarModo('venta');
+  if (carrito.length && !confirm('El ticket actual tiene productos. ¿Quitarlos y cobrar el pedido?')) return;
+  limpiarTicket();
+  // cliente del pedido (con su lista de precios)
+  const c = listaClientes().find(x => x.id === p.clienteId) ||
+    { id: p.clienteId, nombre: p.cliente, telefono: p.telefono, lista: (PUNTOS_INFO[obtenerPunto()] || {}).lista === p.lista ? '' : (p.lista || ''),
+      credito: false, saldo: 0, pendientes: 0, vencidas: 0 };
+  elegirCliente(c, true);
+  let faltan = 0;
+  p.items.forEach(i => {
+    const prod = productos.find(x => String(x.ID) === String(i.ID));
+    if (!prod) faltan++;
+    const linea = lineaBase(prod || { ID: i.ID, NOMBRE: i.NOMBRE, PRECIO_1: i.precio, 'GRANEL (S/N)': i.granel ? 'S' : '' }, i.cantidad);
+    linea.NOMBRE = i.NOMBRE;
+    linea.granel = !!i.granel;
+    linea.dePedido = p.folio;
+    if (i.presentacion && i.cajas) {
+      const pres = prod && presentacionDe(prod);
+      const contenido = Math.round(i.cantidad / i.cajas * 1000) / 1000;
+      linea.pres = { nombre: i.presentacion, contenido, precio: pres && pres.nombre === i.presentacion && pres.contenido === contenido ? pres.precio : 0 };
+      linea.cajas = i.cajas;
+    }
+    carrito.push(linea);
+    // Se respeta el precio que vio el cliente al pedir
+    const actual = linea.pres ? subtotalItem(linea) / linea.cajas : calcularPrecio(linea);
+    const pedido = linea.pres ? Math.round(i.subtotal / i.cajas * 100) / 100 : i.precio;
+    if (Math.abs(actual - pedido) > 0.005) fijarPrecioLinea(linea, pedido, 'Precio del pedido');
+  });
+  pedidoTicket = p.folio;
+  cerrarModal('modalPedidos');
+  renderTicket();
+  if (window.innerWidth <= 900) document.getElementById('ticketPanel').classList.add('abierto');
+  aviso(faltan ? `⚠️ ${faltan} producto(s) del pedido ya no están en la lista. Revisa el ticket.` : `🛍️ Pedido ${p.folio} en el ticket. Ajusta el peso real si hace falta y cobra.`);
+}
+function quitarPedidoTicket() {
+  if (!confirm('¿Cobrar estos productos como venta normal (sin ligarlos al pedido)?')) return;
+  carrito.forEach(it => { delete it.dePedido; });
+  pedidoTicket = null;
+  renderTicket();
+}
+
+// ----- Cuentas del catálogo -----
+async function cargarCuentas() {
+  const cont = document.getElementById('ctaLista');
+  cont.innerHTML = '<p style="text-align:center;color:#888;padding:14px;">Cargando...</p>';
+  buscarClienteAcceso();
+  try {
+    const r = await apiPost({ accion: 'cuentas_catalogo', token: sesion.token });
+    if (!r.success) throw new Error(r.error);
+    cuentasCat = r.cuentas;
+    cuentasPend = cuentasCat.length; pintarBotonPedidos();
+  } catch (e) {
+    cont.innerHTML = `<p style="text-align:center;color:#e74c3c;padding:14px;">${e.message && !/HTTP|fetch/i.test(e.message) ? e.message : '📵 Se necesita internet.'}</p>`;
+    return;
+  }
+  const opciones = l => `<option value="" ${!l ? 'selected' : ''}>Precios de la tienda donde recoge</option>` +
+    listasDisponibles().map(x => `<option value="${x.lista}" ${x.lista === l ? 'selected' : ''}>Lista ${nombreLista(x.lista)}</option>`).join('');
+  cont.innerHTML = cuentasCat.length ? '<p style="font-size:13px;color:#aaa;margin-bottom:8px;">Clientes que pidieron cuenta para hacer pedidos:</p>' + cuentasCat.map((c, k) => `
+    <div class="ped-card NUEVO">
+      <div class="cab"><b>${c.nombre.replace(/</g, '&lt;')}</b>${c.yaCliente ? '<span class="est LISTO">Ya es cliente</span>' : '<span class="est">Nuevo</span>'}</div>
+      <small>📱 ${c.telefono} · pidió el ${fechaCorta(c.solicitud)}${c.credito ? ' · tiene crédito' : ''}${c.notas ? '<br>📝 ' + c.notas.replace(/</g, '&lt;') : ''}</small>
+      <select id="ctaLista${k}" style="width:100%;padding:8px;border-radius:9px;border:none;margin-top:8px;">${opciones(c.lista)}</select>
+      <div class="acciones">
+        <button class="b-listo" onclick="resolverCuenta(${k}, true)">✅ Aprobar</button>
+        <a class="b-wa" target="_blank" rel="noopener" href="https://wa.me/${telWa(c.telefono)}">WhatsApp</a>
+        <button class="b-no" onclick="resolverCuenta(${k}, false)">Rechazar</button>
+      </div>
+    </div>`).join('') : '<p style="text-align:center;color:#888;padding:14px;">No hay solicitudes de cuenta pendientes 👍</p>';
+}
+async function resolverCuenta(k, aprobar) {
+  const c = cuentasCat[k];
+  if (!c) return;
+  if (!aprobar && !confirm(`¿Rechazar la cuenta de ${c.nombre}? No podrá hacer pedidos.`)) return;
+  const lista = document.getElementById('ctaLista' + k).value;
+  try {
+    const r = await apiPost({ accion: 'aprobar_cuenta', token: sesion.token, id: c.id, aprobar, lista });
+    if (!r.success) { alert(r.error); return; }
+    aviso(aprobar ? `✅ Cuenta de ${c.nombre} aprobada. Avísale que ya puede pedir.` : 'Solicitud rechazada');
+    cargarCuentas();
+    cargarClientes();
+  } catch (e) { alert('📵 Se necesita internet.'); }
+}
+function buscarClienteAcceso() {
+  const q = document.getElementById('ctaBuscar').value.trim().toLowerCase();
+  const lista = listaClientes().filter(c => !c.local && (!q || (c.nombre + ' ' + (c.telefono || '')).toLowerCase().includes(q))).slice(0, 50);
+  document.getElementById('ctaCliente').innerHTML = '<option value="">— Elige el cliente —</option>' +
+    lista.map(c => `<option value="${c.id}">${c.nombre.replace(/</g, '&lt;')}${c.telefono ? ' · ' + c.telefono : ''}</option>`).join('');
+}
+function elegirClienteAcceso() {
+  const c = listaClientes().find(x => x.id === document.getElementById('ctaCliente').value);
+  document.getElementById('ctaTel').value = c ? String(c.telefono || '').replace(/\D/g, '').slice(-10) : '';
+}
+async function darAccesoCatalogo() {
+  const id = document.getElementById('ctaCliente').value;
+  const tel = document.getElementById('ctaTel').value.replace(/\D/g, '');
+  const pin = document.getElementById('ctaPin').value.trim();
+  if (!id) { alert('Elige el cliente'); return; }
+  if (tel.length < 10) { alert('El teléfono debe tener 10 dígitos'); return; }
+  if (!/^\d{4,8}$/.test(pin)) { alert('El PIN debe ser de 4 a 8 números'); return; }
+  const b = document.getElementById('btnDarAcceso');
+  b.disabled = true;
+  try {
+    const r = await apiPost({ accion: 'acceso_catalogo', token: sesion.token, id, telefono: tel, pin });
+    if (!r.success) { alert(r.error); return; }
+    const c = listaClientes().find(x => x.id === id);
+    document.getElementById('ctaPin').value = '';
+    aviso(`🔑 Listo: ${c ? c.nombre : 'el cliente'} entra al catálogo con su teléfono y el PIN ${pin}`);
+    cargarClientes();
+  } catch (e) { alert('📵 Se necesita internet.'); }
+  finally { b.disabled = false; }
 }
 
 // ================== MÓDULO DE ETIQUETAS DE PRODUCCIÓN ==================
