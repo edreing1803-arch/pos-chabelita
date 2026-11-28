@@ -604,6 +604,8 @@
      Si hay dos negocios, cada app usa su tema para no confundirse. -->
 <script>
 const TEMA = 'original';
+// 🏷️ Nombre y logo del negocio (cada app puede tener el suyo). logo vacío = sin logo.
+const NEGOCIO = { nombre: 'Moles Chabelita', ticket: 'MOLES CHABELITA', logo: 'https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png' };
 (function () {
   const TEMAS = {
     original: { fondo: '#1a1a2e', panel: '#16213e', panel2: '#0f3460', acento: '#f4a261', acentoRgb: '244,162,97' },
@@ -624,7 +626,7 @@ const TEMA = 'original';
 <div class="app">
   <div class="catalogo">
     <div class="topbar">
-      <img src="https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png" alt="Logo">
+      <img class="logo-negocio" alt="Logo">
       <h1>Punto de Venta</h1>
       <button class="chip-punto" id="chipPunto" onclick="pedirPunto()">📍 ---</button>
       <button class="btn-sec btn-recibir oculto" id="btnRecibir" onclick="abrirRecepciones()">🚚 0 por recibir</button>
@@ -1277,7 +1279,7 @@ const TEMA = 'original';
 <!-- ============ LOGIN ============ -->
 <div class="login" id="pantallaLogin">
   <form class="login-box" id="formLogin" autocomplete="on">
-    <img src="https://i.postimg.cc/hGXbp32L/Moles-Chabelita-Logo-sf.png" alt="" onerror="this.style.display='none'">
+    <img class="logo-negocio" alt="" onerror="this.style.display='none'">
     <h2>Iniciar sesión</h2>
     <div class="recordados" id="usuariosRecordados"></div>
     <input type="text" id="loginUsuario" name="username" autocomplete="username"
@@ -1330,6 +1332,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwse_u-LUzUTu7Grc6jgKyu
 // un ESPACIO_DATOS distinto para que en un mismo teléfono no se mezclen sesiones, ventas ni inventario.
 // La copia original se queda con '' (así conserva todo lo que ya tiene guardado).
 const ESPACIO_DATOS = '';
+// Logo del negocio en la barra y en el inicio de sesión
+document.querySelectorAll('img.logo-negocio').forEach(img => { if (NEGOCIO.logo) img.src = NEGOCIO.logo; else img.style.display = 'none'; });
 function crearAlmacen(base) {
   const pre = ESPACIO_DATOS ? ESPACIO_DATOS + '::' : '';
   return {
@@ -1359,10 +1363,10 @@ const ABONOS_KEY = 'pos_abonos';
 const PUNTO_KEY = 'pos_punto';
 const PUNTOS_KEY = 'pos_puntos';
 const PUNTOS_INICIALES = [
-  { codigo: 'BODEGA',   nombre: 'Bodega',                  ticket: 'MOLES CHABELITA',    lista: 'SV', activo: true },
-  { codigo: 'SV',       nombre: 'Tienda San Vicente (SV)', ticket: 'MOLES CHABELITA SV', lista: 'SV', activo: true },
-  { codigo: 'SP',       nombre: 'Tienda San Pedro',        ticket: 'MOLES CHABELITA SP', lista: 'SP', activo: true },
-  { codigo: 'TIANGUIS', nombre: 'Tianguis',                ticket: 'MOLES CHABELITA',    lista: 'TIANGUIS', activo: true }
+  { codigo: 'BODEGA',   nombre: 'Bodega',                  ticket: NEGOCIO.ticket,        lista: 'SV', activo: true },
+  { codigo: 'SV',       nombre: 'Tienda San Vicente (SV)', ticket: NEGOCIO.ticket + ' SV', lista: 'SV', activo: true },
+  { codigo: 'SP',       nombre: 'Tienda San Pedro',        ticket: NEGOCIO.ticket + ' SP', lista: 'SP', activo: true },
+  { codigo: 'TIANGUIS', nombre: 'Tianguis',                ticket: NEGOCIO.ticket,        lista: 'TIANGUIS', activo: true }
 ];
 let PUNTOS = {};        // { CODIGO: nombre }  (todos, para mostrar historial)
 let PUNTOS_INFO = {};   // { CODIGO: {nombre, ticket, lista, activo} }
@@ -1390,7 +1394,7 @@ function encabezado(ctx, texto, W, y, tamPx) {
 // Encabezado de tickets / vales / comprobantes según el punto
 function nombreTicket(codigo) {
   const p = PUNTOS_INFO[codigo || obtenerPunto()];
-  return (p && p.ticket) || 'MOLES CHABELITA';
+  return (p && p.ticket) || NEGOCIO.ticket;
 }
 // Lista de precios del punto (SV, SP...). Vacía = precio general.
 function listaPrecios() {
@@ -2004,6 +2008,14 @@ function quitarPrecioManual() {
   repreciarCarrito();
 }
 
+// ✕ en cada renglón del ticket: quita el producto completo
+function quitarLinea(idx) {
+  const it = carrito[idx];
+  if (!it) return;
+  if (it === lineaRapida) lineaRapida = null;
+  carrito.splice(idx, 1);
+  renderTicket();
+}
 function cambiarCantidad(idx, delta) {
   const it = carrito[idx];
   if (!it) return;
@@ -2080,6 +2092,7 @@ function renderTicket() {
           <button class="mas" onclick="cambiarCantidad(${i},1)">+</button>
         </div>
         <div class="subtotal">$${sub.toFixed(2)}</div>
+        <button class="quitar" onclick="quitarLinea(${i})" title="Quitar del ticket">✕</button>
       </div>`;
     }
     const cantMostrar = it.granel 
@@ -2108,6 +2121,7 @@ function renderTicket() {
                onchange="aplicarImporte(${i}, this.value, true)"
                onkeydown="if(event.key==='Enter') this.blur()" /></div>`
           : `<div class="subtotal">$${sub.toFixed(2)}</div>`}
+        <button class="quitar" onclick="quitarLinea(${i})" title="Quitar del ticket">✕</button>
       </div>
     `;
   }).join('');
@@ -5432,7 +5446,7 @@ function pintarPedidos() {
   const lista = pedidosDelPunto().slice().sort((a, b) => (orden[a.estado] - orden[b.estado]) || (b.fecha + b.hora).localeCompare(a.fecha + a.hora));
   cont.innerHTML = lista.length ? lista.map(p => {
     const activo = ['NUEVO', 'ACEPTADO', 'LISTO'].includes(p.estado);
-    const msgListo = encodeURIComponent(`Hola ${p.cliente}, tu pedido ${p.folio} de Moles Chabelita ya está listo para recoger en ${PUNTOS[p.punto] || p.punto}. Total: ${pesos(p.total)}`);
+    const msgListo = encodeURIComponent(`Hola ${p.cliente}, tu pedido ${p.folio} de ${NEGOCIO.nombre} ya está listo para recoger en ${PUNTOS[p.punto] || p.punto}. Total: ${pesos(p.total)}`);
     return `<div class="ped-card ${p.estado}">
       <div class="cab"><b>${p.folio} · ${p.cliente}</b><span class="est ${p.estado}">${NOM_ESTADO[p.estado] || p.estado}</span></div>
       <small>📅 ${fechaCorta(p.fecha)} ${p.hora} · 📍 ${PUNTOS[p.punto] || p.punto}${p.recoger ? ' · recoge: <b>' + p.recoger + '</b>' : ''}

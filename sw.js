@@ -1,7 +1,7 @@
 // Service worker del POS Moles Chabelita.
 // IMPORTANTE: cada vez que subas cambios a index.html, aumenta VERSION
 // para que los teléfonos descarguen la versión nueva.
-const VERSION = 'pos-v19';
+const VERSION = 'pos-v21';
 // Cada copia de la app (carpeta distinta en el mismo sitio) usa sus propios cachés
 const PREFIJO = self.registration.scope + '::';
 const CACHE_APP = PREFIJO + VERSION;
